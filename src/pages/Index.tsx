@@ -1,16 +1,41 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Stars from "@/components/qp/Stars";
+import Navbar from "@/components/qp/Navbar";
+import Hero from "@/components/qp/Hero";
+import DimensionCards from "@/components/qp/DimensionCards";
+import SignalFeed from "@/components/qp/SignalFeed";
+import StickyNote from "@/components/qp/StickyNote";
+import Footer from "@/components/qp/Footer";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
-    </div>
+    <main className="relative min-h-screen">
+      {/* Global cosmic stars */}
+      <div className="pointer-events-none fixed inset-0 -z-10">
+        <Stars count={80} />
+        <div className="stars-bg absolute inset-0 opacity-50" />
+      </div>
+
+      <Navbar />
+      <Hero />
+      <DimensionCards />
+
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-center">
+          <SignalFeedWrap />
+          <StickyNote />
+        </div>
+      </div>
+
+      <Footer />
+    </main>
   );
 };
 
-const Index = PlaceholderIndex;
+// Wrapper so SignalFeed (which has its own container) sits inside the grid cleanly
+const SignalFeedWrap = () => (
+  <div className="-mx-4 lg:mx-0">
+    <SignalFeed />
+  </div>
+);
 
 export default Index;
