@@ -19,13 +19,31 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        void: {
+          DEFAULT: "hsl(var(--void))",
+          deep: "hsl(var(--void-deep))",
+          soft: "hsl(var(--void-soft))",
+        },
+        signal: {
+          DEFAULT: "hsl(var(--signal))",
+          dim: "hsl(var(--signal-dim))",
+        },
+        time: "hsl(var(--time))",
+        dark: "hsl(var(--dark))",
+        spaghetti: "hsl(var(--spaghetti))",
+        sticky: {
+          DEFAULT: "hsl(var(--sticky))",
+          foreground: "hsl(var(--sticky-foreground))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          glow: "hsl(var(--primary-glow))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
+          glow: "hsl(var(--secondary-glow))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -64,26 +82,39 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
-        "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+        "accordion-down": { from: { height: "0" }, to: { height: "var(--radix-accordion-content-height)" } },
+        "accordion-up": { from: { height: "var(--radix-accordion-content-height)" }, to: { height: "0" } },
+        float: {
+          "0%, 100%": { transform: "translateY(0px) rotate(-1deg)" },
+          "50%": { transform: "translateY(-14px) rotate(1deg)" },
         },
-        "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+        "float-slow": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-8px)" },
         },
+        "spin-slow": { to: { transform: "rotate(360deg)" } },
+        twinkle: { "0%, 100%": { opacity: "0.3", transform: "scale(0.9)" }, "50%": { opacity: "1", transform: "scale(1.1)" } },
+        flicker: { "0%, 100%": { opacity: "1" }, "50%": { opacity: "0.7" } },
+        wiggle: { "0%, 100%": { transform: "rotate(-3deg)" }, "50%": { transform: "rotate(3deg)" } },
+        "pulse-glow": {
+          "0%, 100%": { boxShadow: "0 0 20px hsl(var(--primary) / 0.4)" },
+          "50%": { boxShadow: "0 0 40px hsl(var(--primary) / 0.8)" },
+        },
+        "fade-up": { from: { opacity: "0", transform: "translateY(20px)" }, to: { opacity: "1", transform: "translateY(0)" } },
+        scanline: { from: { transform: "translateY(-100%)" }, to: { transform: "translateY(100%)" } },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        float: "float 6s ease-in-out infinite",
+        "float-slow": "float-slow 4s ease-in-out infinite",
+        "spin-slow": "spin-slow 40s linear infinite",
+        twinkle: "twinkle 3s ease-in-out infinite",
+        flicker: "flicker 2s ease-in-out infinite",
+        wiggle: "wiggle 0.5s ease-in-out infinite",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "fade-up": "fade-up 0.6s ease-out both",
+        scanline: "scanline 8s linear infinite",
       },
     },
   },
