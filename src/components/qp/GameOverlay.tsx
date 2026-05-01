@@ -42,7 +42,7 @@ export default function GameOverlay() {
 
   // open game on signal
   useEffect(() => {
-    return on("game:start", () => {
+    const off = on("game:start", () => {
       nickRef.current = randomNick();
       setTime(0);
       setPoints(0);

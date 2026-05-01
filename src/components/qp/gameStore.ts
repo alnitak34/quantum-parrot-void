@@ -29,15 +29,18 @@ type Events = {
 
 type Handler<K extends keyof Events> = (payload: Events[K]) => void;
 
-const listeners: { [K in keyof Events]?: Set<Handler<K>> } = {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const listeners: Record<string, Set<(p: any) => void>> = {};
 
 export function on<K extends keyof Events>(event: K, fn: Handler<K>) {
-  (listeners[event] ??= new Set() as Set<Handler<K>>).add(fn as Handler<K>);
-  return () => listeners[event]?.delete(fn as Handler<K>);
+  (listeners[event] ??= new Set()).add(fn as (p: unknown) => void);
+  return () => {
+    listeners[event]?.delete(fn as (p: unknown) => void);
+  };
 }
 
 export function emit<K extends keyof Events>(event: K, payload: Events[K]) {
-  listeners[event]?.forEach((fn) => (fn as Handler<K>)(payload));
+  listeners[event]?.forEach((fn) => fn(payload));
 }
 
 export const stamp = () => {
