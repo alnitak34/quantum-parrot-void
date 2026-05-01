@@ -102,6 +102,10 @@ export default {
         },
         "fade-up": { from: { opacity: "0", transform: "translateY(20px)" }, to: { opacity: "1", transform: "translateY(0)" } },
         scanline: { from: { transform: "translateY(-100%)" }, to: { transform: "translateY(100%)" } },
+        "pulse-soft": {
+          "0%, 100%": { opacity: "1", textShadow: "0 0 8px hsl(var(--signal) / 0.4)" },
+          "50%": { opacity: "0.85", textShadow: "0 0 16px hsl(var(--signal) / 0.8)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
