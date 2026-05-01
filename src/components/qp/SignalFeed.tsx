@@ -137,7 +137,7 @@ const SignalFeed = () => {
               <Crown className="h-5 w-5 text-primary fill-primary/40" />
             </div>
             <ol className="font-mono-x space-y-1.5">
-              {TOP.map((t) => {
+              {top.map((t) => {
                 const styles: Record<number, { row: string; user: string; score: string; bar: string }> = {
                   1: {
                     row: "text-lg py-1.5",
