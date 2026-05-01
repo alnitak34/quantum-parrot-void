@@ -51,7 +51,17 @@ const SignalFeed = () => {
 
   return (
     <section className="container mx-auto px-4 py-4" id="leaderboard">
-      <div className="panel-void sketchy-border-white p-5 md:p-6 relative overflow-hidden">
+      <div
+        className="p-5 md:p-6 relative overflow-hidden"
+        style={{
+          background: "rgba(10, 0, 20, 0.6)",
+          backdropFilter: "blur(10px)",
+          WebkitBackdropFilter: "blur(10px)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          borderRadius: "16px",
+          boxShadow: "0 0 40px rgba(255, 0, 150, 0.15)",
+        }}
+      >
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* LEFT: Tagline */}
           <div className="lg:col-span-3 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-border/50 pb-5 lg:pb-0 lg:pr-5">
