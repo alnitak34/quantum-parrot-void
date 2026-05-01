@@ -114,15 +114,50 @@ const SignalFeed = () => {
               <span className="font-graffiti text-lg text-foreground tracking-wide">TOP SIGNALS</span>
               <Crown className="h-5 w-5 text-primary fill-primary/40" />
             </div>
-            <ol className="font-mono-x text-sm space-y-1.5">
-              {TOP.map((t) => (
-                <li key={t.rank} className="flex items-center gap-2">
-                  <span className="text-foreground/70 w-5">{t.rank}.</span>
-                  <span className="text-primary">{t.user}</span>
-                  <span className="ml-auto text-foreground/90">{t.score.toLocaleString()}</span>
-                  <BarChart3 className="h-3.5 w-3.5 text-signal" />
-                </li>
-              ))}
+            <ol className="font-mono-x space-y-1.5">
+              {TOP.map((t) => {
+                const styles: Record<number, { row: string; user: string; score: string; bar: string }> = {
+                  1: {
+                    row: "text-lg py-1.5",
+                    user: "text-primary font-bold drop-shadow-[0_0_10px_hsl(var(--primary)/0.8)]",
+                    score: "text-primary font-bold tabular-nums",
+                    bar: "h-4 w-4 text-primary",
+                  },
+                  2: {
+                    row: "text-base",
+                    user: "text-foreground font-semibold",
+                    score: "text-foreground/90 tabular-nums",
+                    bar: "h-3.5 w-3.5 text-signal",
+                  },
+                  3: {
+                    row: "text-sm",
+                    user: "text-foreground/90",
+                    score: "text-foreground/80 tabular-nums",
+                    bar: "h-3.5 w-3.5 text-signal",
+                  },
+                  4: {
+                    row: "text-sm opacity-60",
+                    user: "text-foreground/70",
+                    score: "text-foreground/60 tabular-nums",
+                    bar: "h-3 w-3 text-signal/70",
+                  },
+                  5: {
+                    row: "text-sm opacity-50",
+                    user: "text-foreground/60",
+                    score: "text-foreground/50 tabular-nums",
+                    bar: "h-3 w-3 text-signal/60",
+                  },
+                };
+                const s = styles[t.rank];
+                return (
+                  <li key={t.rank} className={`flex items-center gap-3 ${s.row}`}>
+                    <span className="text-muted-foreground/70 w-6 text-right tabular-nums">{t.rank}.</span>
+                    <span className={`flex-1 truncate ${s.user}`}>{t.user}</span>
+                    <span className={`ml-auto w-20 text-right ${s.score}`}>{t.score.toLocaleString()}</span>
+                    <BarChart3 className={s.bar} />
+                  </li>
+                );
+              })}
             </ol>
             <button className="mt-4 flex items-center gap-1 font-graffiti text-primary hover:text-primary-glow transition-colors text-sm">
               VIEW FULL FEED <ArrowRight className="h-4 w-4" strokeWidth={3} />
