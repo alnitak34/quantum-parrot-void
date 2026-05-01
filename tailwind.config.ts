@@ -119,6 +119,7 @@ export default {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "fade-up": "fade-up 0.6s ease-out both",
         scanline: "scanline 8s linear infinite",
+        "pulse-soft": "pulse-soft 1.8s ease-in-out infinite",
       },
     },
   },
