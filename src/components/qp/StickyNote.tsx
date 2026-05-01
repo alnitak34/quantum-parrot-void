@@ -5,15 +5,33 @@ const StickyNote = () => {
   return (
     <motion.aside
       initial={{ opacity: 0, rotate: -10, y: 20 }}
-      whileInView={{ opacity: 1, rotate: 4, y: 0 }}
+      whileInView={{ opacity: 1, rotate: -3, y: 0 }}
       viewport={{ once: true }}
       transition={{ type: "spring", stiffness: 90 }}
-      className="relative mx-auto md:mx-0 w-[200px] bg-sticky text-sticky-foreground p-5 shadow-2xl"
+      className="relative mx-auto md:mx-0 w-[200px] bg-sticky text-sticky-foreground p-5"
       style={{
-        boxShadow: "8px 12px 30px hsl(var(--void-deep) / 0.6), inset 0 -8px 20px hsl(45 60% 60% / 0.3)",
+        boxShadow:
+          "0 18px 30px -8px hsl(var(--void-deep) / 0.85), 0 8px 14px -4px hsl(var(--void-deep) / 0.6), inset 0 -10px 24px hsl(45 60% 55% / 0.35)",
+        backgroundImage:
+          "repeating-linear-gradient(45deg, hsl(45 60% 70% / 0.18) 0 1px, transparent 1px 3px), repeating-linear-gradient(-45deg, hsl(40 50% 50% / 0.10) 0 1px, transparent 1px 4px), radial-gradient(ellipse at 30% 20%, hsl(50 80% 90% / 0.5), transparent 60%)",
       }}
     >
-      <span className="tape -top-3 left-1/2 -translate-x-1/2 -rotate-3" />
+      {/* Tape with highlight */}
+      <span
+        className="absolute -top-3 left-1/2 -translate-x-1/2 -rotate-3 w-[70px] h-[20px]"
+        style={{
+          background:
+            "linear-gradient(180deg, hsl(0 0% 100% / 0.75) 0%, hsl(0 0% 95% / 0.55) 40%, hsl(0 0% 85% / 0.45) 100%)",
+          borderLeft: "1px solid hsl(0 0% 100% / 0.4)",
+          borderRight: "1px solid hsl(0 0% 0% / 0.1)",
+          boxShadow: "0 2px 4px hsl(var(--void-deep) / 0.4)",
+        }}
+      >
+        <span
+          className="absolute top-[2px] left-2 right-4 h-[3px] rounded-full"
+          style={{ background: "hsl(0 0% 100% / 0.7)" }}
+        />
+      </span>
       <p className="font-graffiti text-lg leading-tight text-center">
         NO PLAN.<br />
         NO MERCY.<br />
