@@ -5,6 +5,7 @@ import DimensionCards from "@/components/qp/DimensionCards";
 import SignalFeed from "@/components/qp/SignalFeed";
 import StickyNote from "@/components/qp/StickyNote";
 import Footer from "@/components/qp/Footer";
+import GameOverlay from "@/components/qp/GameOverlay";
 
 const Index = () => {
   return (
