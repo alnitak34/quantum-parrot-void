@@ -80,12 +80,20 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="graffiti-title text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.9]"
+            className="graffiti-title text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[1.1]"
           >
-            <span className="text-primary">10K</span>{" "}
-            <span className="text-secondary-glow">QUANTUM</span>
+            <span className="text-primary text-[0.75em]">10K</span>{" "}
+            <span
+              className="text-secondary-glow"
+              style={{
+                textShadow:
+                  "0 0 18px hsl(var(--secondary) / 0.55), 0 0 36px hsl(var(--secondary) / 0.35)",
+              }}
+            >
+              QUANTUM
+            </span>
             <br />
-            <span className="text-foreground">PARROTS</span>
+            <span className="text-foreground/80">PARROTS</span>
             <sup className="font-mono-x text-lg ml-2 text-foreground/60">™</sup>
           </motion.h1>
 
