@@ -22,6 +22,42 @@ const Hero = () => {
           WebkitMaskImage: "radial-gradient(ellipse at 70% 40%, black 0%, transparent 75%)",
         }}
       />
+
+      {/* Cinematic darkening behind title (left side) */}
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        aria-hidden="true"
+        style={{
+          background:
+            "radial-gradient(ellipse 60% 70% at 25% 45%, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.55) 40%, transparent 75%)",
+        }}
+      />
+
+      {/* Soft purple/pink glow behind title text */}
+      <div
+        className="pointer-events-none absolute -z-10"
+        aria-hidden="true"
+        style={{
+          left: "5%",
+          top: "20%",
+          width: "55%",
+          height: "60%",
+          background:
+            "radial-gradient(ellipse at center, hsl(var(--secondary) / 0.35) 0%, hsl(var(--primary) / 0.22) 35%, transparent 70%)",
+          filter: "blur(40px)",
+        }}
+      />
+
+      {/* Vignette around edges */}
+      <div
+        className="pointer-events-none absolute inset-0 -z-10"
+        aria-hidden="true"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, transparent 50%, hsl(var(--void-deep) / 0.7) 100%)",
+          boxShadow: "inset 0 0 180px 40px hsl(var(--void-deep) / 0.9)",
+        }}
+      />
       {/* Spinning wormhole accent */}
       <div className="pointer-events-none absolute right-[-10%] top-[5%] h-[600px] w-[600px] -z-10 hidden md:block" aria-hidden="true">
         <div
