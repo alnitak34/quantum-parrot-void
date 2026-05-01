@@ -206,28 +206,30 @@ const Hero = () => {
 
           {/* Red-eye on branch - top right */}
           <motion.div
-            className="absolute right-0 top-0 z-10"
+            className="absolute right-0 top-0 z-10 bg-transparent p-0"
             animate={{ y: [0, -8, 0], rotate: [0, 2, 0] }}
             transition={{ duration: 6, repeat: Infinity, delay: 1 }}
           >
+            {/* Subtle pink/purple glow behind */}
             <div
               className="pointer-events-none absolute inset-0 -z-10 rounded-full"
               aria-hidden="true"
               style={{
                 background:
-                  "radial-gradient(circle, hsl(var(--secondary) / 0.4) 0%, transparent 65%)",
-                filter: "blur(28px)",
-                transform: "scale(1.2)",
+                  "radial-gradient(circle, hsl(var(--secondary) / 0.55) 0%, hsl(var(--primary) / 0.35) 40%, transparent 70%)",
+                filter: "blur(34px)",
+                transform: "scale(1.35)",
               }}
             />
             <img
               src={redeye}
               alt=""
               loading="lazy"
-              className="w-[140px] sm:w-[170px] lg:w-[200px]"
+              className="w-[140px] sm:w-[170px] lg:w-[200px] object-contain bg-transparent"
               style={{
+                mixBlendMode: "screen",
                 filter:
-                  "drop-shadow(0 8px 18px hsl(var(--void-deep) / 0.8)) drop-shadow(0 0 20px hsl(var(--secondary) / 0.5))",
+                  "drop-shadow(0 8px 18px hsl(var(--void-deep) / 0.7)) drop-shadow(0 0 22px hsl(var(--secondary) / 0.55)) drop-shadow(0 0 40px hsl(var(--primary) / 0.35))",
               }}
             />
           </motion.div>
