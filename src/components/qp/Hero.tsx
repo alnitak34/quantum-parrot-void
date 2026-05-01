@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
 import wizard from "@/assets/parrot-wizard.png";
 import hearts from "@/assets/parrot-hearts.png";
-import redeye from "@/assets/parrot-redeye.png";
+import redeye from "@/assets/parrot-control.png";
 import bat from "@/assets/parrot-bat.png";
 import bad from "@/assets/parrot-bad.png";
 import cosmic from "@/assets/cosmic-bg.jpg";
