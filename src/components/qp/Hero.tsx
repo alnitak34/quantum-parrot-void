@@ -222,15 +222,15 @@ const Hero = () => {
               }}
             />
 
-            {/* Sticker */}
+            {/* Sticker — borderless, floating */}
             <div
-              className="relative overflow-hidden rounded-full w-[140px] h-[140px] sm:w-[170px] sm:h-[170px] lg:w-[200px] lg:h-[200px]"
+              className="relative overflow-hidden rounded-full w-[112px] h-[112px] sm:w-[136px] sm:h-[136px] lg:w-[160px] lg:h-[160px]"
               style={{
                 background:
                   "radial-gradient(circle at 50% 45%, hsl(280 60% 22%) 0%, hsl(270 70% 12%) 45%, hsl(260 80% 5%) 100%)",
-                border: "4px solid hsl(var(--foreground))",
                 boxShadow:
-                  "0 0 0 2px hsl(var(--void-deep)), 0 10px 24px hsl(var(--void-deep) / 0.85), 0 0 36px hsl(var(--secondary) / 0.55), inset 0 0 30px hsl(var(--void-deep) / 0.7)",
+                  "0 0 28px hsl(var(--secondary) / 0.55), 0 0 60px hsl(var(--secondary) / 0.3), 0 8px 22px hsl(var(--void-deep) / 0.7), inset 0 0 28px hsl(var(--void-deep) / 0.7)",
+                filter: "blur(0.6px)",
               }}
             >
               {/* Inner glow behind parrot */}
@@ -269,13 +269,13 @@ const Hero = () => {
                 }}
               />
 
-              {/* Inner vignette to hide edge artifacts */}
+              {/* Soft inner vignette — feathered edge */}
               <div
                 className="pointer-events-none absolute inset-0 rounded-full"
                 aria-hidden="true"
                 style={{
                   boxShadow:
-                    "inset 0 0 40px 10px hsl(260 80% 5% / 0.95), inset 0 0 18px 2px hsl(270 70% 10% / 0.9)",
+                    "inset 0 0 30px 12px hsl(260 80% 5% / 0.85), inset 0 0 14px 4px hsl(270 70% 10% / 0.7)",
                 }}
               />
             </div>
