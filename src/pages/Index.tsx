@@ -28,6 +28,7 @@ const Index = () => {
       </div>
 
       <Footer />
+      <GameOverlay />
     </main>
   );
 };
