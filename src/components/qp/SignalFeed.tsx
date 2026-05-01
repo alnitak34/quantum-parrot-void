@@ -93,11 +93,11 @@ const SignalFeed = () => {
                     animate={{ opacity: 1 - i * 0.15, x: 0, height: "auto" }}
                     exit={{ opacity: 0, x: 10 }}
                     transition={{ duration: 0.4 }}
-                    className="flex items-center gap-2 flex-wrap"
+                    className={`flex items-center gap-2 flex-wrap px-2 py-1 -mx-2 rounded-md transition-all duration-200 hover:bg-secondary/10 hover:shadow-[0_0_18px_hsl(var(--secondary)/0.35)] ${i === 0 ? "animate-pulse-soft" : ""}`}
                   >
-                    <span className="signal-line">[{s.time}]</span>
-                    <span className="signal-line">{s.user}</span>
-                    <span className="text-foreground/80">{s.action}</span>
+                    <span className="text-muted-foreground/70">[{s.time}]</span>
+                    <span className="signal-line font-bold">{s.user}</span>
+                    <span className="text-foreground/70">{s.action}</span>
                     <span className="ml-auto flex items-center gap-1 text-foreground/70">
                       <Skull className="h-3.5 w-3.5" /> +{s.points}
                       <BarChart3 className="h-3.5 w-3.5 text-signal" />
