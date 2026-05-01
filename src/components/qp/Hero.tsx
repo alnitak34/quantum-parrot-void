@@ -129,56 +129,183 @@ const Hero = () => {
 
         {/* RIGHT: Parrot squad */}
         <div className="relative h-[420px] sm:h-[500px] lg:h-[600px]">
+          {/* Ambient scene glow tying characters to background */}
+          <div
+            className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            aria-hidden="true"
+            style={{
+              background:
+                "radial-gradient(circle, hsl(var(--secondary) / 0.45) 0%, hsl(var(--primary) / 0.25) 35%, transparent 70%)",
+              filter: "blur(50px)",
+            }}
+          />
+
           {/* Wizard (main) */}
-          <motion.img
-            src={wizard}
-            alt="Quantum Parrot wizard"
-            loading="eager"
-            className="absolute left-1/2 top-1/2 w-[280px] sm:w-[340px] lg:w-[420px] -translate-x-1/2 -translate-y-1/2 drop-shadow-glow z-20"
+          <motion.div
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20"
             animate={{ y: [0, -16, 0], rotate: [-1, 1, -1] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-          />
+          >
+            <div
+              className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] rounded-full -z-10"
+              aria-hidden="true"
+              style={{
+                background:
+                  "radial-gradient(circle, hsl(var(--primary) / 0.55) 0%, hsl(var(--secondary) / 0.3) 40%, transparent 70%)",
+                filter: "blur(35px)",
+              }}
+            />
+            <img
+              src={wizard}
+              alt="Quantum Parrot wizard"
+              loading="eager"
+              className="w-[280px] sm:w-[340px] lg:w-[420px]"
+              style={{
+                filter:
+                  "drop-shadow(0 14px 26px hsl(var(--void-deep) / 0.85)) drop-shadow(0 0 30px hsl(var(--primary) / 0.55)) drop-shadow(0 0 60px hsl(var(--secondary) / 0.35))",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-[-10px] w-[70%] h-5 rounded-[50%]"
+              aria-hidden="true"
+              style={{
+                background:
+                  "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.8) 0%, transparent 70%)",
+                filter: "blur(8px)",
+              }}
+            />
+          </motion.div>
 
           {/* Hearts parrot - left */}
-          <motion.img
-            src={hearts}
-            alt=""
-            loading="lazy"
-            className="absolute left-0 top-[35%] w-[110px] sm:w-[130px] lg:w-[160px] z-10"
+          <motion.div
+            className="absolute left-0 top-[35%] z-10"
             animate={{ y: [0, -10, 0] }}
             transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-          />
+          >
+            <div
+              className="pointer-events-none absolute inset-0 -z-10 rounded-full"
+              aria-hidden="true"
+              style={{
+                background:
+                  "radial-gradient(circle, hsl(var(--primary) / 0.4) 0%, transparent 65%)",
+                filter: "blur(25px)",
+                transform: "scale(1.2)",
+              }}
+            />
+            <img
+              src={hearts}
+              alt=""
+              loading="lazy"
+              className="w-[110px] sm:w-[130px] lg:w-[160px]"
+              style={{
+                filter:
+                  "drop-shadow(0 8px 16px hsl(var(--void-deep) / 0.8)) drop-shadow(0 0 18px hsl(var(--primary) / 0.45))",
+              }}
+            />
+          </motion.div>
 
           {/* Red-eye on branch - top right */}
-          <motion.img
-            src={redeye}
-            alt=""
-            loading="lazy"
-            className="absolute right-0 top-0 w-[140px] sm:w-[170px] lg:w-[200px] z-10"
+          <motion.div
+            className="absolute right-0 top-0 z-10"
             animate={{ y: [0, -8, 0], rotate: [0, 2, 0] }}
             transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-          />
+          >
+            <div
+              className="pointer-events-none absolute inset-0 -z-10 rounded-full"
+              aria-hidden="true"
+              style={{
+                background:
+                  "radial-gradient(circle, hsl(var(--secondary) / 0.4) 0%, transparent 65%)",
+                filter: "blur(28px)",
+                transform: "scale(1.2)",
+              }}
+            />
+            <img
+              src={redeye}
+              alt=""
+              loading="lazy"
+              className="w-[140px] sm:w-[170px] lg:w-[200px]"
+              style={{
+                filter:
+                  "drop-shadow(0 8px 18px hsl(var(--void-deep) / 0.8)) drop-shadow(0 0 20px hsl(var(--secondary) / 0.5))",
+              }}
+            />
+          </motion.div>
 
           {/* Bat parrot - right bottom */}
-          <motion.img
-            src={bat}
-            alt=""
-            loading="lazy"
-            className="absolute right-2 bottom-4 w-[120px] sm:w-[150px] lg:w-[180px] z-10"
+          <motion.div
+            className="absolute right-2 bottom-4 z-10"
             animate={{ y: [0, -12, 0], rotate: [-2, 2, -2] }}
             transition={{ duration: 5, repeat: Infinity, delay: 1.5 }}
-          />
+          >
+            <div
+              className="pointer-events-none absolute inset-0 -z-10 rounded-full"
+              aria-hidden="true"
+              style={{
+                background:
+                  "radial-gradient(circle, hsl(var(--secondary) / 0.45) 0%, transparent 65%)",
+                filter: "blur(28px)",
+                transform: "scale(1.25)",
+              }}
+            />
+            <img
+              src={bat}
+              alt=""
+              loading="lazy"
+              className="w-[120px] sm:w-[150px] lg:w-[180px]"
+              style={{
+                filter:
+                  "drop-shadow(0 10px 18px hsl(var(--void-deep) / 0.85)) drop-shadow(0 0 22px hsl(var(--secondary) / 0.5))",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute left-1/2 -translate-x-1/2 -bottom-2 w-[70%] h-3 rounded-[50%]"
+              aria-hidden="true"
+              style={{
+                background:
+                  "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.7) 0%, transparent 70%)",
+                filter: "blur(6px)",
+              }}
+            />
+          </motion.div>
 
           {/* "im bad" parrot - bottom */}
           <div className="absolute bottom-0 left-[40%] z-10 hidden sm:block">
-            <motion.img
-              src={bad}
-              alt=""
-              loading="lazy"
-              className="w-[100px] sm:w-[120px] lg:w-[140px]"
+            <motion.div
               animate={{ y: [0, -6, 0] }}
               transition={{ duration: 3.5, repeat: Infinity, delay: 0.8 }}
-            />
+              className="relative"
+            >
+              <div
+                className="pointer-events-none absolute inset-0 -z-10 rounded-full"
+                aria-hidden="true"
+                style={{
+                  background:
+                    "radial-gradient(circle, hsl(var(--primary) / 0.4) 0%, transparent 65%)",
+                  filter: "blur(22px)",
+                  transform: "scale(1.2)",
+                }}
+              />
+              <img
+                src={bad}
+                alt=""
+                loading="lazy"
+                className="w-[100px] sm:w-[120px] lg:w-[140px]"
+                style={{
+                  filter:
+                    "drop-shadow(0 8px 14px hsl(var(--void-deep) / 0.8)) drop-shadow(0 0 18px hsl(var(--primary) / 0.45))",
+                }}
+              />
+              <div
+                className="pointer-events-none absolute left-1/2 -translate-x-1/2 -bottom-1 w-[75%] h-3 rounded-[50%]"
+                aria-hidden="true"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.75) 0%, transparent 70%)",
+                  filter: "blur(6px)",
+                }}
+              />
+            </motion.div>
             <span className="font-handwritten block text-center text-foreground/70 text-lg -mt-2">im bad.</span>
           </div>
         </div>
