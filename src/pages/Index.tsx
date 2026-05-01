@@ -19,7 +19,7 @@ const Index = () => {
       <Hero />
       <DimensionCards />
 
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-center">
           <SignalFeedWrap />
           <StickyNote />
@@ -33,7 +33,7 @@ const Index = () => {
 
 // Wrapper so SignalFeed (which has its own container) sits inside the grid cleanly
 const SignalFeedWrap = () => (
-  <div className="-mx-4 lg:mx-0">
+  <div className="w-full">
     <SignalFeed />
   </div>
 );
