@@ -13,6 +13,7 @@ interface Dim {
   quoteColor: string;
   img: string;
   alt: string;
+  glow: string; // hsl token name for glow color
 }
 
 const dims: Dim[] = [
@@ -31,6 +32,7 @@ const dims: Dim[] = [
     quoteColor: "text-time",
     img: clock,
     alt: "Melting clock",
+    glow: "var(--time)",
   },
   {
     n: 2,
@@ -48,6 +50,7 @@ const dims: Dim[] = [
     quoteColor: "text-foreground/80",
     img: darkmatter,
     alt: "Dark matter shadow",
+    glow: "0 0% 95%",
   },
   {
     n: 3,
@@ -64,6 +67,7 @@ const dims: Dim[] = [
     quoteColor: "text-spaghetti",
     img: spaghetti,
     alt: "Spaghettified parrot",
+    glow: "var(--spaghetti)",
   },
 ];
 
