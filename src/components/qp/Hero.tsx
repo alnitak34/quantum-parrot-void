@@ -9,7 +9,7 @@ import cosmic from "@/assets/cosmic-bg.jpg";
 
 const Hero = () => {
   return (
-    <section className="relative overflow-hidden pb-12 pt-4 md:pt-8">
+    <section className="relative overflow-hidden py-6 md:py-8">
       {/* Wormhole background */}
       <div
         className="pointer-events-none absolute inset-0 -z-10 opacity-70"

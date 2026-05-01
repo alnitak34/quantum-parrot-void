@@ -73,8 +73,8 @@ const dims: Dim[] = [
 
 const DimensionCards = () => {
   return (
-    <section className="container mx-auto px-4 py-8 md:py-12" id="game">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+    <section className="container mx-auto px-4 py-6" id="game">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {dims.map((d, i) => (
           <motion.article
             key={d.n}

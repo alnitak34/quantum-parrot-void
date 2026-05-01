@@ -50,9 +50,9 @@ const SignalFeed = () => {
   }, []);
 
   return (
-    <section className="container mx-auto px-4 py-4" id="leaderboard">
+    <section className="container mx-auto px-4 py-6" id="leaderboard">
       <div
-        className="p-5 md:p-6 relative overflow-hidden"
+        className="p-4 md:p-6 relative overflow-hidden"
         style={{
           background: "rgba(10, 0, 20, 0.6)",
           backdropFilter: "blur(10px)",
