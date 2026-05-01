@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
+import { emit } from "./gameStore";
 import wizard from "@/assets/parrot-wizard.png";
 import hearts from "@/assets/parrot-hearts.png";
 import redeye from "@/assets/parrot-control.png";
@@ -129,7 +130,10 @@ const Hero = () => {
             transition={{ delay: 0.6 }}
             className="mt-10 flex items-center gap-6 flex-wrap"
           >
-            <button className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl">
+            <button
+              onClick={() => emit("game:start", undefined)}
+              className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
+            >
               ENTER THE VOID
               <ArrowRight className="h-7 w-7" strokeWidth={3} />
             </button>

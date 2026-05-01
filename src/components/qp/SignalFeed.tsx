@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Skull, Zap, Crown, BarChart3, ArrowRight } from "lucide-react";
+import { on } from "./gameStore";
 
 interface Signal {
   time: string;
@@ -38,6 +39,7 @@ const SignalFeed = () => {
   const [feed, setFeed] = useState<Signal[]>(() =>
     POOL.slice(0, 4).map((s) => ({ ...s, time: stamp() }))
   );
+  const [top, setTop] = useState(TOP);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -47,6 +49,26 @@ const SignalFeed = () => {
       });
     }, 3000);
     return () => clearInterval(id);
+  }, []);
+
+  // Listen to live game events
+  useEffect(() => {
+    const offFeed = on("feed:push", (s) => {
+      setFeed((prev) => [{ time: s.time, user: s.user, action: s.action, points: s.points }, ...prev].slice(0, 4));
+    });
+    const offTop = on("top:push", (entry) => {
+      setTop((prev) => {
+        const merged = [...prev, { rank: 0, ...entry }]
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5)
+          .map((t, i) => ({ ...t, rank: i + 1 }));
+        return merged;
+      });
+    });
+    return () => {
+      offFeed();
+      offTop();
+    };
   }, []);
 
   return (
@@ -115,7 +137,7 @@ const SignalFeed = () => {
               <Crown className="h-5 w-5 text-primary fill-primary/40" />
             </div>
             <ol className="font-mono-x space-y-1.5">
-              {TOP.map((t) => {
+              {top.map((t) => {
                 const styles: Record<number, { row: string; user: string; score: string; bar: string }> = {
                   1: {
                     row: "text-lg py-1.5",
