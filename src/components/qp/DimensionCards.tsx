@@ -78,19 +78,22 @@ const DimensionCards = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: i * 0.15, duration: 0.6 }}
-            className={`panel-void ${d.border} relative p-5 md:p-6 overflow-hidden group`}
+            className={`panel-void ${d.border} relative overflow-hidden group flex flex-col h-[340px]`}
+            style={{ padding: "24px", gap: "14px" }}
           >
-            <div className="flex items-start gap-3">
+            {/* Top row: badge + title */}
+            <div className="flex items-center gap-3">
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-graffiti text-lg ${d.numColor}`}>
                 {d.n}
               </div>
-              <h3 className="font-graffiti text-2xl md:text-[1.7rem] text-foreground leading-tight pt-1">
+              <h3 className="font-graffiti text-xl md:text-2xl text-foreground leading-tight">
                 {d.title}
               </h3>
             </div>
 
-            <div className="mt-4 flex gap-3">
-              <div className="flex-1 font-mono-x text-[0.95rem] text-foreground/85 leading-relaxed">
+            {/* Middle: description + image right */}
+            <div className="flex gap-3 flex-1 min-h-0">
+              <div className="flex-1 font-mono-x text-sm text-foreground/85 leading-relaxed">
                 {d.body.map((line, j) => (
                   <p key={j}>{line}</p>
                 ))}
@@ -99,13 +102,14 @@ const DimensionCards = () => {
                 src={d.img}
                 alt={d.alt}
                 loading="lazy"
-                className="w-24 h-24 md:w-28 md:h-28 object-contain shrink-0 self-end"
+                className="w-20 h-20 md:w-24 md:h-24 object-contain shrink-0 self-center"
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 3 + i, repeat: Infinity, ease: "easeInOut" }}
               />
             </div>
 
-            <pre className={`mt-4 font-mono-x text-sm whitespace-pre-wrap ${d.quoteColor}`}>
+            {/* Bottom: sarcasm */}
+            <pre className={`font-mono-x text-xs md:text-sm whitespace-pre-wrap mt-auto ${d.quoteColor}`}>
               {d.quote}
             </pre>
           </motion.article>
