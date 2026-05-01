@@ -48,14 +48,29 @@ const Hero = () => {
         }}
       />
 
-      {/* Vignette around edges */}
+      {/* Vignette around edges (stronger) */}
       <div
         className="pointer-events-none absolute inset-0 -z-10"
         aria-hidden="true"
         style={{
           background:
-            "radial-gradient(ellipse at center, transparent 50%, hsl(var(--void-deep) / 0.7) 100%)",
-          boxShadow: "inset 0 0 180px 40px hsl(var(--void-deep) / 0.9)",
+            "radial-gradient(ellipse at center, transparent 42%, hsl(var(--void-deep) / 0.55) 75%, hsl(var(--void-deep) / 0.95) 100%)",
+          boxShadow: "inset 0 0 220px 60px hsl(var(--void-deep) / 0.95)",
+        }}
+      />
+
+      {/* Vortex center contrast boost */}
+      <div
+        className="pointer-events-none absolute -z-10 hidden md:block"
+        aria-hidden="true"
+        style={{
+          right: "-5%",
+          top: "0%",
+          width: "55%",
+          height: "70%",
+          background:
+            "radial-gradient(circle at center, hsl(var(--secondary) / 0.35) 0%, hsl(var(--primary) / 0.18) 25%, transparent 55%)",
+          filter: "blur(20px)",
         }}
       />
       {/* Spinning wormhole accent */}
