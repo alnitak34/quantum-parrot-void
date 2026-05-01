@@ -50,7 +50,7 @@ const SignalFeed = () => {
   }, []);
 
   return (
-    <section className="container mx-auto px-4 py-6" id="leaderboard">
+    <section className="w-full" id="leaderboard">
       <div
         className="p-4 md:p-6 relative overflow-hidden"
         style={{

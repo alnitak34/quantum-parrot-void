@@ -33,7 +33,7 @@ const Index = () => {
 
 // Wrapper so SignalFeed (which has its own container) sits inside the grid cleanly
 const SignalFeedWrap = () => (
-  <div className="-mx-4 lg:mx-0 [&>section]:py-0 [&>section]:px-0 lg:[&>section]:px-0">
+  <div className="w-full">
     <SignalFeed />
   </div>
 );
