@@ -97,19 +97,19 @@ const Hero = () => {
             transition={{ duration: 0.8 }}
             className="graffiti-title text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[1.1]"
           >
-            <span className="text-primary text-[0.75em]">10K</span>{" "}
+            <span className="text-primary text-[0.7em] align-middle">10K</span>{" "}
             <span
               className="text-secondary-glow"
               style={{
                 textShadow:
-                  "0 0 18px hsl(var(--secondary) / 0.55), 0 0 36px hsl(var(--secondary) / 0.35)",
+                  "0 0 22px hsl(var(--secondary) / 0.7), 0 0 44px hsl(var(--secondary) / 0.45), 0 0 80px hsl(var(--primary) / 0.25)",
               }}
             >
               QUANTUM
             </span>
             <br />
-            <span className="text-foreground/80">PARROTS</span>
-            <sup className="font-mono-x text-lg ml-2 text-foreground/60">™</sup>
+            <span className="text-foreground/75">PARROTS</span>
+            <sup className="font-mono-x text-lg ml-2 text-foreground/55">™</sup>
           </motion.h1>
 
           <motion.p
@@ -245,15 +245,19 @@ const Hero = () => {
               }}
             />
 
-            {/* Sticker — borderless, floating */}
+            {/* Sticker — borderless, floating, soft-edged */}
             <div
               className="relative overflow-hidden rounded-full w-[112px] h-[112px] sm:w-[136px] sm:h-[136px] lg:w-[160px] lg:h-[160px]"
               style={{
                 background:
-                  "radial-gradient(circle at 50% 45%, hsl(280 60% 22%) 0%, hsl(270 70% 12%) 45%, hsl(260 80% 5%) 100%)",
+                  "radial-gradient(circle at 50% 45%, hsl(280 60% 20%) 0%, hsl(270 70% 10%) 50%, hsl(260 80% 4%) 100%)",
                 boxShadow:
-                  "0 0 28px hsl(var(--secondary) / 0.55), 0 0 60px hsl(var(--secondary) / 0.3), 0 8px 22px hsl(var(--void-deep) / 0.7), inset 0 0 28px hsl(var(--void-deep) / 0.7)",
-                filter: "blur(0.6px)",
+                  "0 0 34px hsl(var(--secondary) / 0.6), 0 0 80px hsl(var(--secondary) / 0.3), 0 8px 22px hsl(var(--void-deep) / 0.7)",
+                filter: "blur(0.4px)",
+                maskImage:
+                  "radial-gradient(circle at center, black 58%, rgba(0,0,0,0.85) 78%, transparent 100%)",
+                WebkitMaskImage:
+                  "radial-gradient(circle at center, black 58%, rgba(0,0,0,0.85) 78%, transparent 100%)",
               }}
             >
               {/* Inner glow behind parrot */}
@@ -283,7 +287,7 @@ const Hero = () => {
 
               {/* Grain / noise overlay to blend edges */}
               <div
-                className="pointer-events-none absolute inset-0 opacity-[0.22] mix-blend-overlay"
+                className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-overlay"
                 aria-hidden="true"
                 style={{
                   backgroundImage:
@@ -292,13 +296,13 @@ const Hero = () => {
                 }}
               />
 
-              {/* Soft inner vignette — feathered edge */}
+              {/* Very soft inner feather (no hard ring) */}
               <div
                 className="pointer-events-none absolute inset-0 rounded-full"
                 aria-hidden="true"
                 style={{
                   boxShadow:
-                    "inset 0 0 30px 12px hsl(260 80% 5% / 0.85), inset 0 0 14px 4px hsl(270 70% 10% / 0.7)",
+                    "inset 0 0 22px 6px hsl(260 80% 5% / 0.55)",
                 }}
               />
             </div>
