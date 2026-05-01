@@ -39,6 +39,7 @@ const SignalFeed = () => {
   const [feed, setFeed] = useState<Signal[]>(() =>
     POOL.slice(0, 4).map((s) => ({ ...s, time: stamp() }))
   );
+  const [top, setTop] = useState(TOP);
 
   useEffect(() => {
     const id = setInterval(() => {
@@ -48,6 +49,26 @@ const SignalFeed = () => {
       });
     }, 3000);
     return () => clearInterval(id);
+  }, []);
+
+  // Listen to live game events
+  useEffect(() => {
+    const offFeed = on("feed:push", (s) => {
+      setFeed((prev) => [{ time: s.time, user: s.user, action: s.action, points: s.points }, ...prev].slice(0, 4));
+    });
+    const offTop = on("top:push", (entry) => {
+      setTop((prev) => {
+        const merged = [...prev, { rank: 0, ...entry }]
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5)
+          .map((t, i) => ({ ...t, rank: i + 1 }));
+        return merged;
+      });
+    });
+    return () => {
+      offFeed();
+      offTop();
+    };
   }, []);
 
   return (
