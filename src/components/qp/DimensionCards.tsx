@@ -45,7 +45,7 @@ const dims: Dim[] = [
       "It's patient.",
     ],
     quote: "> You can't see it.\n  It's still there.\n  Like your exit liquidity.",
-    quoteColor: "text-muted-foreground",
+    quoteColor: "text-foreground/80",
     img: darkmatter,
     alt: "Dark matter shadow",
   },
