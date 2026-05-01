@@ -204,34 +204,81 @@ const Hero = () => {
             />
           </motion.div>
 
-          {/* Red-eye on branch - top right */}
+          {/* Red-eye on branch - top right (dark sticker) */}
           <motion.div
-            className="absolute right-0 top-0 z-10 bg-transparent p-0"
+            className="absolute right-0 top-0 z-10"
             animate={{ y: [0, -8, 0], rotate: [0, 2, 0] }}
             transition={{ duration: 6, repeat: Infinity, delay: 1 }}
           >
-            {/* Subtle pink/purple glow behind */}
+            {/* Outer pink/purple aura behind sticker */}
             <div
               className="pointer-events-none absolute inset-0 -z-10 rounded-full"
               aria-hidden="true"
               style={{
                 background:
-                  "radial-gradient(circle, hsl(var(--secondary) / 0.55) 0%, hsl(var(--primary) / 0.35) 40%, transparent 70%)",
-                filter: "blur(34px)",
-                transform: "scale(1.35)",
+                  "radial-gradient(circle, hsl(var(--secondary) / 0.6) 0%, hsl(var(--primary) / 0.4) 40%, transparent 72%)",
+                filter: "blur(38px)",
+                transform: "scale(1.45)",
               }}
             />
-            <img
-              src={redeye}
-              alt=""
-              loading="lazy"
-              className="w-[140px] sm:w-[170px] lg:w-[200px] object-contain bg-transparent"
+
+            {/* Sticker */}
+            <div
+              className="relative overflow-hidden rounded-full w-[140px] h-[140px] sm:w-[170px] sm:h-[170px] lg:w-[200px] lg:h-[200px]"
               style={{
-                mixBlendMode: "screen",
-                filter:
-                  "drop-shadow(0 8px 18px hsl(var(--void-deep) / 0.7)) drop-shadow(0 0 22px hsl(var(--secondary) / 0.55)) drop-shadow(0 0 40px hsl(var(--primary) / 0.35))",
+                background:
+                  "radial-gradient(circle at 50% 45%, hsl(280 60% 22%) 0%, hsl(270 70% 12%) 45%, hsl(260 80% 5%) 100%)",
+                border: "4px solid hsl(var(--foreground))",
+                boxShadow:
+                  "0 0 0 2px hsl(var(--void-deep)), 0 10px 24px hsl(var(--void-deep) / 0.85), 0 0 36px hsl(var(--secondary) / 0.55), inset 0 0 30px hsl(var(--void-deep) / 0.7)",
               }}
-            />
+            >
+              {/* Inner glow behind parrot */}
+              <div
+                className="pointer-events-none absolute inset-0"
+                aria-hidden="true"
+                style={{
+                  background:
+                    "radial-gradient(circle at 50% 55%, hsl(var(--secondary) / 0.55) 0%, hsl(var(--primary) / 0.3) 35%, transparent 70%)",
+                  filter: "blur(14px)",
+                }}
+              />
+
+              {/* Parrot — tightly cropped, scaled to hide edges */}
+              <img
+                src={redeye}
+                alt=""
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover"
+                style={{
+                  transform: "scale(1.35)",
+                  mixBlendMode: "screen",
+                  filter:
+                    "drop-shadow(0 6px 14px hsl(var(--void-deep) / 0.8)) drop-shadow(0 0 18px hsl(var(--secondary) / 0.6))",
+                }}
+              />
+
+              {/* Grain / noise overlay to blend edges */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.22] mix-blend-overlay"
+                aria-hidden="true"
+                style={{
+                  backgroundImage:
+                    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
+                  backgroundSize: "160px 160px",
+                }}
+              />
+
+              {/* Inner vignette to hide edge artifacts */}
+              <div
+                className="pointer-events-none absolute inset-0 rounded-full"
+                aria-hidden="true"
+                style={{
+                  boxShadow:
+                    "inset 0 0 40px 10px hsl(260 80% 5% / 0.95), inset 0 0 18px 2px hsl(270 70% 10% / 0.9)",
+                }}
+              />
+            </div>
           </motion.div>
 
           {/* Bat parrot - right bottom */}
