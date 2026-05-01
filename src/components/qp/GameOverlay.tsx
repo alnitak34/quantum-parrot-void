@@ -52,6 +52,7 @@ export default function GameOverlay() {
       lastEventRef.current = null;
       setOpen(true);
     });
+    return off;
   }, []);
 
   // main game loop
