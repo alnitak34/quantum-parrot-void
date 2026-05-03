@@ -466,17 +466,19 @@ export default function GameOverlay() {
             {isSpag && "STRUCTURE BREAKING"}
           </motion.div>
         )}
-        {themed && phase === "playing" && !result && (
-          <ParrotAvatar
-            src={owlBase}
-            glow={theme.glow}
-            chaos={chaos}
-            hitKey={parrotHit}
-            shakeKey={parrotShake}
-          />
-        )}
+        {/* parrot removed from gameplay for clarity */}
         {themed && phase === "playing" && !result && (
           <IntroHint key={`hint-${dimension}`} />
+        )}
+        {/* subtle 10k squad branding */}
+        {themed && phase === "playing" && !result && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-3 left-4 z-20 font-mono-x text-[10px] tracking-[0.3em] text-foreground/50"
+            style={{ textShadow: `0 0 8px hsl(${theme.glow} / 0.6)` }}
+          >
+            10K SQUAD <span style={{ color: `hsl(${theme.glow})` }}>·</span> SIGNAL
+          </div>
         )}
         {isDark && themed && (
           <>
