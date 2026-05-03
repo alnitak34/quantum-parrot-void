@@ -273,6 +273,37 @@ export default function GameOverlay() {
           transition: "background 400ms ease",
         }}
       >
+        {/* Full-screen color wash for instant dimension feel */}
+        {themed && (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isDark ? 0.55 : 0.45 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              background: isDark
+                ? "#000"
+                : `radial-gradient(ellipse at center, hsl(${theme.glow} / 0.55), hsl(${theme.glow} / 0.15) 60%, transparent 90%)`,
+              mixBlendMode: isDark ? "normal" : "screen",
+            }}
+          />
+        )}
+        {/* Big top tagline - immediately visible */}
+        {themed && phase === "playing" && !result && (
+          <motion.div
+            key={`tag-${dimension}`}
+            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.35 }}
+            className={`absolute top-8 left-1/2 -translate-x-1/2 z-20 font-graffiti tracking-[0.4em] text-2xl md:text-3xl ${theme.accentText}`}
+            style={{ textShadow: `0 0 22px hsl(${theme.glow} / 0.95), 0 0 50px hsl(${theme.glow} / 0.6)` }}
+          >
+            {isTime && "TIME IS UNSTABLE"}
+            {isDark && "YOU ARE NOT ALONE"}
+            {isSpag && "STRUCTURE BREAKING"}
+          </motion.div>
+        )}
         {isDark && themed && (
           <>
             <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
