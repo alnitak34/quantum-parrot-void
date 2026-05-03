@@ -1015,7 +1015,15 @@ function ResultCard({
   const [copied, setCopied] = useState(false);
   const classification = classify(result.signal);
   const dim = result.dimension || "UNKNOWN";
+  const SARCASM_LINES = [
+    "you reacted too slow",
+    "time moved, you didn't",
+    "skill issue across timelines",
+    "the 10k squad noticed",
+    "blink and you delete yourself",
+  ];
   const sarcasm = DIM_LINES[dim] || "The void doesn't care.";
+  const burn = SARCASM_LINES[Math.floor(Math.random() * SARCASM_LINES.length)];
 
   const shareText = `I survived ${result.survived.toFixed(1)}s in QUANTUM PARROTS.
 Dimension: ${dim}
