@@ -30,8 +30,25 @@ interface FlashMsg {
   delta: number;
 }
 
+type Phase = "select" | "playing";
+
+interface DimOpt {
+  key: string;
+  label: string;
+  glow: string; // hsl token
+  badge: string; // tailwind classes for badge bg/text
+}
+
+const DIMENSIONS: DimOpt[] = [
+  { key: "time", label: "TIME DILATION", glow: "var(--time)", badge: "bg-time text-void-deep" },
+  { key: "dark", label: "DARK MATTER", glow: "0 0% 95%", badge: "bg-foreground text-void-deep" },
+  { key: "spag", label: "SPAGHETTIFICATION", glow: "var(--spaghetti)", badge: "bg-spaghetti text-void-deep" },
+];
+
 export default function GameOverlay() {
   const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState<Phase>("select");
+  const [dimension, setDimension] = useState<string>("");
   const [time, setTime] = useState(0); // seconds
   const [points, setPoints] = useState(0);
   const [chaos, setChaos] = useState(1);
@@ -54,14 +71,22 @@ export default function GameOverlay() {
       setFlashes([]);
       setResult(null);
       lastEventRef.current = null;
+      setPhase("select");
+      setDimension("");
       setOpen(true);
     });
     return off;
   }, []);
 
+  const selectDimension = (label: string) => {
+    setDimension(label);
+    try { localStorage.setItem("selectedDimension", label); } catch { /* ignore */ }
+    setPhase("playing");
+  };
+
   // main game loop
   useEffect(() => {
-    if (!open || result) return;
+    if (!open || result || phase !== "playing") return;
 
     // tick survival timer (10/s for smoother progression)
     const tick = setInterval(() => {
@@ -75,11 +100,11 @@ export default function GameOverlay() {
     }, 100);
 
     return () => clearInterval(tick);
-  }, [open, result]);
+  }, [open, result, phase]);
 
   // event scheduler - interval depends on chaos
   useEffect(() => {
-    if (!open || result) return;
+    if (!open || result || phase !== "playing") return;
 
     let cancelled = false;
     const schedule = () => {
@@ -99,7 +124,7 @@ export default function GameOverlay() {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [open, result, chaos]);
+  }, [open, result, chaos, phase]);
 
   const runEvent = () => {
     const ev = pick(EVENTS);
@@ -148,15 +173,17 @@ export default function GameOverlay() {
       signal: finalSignal,
       cause: ev.label,
       user: handle,
+      dimension: dimension || undefined,
     };
     setPoints(finalSignal);
     setResult(finalResult);
 
     // push death into feed + top signals
+    const dimPart = dimension ? ` in ${dimension}` : "";
     emit("feed:push", {
       time: stamp(),
       user: handle,
-      action: `died to ${ev.label} after ${time.toFixed(1)}s`,
+      action: `died to ${ev.label}${dimPart} after ${time.toFixed(1)}s`,
       points: finalSignal,
     });
     emit("top:push", { user: handle, score: finalSignal });
@@ -201,7 +228,7 @@ export default function GameOverlay() {
         />
 
         {/* close */}
-        {result && (
+        {(result || phase === "select") && (
           <button
             onClick={close}
             className="absolute right-5 top-5 z-10 rounded-full p-2 text-foreground/70 hover:bg-white/10 hover:text-foreground transition"
@@ -222,7 +249,45 @@ export default function GameOverlay() {
               "0 0 50px hsl(var(--secondary) / 0.35), inset 0 0 60px hsl(var(--primary) / 0.12)",
           }}
         >
-          {!result ? (
+          {phase === "select" && !result ? (
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Zap className="h-5 w-5 text-primary fill-primary animate-flicker" />
+                <span className="font-graffiti text-xl text-foreground tracking-wide">
+                  CHOOSE YOUR DIMENSION
+                </span>
+              </div>
+              <p className="mt-2 font-mono-x text-xs text-muted-foreground">
+                pick a path. the void doesn't care which.
+              </p>
+
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {DIMENSIONS.map((d, i) => (
+                  <button
+                    key={d.key}
+                    onClick={() => selectDimension(d.label)}
+                    className="group relative rounded-xl border border-white/10 bg-white/[0.03] p-5 text-left transition hover:scale-[1.03] hover:bg-white/[0.06]"
+                    style={{
+                      ["--card-glow" as never]: d.glow,
+                      boxShadow:
+                        "0 0 22px hsl(var(--card-glow) / 0.25), inset 0 0 30px hsl(var(--void-deep) / 0.5)",
+                    }}
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full font-graffiti text-base ${d.badge}`}>
+                      {i + 1}
+                    </div>
+                    <div className="mt-3 font-graffiti text-base md:text-lg text-foreground leading-tight">
+                      {d.label}
+                    </div>
+                    <div
+                      className="mt-3 h-1 w-full rounded-full"
+                      style={{ background: "hsl(var(--card-glow) / 0.7)", boxShadow: "0 0 12px hsl(var(--card-glow) / 0.7)" }}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : !result ? (
             <>
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
@@ -317,6 +382,11 @@ export default function GameOverlay() {
               <p className="mt-3 font-mono-x text-xs text-muted-foreground">
                 Handle: <span className="text-foreground">{result.user}</span>
               </p>
+              {result.dimension && (
+                <p className="mt-1 font-mono-x text-xs text-muted-foreground">
+                  Dimension: <span className="text-secondary-glow">{result.dimension}</span>
+                </p>
+              )}
 
               <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">
                 <button

@@ -18,6 +18,7 @@ export interface GameResult {
   signal: number;
   cause: string;
   user: string;
+  dimension?: string;
 }
 
 type Events = {
