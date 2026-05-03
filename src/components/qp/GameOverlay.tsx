@@ -1457,3 +1457,77 @@ function TimeScaleFX({ timeScale }: { timeScale: number }) {
     </>
   );
 }
+
+function CentralSphere({
+  glow,
+  chaos,
+  timeScale,
+  onTap,
+  onExplode,
+}: {
+  glow: string;
+  chaos: number;
+  timeScale: number;
+  onTap: () => void;
+  onExplode: () => void;
+}) {
+  const [size, setSize] = useState(120);
+  const [exploding, setExploding] = useState(false);
+  const bornRef = useRef(performance.now());
+
+  useEffect(() => {
+    const i = setInterval(() => {
+      if (exploding) return;
+      const elapsed = (performance.now() - bornRef.current) / 1000;
+      const grow = 120 + elapsed * 8 * tsClamp(timeScale);
+      setSize(Math.min(420, grow));
+      if (grow >= 420) {
+        setExploding(true);
+        onExplode();
+        setTimeout(() => {
+          bornRef.current = performance.now();
+          setSize(120);
+          setExploding(false);
+        }, 500);
+      }
+    }, 100);
+    return () => clearInterval(i);
+  }, [timeScale, exploding, onExplode]);
+
+  const heartbeat = Math.max(0.35, 1.1 - chaos * 0.07) / Math.max(0.4, timeScale);
+
+  const handleTap = () => {
+    if (exploding) return;
+    bornRef.current = performance.now();
+    setSize((s) => Math.max(120, s - 80));
+    onTap();
+  };
+
+  return (
+    <motion.button
+      onClick={handleTap}
+      aria-label="stabilize core"
+      className="absolute z-[6] rounded-full focus:outline-none"
+      style={{
+        left: "50%",
+        top: "62%",
+        width: size,
+        height: size,
+        transform: "translate(-50%, -50%)",
+        background: exploding
+          ? `radial-gradient(circle, hsl(0 95% 60% / 0.9) 0%, hsl(${glow} / 0.4) 50%, transparent 80%)`
+          : `radial-gradient(circle, hsl(${glow} / 0.85) 0%, hsl(${glow} / 0.25) 55%, transparent 80%)`,
+        boxShadow: `0 0 ${40 + size * 0.4}px hsl(${exploding ? "0 95% 60%" : glow} / 0.8)`,
+        border: `2px solid hsl(${exploding ? "0 95% 60%" : glow} / 0.55)`,
+        cursor: exploding ? "default" : "pointer",
+      }}
+      animate={{ scale: exploding ? [1, 1.6, 0.4] : [1, 1.08, 0.96, 1.05, 1] }}
+      transition={exploding
+        ? { duration: 0.5, ease: "easeOut" }
+        : { duration: heartbeat, repeat: Infinity, ease: "easeInOut" }}
+    />
+  );
+}
+
+function tsClamp(t: number) { return Math.max(0.3, Math.min(2.5, t)); }
+
