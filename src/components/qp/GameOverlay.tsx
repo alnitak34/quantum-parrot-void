@@ -245,7 +245,7 @@ export default function GameOverlay() {
     let cancelled = false;
     const next = () => {
       if (cancelled) return;
-      const delay = 2000 + Math.random() * 2000;
+      const delay = 2000 + Math.random() * 1000;
       setTimeout(() => {
         if (cancelled) return;
         const choices = [0.4, 1, 2];
@@ -757,13 +757,22 @@ export default function GameOverlay() {
           )}
         </motion.div>
         {themed && phase === "playing" && !result && (
+          <CentralSphere
+            glow={theme.glow}
+            chaos={chaos}
+            timeScale={timeScale}
+            onTap={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.25).toFixed(2))); setParrotHit((h) => h + 1); }}
+            onExplode={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 1.2).toFixed(2))); setSpike((s) => s + 1); setParrotHit((h) => h + 1); }}
+          />
+        )}
+        {themed && phase === "playing" && !result && (
           <AnomalyField
             glow={theme.glow}
             chaos={chaos}
             timeScale={timeScale}
-            onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); setParrotHit((h) => h + 1); }}
-            onIgnored={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 0.7).toFixed(2))); setParrotHit((h) => h + 1); }}
-            onZoneHit={() => { setChaos((c) => Math.min(10, +(c + 0.9).toFixed(2))); setParrotHit((h) => h + 1); playBlip("distort"); }}
+            onStabilize={(fake) => { playBlip("glitch"); if (!fake) setChaos((c) => Math.max(1, +(c - 0.22).toFixed(2))); setParrotHit((h) => h + 1); }}
+            onIgnored={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 0.8).toFixed(2))); setParrotHit((h) => h + 1); }}
+            onZoneHit={() => { setChaos((c) => Math.min(10, +(c + 1.0).toFixed(2))); setParrotHit((h) => h + 1); playBlip("distort"); }}
           />
         )}
       </motion.div>
@@ -780,6 +789,7 @@ interface Anomaly {
   speed?: number;
   stabilized?: boolean;
   exploding?: boolean;
+  fake?: boolean;
 }
 
 function AnomalyField({
@@ -793,7 +803,7 @@ function AnomalyField({
   glow: string;
   chaos: number;
   timeScale: number;
-  onStabilize: () => void;
+  onStabilize: (fake: boolean) => void;
   onIgnored: () => void;
   onZoneHit: () => void;
 }) {
@@ -815,22 +825,23 @@ function AnomalyField({
       if (cancelled) return;
       const c = chaosRef.current;
       const ts = tsRef.current;
-      const closeBias = Math.random() < 0.45;
-      const radius = closeBias ? 0.06 + Math.random() * 0.1 : 0.18 + Math.random() * 0.32;
+      const closeBias = Math.random() < 0.7;
+      const radius = closeBias ? 0.04 + Math.random() * 0.08 : 0.12 + Math.random() * 0.22;
       const angle = Math.random() * Math.PI * 2;
       const x = Math.min(0.92, Math.max(0.08, 0.5 + Math.cos(angle) * radius));
       const y = Math.min(0.88, Math.max(0.18, 0.62 + Math.sin(angle) * radius));
-      const ttl = Math.max(700, (2200 + Math.random() * 1400 - c * 140) / ts);
-      const speed = 0.6 + Math.random() * 0.8;
+      const ttl = Math.max(550, (1800 + Math.random() * 1200 - c * 160) / ts);
+      const speed = 0.7 + Math.random() * 0.9;
       const a: Anomaly = {
         id: idRef.current++,
         x, y,
         born: performance.now(),
         ttl,
         speed,
+        fake: Math.random() < 0.25,
       };
       setAnomalies((prev) => [...prev, a]);
-      const delay = Math.max(220, (1300 + Math.random() * 1500 - c * 130) / ts);
+      const delay = Math.max(180, (1100 + Math.random() * 1300 - c * 140) / ts);
       setTimeout(spawn, delay);
     };
     const t = setTimeout(spawn, 700);
@@ -881,10 +892,17 @@ function AnomalyField({
   }, [onIgnored, onZoneHit]);
 
   const tap = (id: number) => {
+    let wasFake = false;
     setAnomalies((prev) =>
-      prev.map((a) => (a.id === id && !a.stabilized && !a.exploding ? { ...a, stabilized: true, born: performance.now() } : a))
+      prev.map((a) => {
+        if (a.id === id && !a.stabilized && !a.exploding) {
+          wasFake = !!a.fake;
+          return { ...a, stabilized: true, born: performance.now() };
+        }
+        return a;
+      })
     );
-    onStabilize();
+    onStabilize(wasFake);
   };
 
   const now = performance.now();
@@ -1439,3 +1457,77 @@ function TimeScaleFX({ timeScale }: { timeScale: number }) {
     </>
   );
 }
+
+function CentralSphere({
+  glow,
+  chaos,
+  timeScale,
+  onTap,
+  onExplode,
+}: {
+  glow: string;
+  chaos: number;
+  timeScale: number;
+  onTap: () => void;
+  onExplode: () => void;
+}) {
+  const [size, setSize] = useState(120);
+  const [exploding, setExploding] = useState(false);
+  const bornRef = useRef(performance.now());
+
+  useEffect(() => {
+    const i = setInterval(() => {
+      if (exploding) return;
+      const elapsed = (performance.now() - bornRef.current) / 1000;
+      const grow = 120 + elapsed * 8 * tsClamp(timeScale);
+      setSize(Math.min(420, grow));
+      if (grow >= 420) {
+        setExploding(true);
+        onExplode();
+        setTimeout(() => {
+          bornRef.current = performance.now();
+          setSize(120);
+          setExploding(false);
+        }, 500);
+      }
+    }, 100);
+    return () => clearInterval(i);
+  }, [timeScale, exploding, onExplode]);
+
+  const heartbeat = Math.max(0.35, 1.1 - chaos * 0.07) / Math.max(0.4, timeScale);
+
+  const handleTap = () => {
+    if (exploding) return;
+    bornRef.current = performance.now();
+    setSize((s) => Math.max(120, s - 80));
+    onTap();
+  };
+
+  return (
+    <motion.button
+      onClick={handleTap}
+      aria-label="stabilize core"
+      className="absolute z-[6] rounded-full focus:outline-none"
+      style={{
+        left: "50%",
+        top: "62%",
+        width: size,
+        height: size,
+        transform: "translate(-50%, -50%)",
+        background: exploding
+          ? `radial-gradient(circle, hsl(0 95% 60% / 0.9) 0%, hsl(${glow} / 0.4) 50%, transparent 80%)`
+          : `radial-gradient(circle, hsl(${glow} / 0.85) 0%, hsl(${glow} / 0.25) 55%, transparent 80%)`,
+        boxShadow: `0 0 ${40 + size * 0.4}px hsl(${exploding ? "0 95% 60%" : glow} / 0.8)`,
+        border: `2px solid hsl(${exploding ? "0 95% 60%" : glow} / 0.55)`,
+        cursor: exploding ? "default" : "pointer",
+      }}
+      animate={{ scale: exploding ? [1, 1.6, 0.4] : [1, 1.08, 0.96, 1.05, 1] }}
+      transition={exploding
+        ? { duration: 0.5, ease: "easeOut" }
+        : { duration: heartbeat, repeat: Infinity, ease: "easeInOut" }}
+    />
+  );
+}
+
+function tsClamp(t: number) { return Math.max(0.3, Math.min(2.5, t)); }
+
