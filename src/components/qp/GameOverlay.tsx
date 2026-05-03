@@ -213,12 +213,32 @@ export default function GameOverlay() {
         setPoints(Math.floor(next * mult));
         return next;
       });
-      // chaos rises slowly with time, capped 10
-      setChaos((c) => Math.min(10, +(c + 0.04).toFixed(2)));
+      // chaos rises faster + accelerates over time
+      setChaos((c) => Math.min(10, +(c + 0.06 + time * 0.0015).toFixed(2)));
     }, 100);
 
     return () => clearInterval(tick);
-  }, [open, result, phase, dimension]);
+  }, [open, result, phase, dimension, time]);
+
+  // threat spike scheduler — random screen shocks
+  useEffect(() => {
+    if (!open || result || phase !== "playing") return;
+    let cancelled = false;
+    const next = () => {
+      if (cancelled) return;
+      const delay = 3500 + Math.random() * 5500;
+      setTimeout(() => {
+        if (cancelled) return;
+        setSpike((s) => s + 1);
+        playBlip("glitch");
+        // small chaos kick on spike
+        setChaos((c) => Math.min(10, +(c + 0.4).toFixed(2)));
+        next();
+      }, delay);
+    };
+    next();
+    return () => { cancelled = true; };
+  }, [open, result, phase]);
 
   // event scheduler - interval depends on chaos
   useEffect(() => {
