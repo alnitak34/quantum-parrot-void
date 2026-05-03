@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Skull, Zap, X, ArrowRight, Copy, Check, Share2 } from "lucide-react";
 
 const PROJECT_URL = "https://quantum-parrot-void.lovable.app";
-import owlBase from "@/assets/owl-base.png";
+import owlBase from "@/assets/parrot-base.png";
 import { emit, on, stamp, randomNick, type GameResult } from "./gameStore";
 
 type EventDef = {
