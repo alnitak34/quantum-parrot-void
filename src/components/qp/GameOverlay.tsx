@@ -61,7 +61,11 @@ export default function GameOverlay() {
 
     // tick survival timer (10/s for smoother progression)
     const tick = setInterval(() => {
-      setTime((t) => +(t + 0.1).toFixed(1));
+      setTime((t) => {
+        const next = +(t + 0.1).toFixed(1);
+        setPoints(Math.floor(next * 10));
+        return next;
+      });
       // chaos rises slowly with time, capped 10
       setChaos((c) => Math.min(10, +(c + 0.04).toFixed(2)));
     }, 100);
