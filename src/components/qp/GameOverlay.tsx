@@ -173,15 +173,17 @@ export default function GameOverlay() {
       signal: finalSignal,
       cause: ev.label,
       user: handle,
+      dimension: dimension || undefined,
     };
     setPoints(finalSignal);
     setResult(finalResult);
 
     // push death into feed + top signals
+    const dimPart = dimension ? ` in ${dimension}` : "";
     emit("feed:push", {
       time: stamp(),
       user: handle,
-      action: `died to ${ev.label} after ${time.toFixed(1)}s`,
+      action: `died to ${ev.label}${dimPart} after ${time.toFixed(1)}s`,
       points: finalSignal,
     });
     emit("top:push", { user: handle, score: finalSignal });
