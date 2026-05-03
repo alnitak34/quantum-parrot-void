@@ -102,9 +102,19 @@ export default function GameOverlay() {
   const [flashes, setFlashes] = useState<FlashMsg[]>([]);
   const [result, setResult] = useState<GameResult | null>(null);
   const [spike, setSpike] = useState(0); // increments to trigger threat spikes
+  const [timeScale, setTimeScale] = useState(1); // global speed 0.3x..2x
+  const [parrotHit, setParrotHit] = useState(0); // increments on hit -> distortion pulse
+  const [parrotShake, setParrotShake] = useState(0); // increments on chaos rise
   const nickRef = useRef<string>("");
   const lastEventRef = useRef<EventDef | null>(null);
+  const tsRef = useRef(1);
+  const prevChaosRef = useRef(1);
   const audioRef = useRef<{ ctx: AudioContext; hum: GainNode; humOsc: OscillatorNode } | null>(null);
+  useEffect(() => { tsRef.current = timeScale; }, [timeScale]);
+  useEffect(() => {
+    if (chaos > prevChaosRef.current + 0.18) setParrotShake((s) => s + 1);
+    prevChaosRef.current = chaos;
+  }, [chaos]);
 
   // Audio engine: ambient hum + sfx
   useEffect(() => {
@@ -208,17 +218,40 @@ export default function GameOverlay() {
     const isTimeDim = dimension === "TIME DILATION";
     const mult = isTimeDim ? 12 : 10;
     const tick = setInterval(() => {
+      const ts = tsRef.current;
       setTime((t) => {
-        const next = +(t + 0.1).toFixed(1);
+        const next = +(t + 0.1 * ts).toFixed(1);
         setPoints(Math.floor(next * mult));
-        // chaos rises faster + accelerates over time
-        setChaos((c) => Math.min(10, +(c + 0.06 + next * 0.0015).toFixed(2)));
+        // chaos rises faster + accelerates over time (scaled by time)
+        setChaos((c) => Math.min(10, +(c + (0.06 + next * 0.0015) * ts).toFixed(2)));
         return next;
       });
     }, 100);
 
     return () => clearInterval(tick);
   }, [open, result, phase, dimension]);
+
+  // time dilation scheduler — random global speed shifts (0.3x..2x)
+  useEffect(() => {
+    if (!open || result || phase !== "playing") return;
+    let cancelled = false;
+    const next = () => {
+      if (cancelled) return;
+      const delay = 1200 + Math.random() * 2600;
+      setTimeout(() => {
+        if (cancelled) return;
+        // bias: occasional extreme slow or fast
+        const r = Math.random();
+        const ts = r < 0.15 ? 0.3 + Math.random() * 0.2
+          : r > 0.85 ? 1.6 + Math.random() * 0.4
+          : 0.7 + Math.random() * 0.8;
+        setTimeScale(+ts.toFixed(2));
+        next();
+      }, delay);
+    };
+    next();
+    return () => { cancelled = true; setTimeScale(1); };
+  }, [open, result, phase]);
 
   // threat spike scheduler — random screen shocks
   useEffect(() => {
@@ -425,17 +458,12 @@ export default function GameOverlay() {
           </motion.div>
         )}
         {themed && phase === "playing" && !result && (
-          <motion.img
+          <ParrotAvatar
             src={owlBase}
-            alt=""
-            aria-hidden
-            width={96}
-            height={96}
-            loading="lazy"
-            className="pointer-events-none absolute left-1/2 bottom-24 z-10 h-20 w-20 md:h-24 md:w-24 -translate-x-1/2 select-none"
-            style={{ background: "transparent", filter: `drop-shadow(0 0 18px hsl(${theme.glow} / 0.55))` }}
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            glow={theme.glow}
+            chaos={chaos}
+            hitKey={parrotHit}
+            shakeKey={parrotShake}
           />
         )}
         {themed && phase === "playing" && !result && (
@@ -630,14 +658,14 @@ export default function GameOverlay() {
               </motion.div>
 
               <div className="mt-6 grid grid-cols-3 gap-4 font-mono-x text-center">
-                <Stat label="TIME" value={`${time.toFixed(1)}s`} accent={theme.glow} />
+                <Stat label="TIME" value={`${jitterNum(time, chaos, 0).toFixed(1)}s`} accent={theme.glow} />
                 <Stat
                   label="SIGNAL"
-                  value={points.toLocaleString()}
+                  value={Math.max(0, Math.floor(jitterNum(points, chaos, 1))).toLocaleString()}
                   highlight
                   accent={theme.glow}
                 />
-                <Stat label="CHAOS" value={chaos.toFixed(1)} accent={theme.glow} />
+                <Stat label="CHAOS" value={jitterNum(chaos, chaos, 0).toFixed(1)} accent={theme.glow} />
               </div>
 
               {/* themed center pulse */}
@@ -721,8 +749,10 @@ export default function GameOverlay() {
           <AnomalyField
             glow={theme.glow}
             chaos={chaos}
-            onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); }}
+            timeScale={timeScale}
+            onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); setParrotHit((h) => h + 1); }}
             onIgnored={() => { playBlip("distort"); setChaos((c) => Math.min(10, +(c + 0.55).toFixed(2))); }}
+            onZoneHit={() => { setChaos((c) => Math.min(10, +(c + 0.9).toFixed(2))); setParrotHit((h) => h + 1); playBlip("distort"); }}
           />
         )}
       </motion.div>
@@ -736,24 +766,35 @@ interface Anomaly {
   y: number; // 0..1
   born: number;
   ttl: number; // ms
+  speed?: number;
   stabilized?: boolean;
 }
 
 function AnomalyField({
   glow,
   chaos,
+  timeScale,
   onStabilize,
   onIgnored,
+  onZoneHit,
 }: {
   glow: string;
   chaos: number;
+  timeScale: number;
   onStabilize: () => void;
   onIgnored: () => void;
+  onZoneHit: () => void;
 }) {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const idRef = useRef(1);
   const chaosRef = useRef(chaos);
+  const tsRef = useRef(timeScale);
+  const zoneHitRef = useRef<Set<number>>(new Set());
   useEffect(() => { chaosRef.current = chaos; }, [chaos]);
+  useEffect(() => { tsRef.current = timeScale; }, [timeScale]);
+
+  // danger zone radius grows slowly with chaos (in viewport units 0..1)
+  const zoneRadius = Math.min(0.22, 0.08 + chaos * 0.014);
 
   // spawn loop — bias near the player (center) and faster as chaos rises
   useEffect(() => {
@@ -761,21 +802,25 @@ function AnomalyField({
     const spawn = () => {
       if (cancelled) return;
       const c = chaosRef.current;
+      const ts = tsRef.current;
       // sometimes spawn very close to force reaction
       const closeBias = Math.random() < 0.45;
       const radius = closeBias ? 0.06 + Math.random() * 0.1 : 0.18 + Math.random() * 0.32;
       const angle = Math.random() * Math.PI * 2;
       const x = Math.min(0.92, Math.max(0.08, 0.5 + Math.cos(angle) * radius));
       const y = Math.min(0.88, Math.max(0.18, 0.62 + Math.sin(angle) * radius));
-      const ttl = Math.max(900, 2200 + Math.random() * 1400 - c * 140);
+      const ttl = Math.max(900, (2200 + Math.random() * 1400 - c * 140) / Math.max(0.4, ts));
+      // each anomaly carries its own speed multiplier — unpredictable
+      const speed = 0.3 + Math.random() * 1.7;
       const a: Anomaly = {
         id: idRef.current++,
         x, y,
         born: performance.now(),
         ttl,
+        speed,
       };
       setAnomalies((prev) => [...prev, a]);
-      const delay = Math.max(350, 1300 + Math.random() * 1500 - c * 130);
+      const delay = Math.max(250, (1300 + Math.random() * 1500 - c * 130) / Math.max(0.4, ts));
       setTimeout(spawn, delay);
     };
     const t = setTimeout(spawn, 700);
@@ -785,17 +830,29 @@ function AnomalyField({
     };
   }, []);
 
-  // expire loop
+  // expire + danger-zone proximity loop
   useEffect(() => {
     const i = setInterval(() => {
       const now = performance.now();
+      const zr = Math.min(0.22, 0.08 + chaosRef.current * 0.014);
+      // parrot center in same coords used for spawn (x=0.5, y=0.62)
+      const px = 0.5, py = 0.62;
       setAnomalies((prev) => {
         const expired: Anomaly[] = [];
         const kept = prev.filter((a) => {
           if (a.stabilized) return now - a.born < 600;
-          if (now - a.born > a.ttl) {
+          // age progresses by speed * timeScale — unpredictable per-anomaly
+          if ((now - a.born) * (a.speed || 1) * Math.max(0.4, tsRef.current) > a.ttl) {
             expired.push(a);
             return false;
+          }
+          // proximity check — ratio approximates distance to parrot
+          const dx = a.x - px;
+          const dy = (a.y - py) * 0.7;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < zr && !zoneHitRef.current.has(a.id)) {
+            zoneHitRef.current.add(a.id);
+            onZoneHit();
           }
           return true;
         });
@@ -804,9 +861,9 @@ function AnomalyField({
         }
         return kept;
       });
-    }, 200);
+    }, 160);
     return () => clearInterval(i);
-  }, [onIgnored]);
+  }, [onIgnored, onZoneHit]);
 
   const tap = (id: number) => {
     setAnomalies((prev) =>
@@ -817,6 +874,23 @@ function AnomalyField({
 
   return (
     <div aria-hidden className="absolute inset-0 z-[5] pointer-events-none">
+      {/* danger zone visualization around parrot */}
+      <motion.div
+        aria-hidden
+        className="absolute rounded-full"
+        animate={{ opacity: [0.25, 0.5, 0.25], scale: [1, 1.05, 1] }}
+        transition={{ duration: Math.max(0.6, 1.4 - chaos * 0.1), repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          left: "50%",
+          top: "62%",
+          width: `${zoneRadius * 200}vmin`,
+          height: `${zoneRadius * 140}vmin`,
+          transform: "translate(-50%, -50%)",
+          background: `radial-gradient(circle, transparent 55%, hsl(0 90% 55% / ${Math.min(0.35, 0.08 + chaos * 0.025)}) 100%)`,
+          border: `1px dashed hsl(0 90% 55% / ${Math.min(0.6, 0.15 + chaos * 0.04)})`,
+          mixBlendMode: "screen",
+        }}
+      />
       {anomalies.map((a) => (
         <button
           key={a.id}
@@ -835,7 +909,7 @@ function AnomalyField({
               ? "none"
               : `0 0 28px hsl(${glow} / 0.85), 0 0 60px hsl(${glow} / 0.45)`,
             border: a.stabilized ? "none" : `1px solid hsl(${glow} / 0.55)`,
-            animation: a.stabilized ? undefined : "pulse 1.1s ease-in-out infinite",
+            animation: a.stabilized ? undefined : `pulse ${(1.1 / Math.max(0.4, (a.speed || 1) * timeScale)).toFixed(2)}s ease-in-out infinite`,
             backdropFilter: "blur(2px)",
             cursor: a.stabilized ? "default" : "pointer",
             transition: "opacity 400ms ease",
@@ -1168,5 +1242,95 @@ function IntroHint() {
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+function jitterNum(value: number, chaos: number, scale: number): number {
+  // small random offset that grows with chaos; scale 0 = subtle, 1 = bigger for SIGNAL
+  const amp = (chaos / 10) * (scale > 0 ? 6 : 0.25);
+  // brief unstable jitter; uses Math.random so it ticks each render of parent
+  return value + (Math.random() - 0.5) * amp;
+}
+
+function ParrotAvatar({
+  src,
+  glow,
+  chaos,
+  hitKey,
+  shakeKey,
+}: {
+  src: string;
+  glow: string;
+  chaos: number;
+  hitKey: number;
+  shakeKey: number;
+}) {
+  const [hit, setHit] = useState(0);
+  const [shake, setShake] = useState(0);
+  useEffect(() => { if (hitKey > 0) { setHit((n) => n + 1); const t = setTimeout(() => setHit((n) => Math.max(0, n - 1)), 360); return () => clearTimeout(t); } }, [hitKey]);
+  useEffect(() => { if (shakeKey > 0) { setShake((n) => n + 1); const t = setTimeout(() => setShake((n) => Math.max(0, n - 1)), 280); return () => clearTimeout(t); } }, [shakeKey]);
+
+  const nearDeath = chaos > 7.5;
+  const hitActive = hit > 0;
+  const shakeActive = shake > 0;
+
+  return (
+    <motion.div
+      className="pointer-events-none absolute left-1/2 bottom-24 z-10 -translate-x-1/2"
+      animate={shakeActive
+        ? { x: [0, -4, 5, -3, 2, 0], y: [0, 2, -3, 1, 0] }
+        : nearDeath
+          ? { x: [0, -1.5, 1.5, -1, 1, 0], y: [0, 1, -1, 0] }
+          : { x: 0, y: 0 }}
+      transition={shakeActive
+        ? { duration: 0.28, ease: "easeOut" }
+        : nearDeath
+          ? { duration: 0.35, repeat: Infinity, ease: "easeInOut" }
+          : { duration: 0.3 }}
+    >
+      <motion.img
+        src={src}
+        alt=""
+        aria-hidden
+        width={96}
+        height={96}
+        loading="lazy"
+        className="h-20 w-20 md:h-24 md:w-24 select-none"
+        style={{
+          background: "transparent",
+          filter: `drop-shadow(0 0 18px hsl(${glow} / 0.55))${hitActive ? ` hue-rotate(${Math.random() * 80 - 40}deg) saturate(1.6) contrast(1.3)` : ""}${nearDeath ? " contrast(1.2) saturate(1.3)" : ""}`,
+          mixBlendMode: hitActive ? "screen" : "normal",
+        }}
+        animate={hitActive
+          ? { scale: [1, 1.08, 0.94, 1.04, 1], skewX: [0, 6, -5, 3, 0], opacity: [1, 0.7, 1, 0.85, 1] }
+          : { y: [0, -8, 0] }}
+        transition={hitActive
+          ? { duration: 0.36, ease: "easeOut" }
+          : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* near-death glitch slices */}
+      {nearDeath && (
+        <>
+          <motion.img
+            src={src}
+            aria-hidden
+            alt=""
+            className="absolute inset-0 h-20 w-20 md:h-24 md:w-24 pointer-events-none"
+            style={{ mixBlendMode: "screen", filter: "hue-rotate(120deg) saturate(2)", opacity: 0.45, clipPath: "inset(20% 0 55% 0)" }}
+            animate={{ x: [0, -4, 5, -3, 0] }}
+            transition={{ duration: 0.18, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.img
+            src={src}
+            aria-hidden
+            alt=""
+            className="absolute inset-0 h-20 w-20 md:h-24 md:w-24 pointer-events-none"
+            style={{ mixBlendMode: "screen", filter: "hue-rotate(-120deg) saturate(2)", opacity: 0.45, clipPath: "inset(60% 0 15% 0)" }}
+            animate={{ x: [0, 5, -4, 3, 0] }}
+            transition={{ duration: 0.22, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
+      )}
+    </motion.div>
   );
 }
