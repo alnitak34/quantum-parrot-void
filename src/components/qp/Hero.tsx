@@ -146,12 +146,26 @@ const Hero = () => {
             className="mt-10 flex items-center gap-6 flex-wrap"
           >
             <button
-              onClick={() => emit("game:start", undefined)}
+              onClick={handleStart}
               className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
             >
               ENTER THE VOID
               <ArrowRight className="h-7 w-7" strokeWidth={3} />
             </button>
+
+            <input
+              type="text"
+              value={handle}
+              onChange={(e) => setHandle(e.target.value.slice(0, 24))}
+              placeholder="Enter handle"
+              maxLength={24}
+              className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all"
+              style={{
+                boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
+                width: "200px",
+              }}
+            />
+
 
             {/* Chaos Awaits stamp */}
             <motion.div
