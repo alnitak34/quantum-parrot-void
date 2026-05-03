@@ -438,6 +438,9 @@ export default function GameOverlay() {
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
         )}
+        {themed && phase === "playing" && !result && (
+          <IntroHint key={`hint-${dimension}`} />
+        )}
         {isDark && themed && (
           <>
             <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -1128,5 +1131,42 @@ function SpikeFX({ spike, chaos }: { spike: number; chaos: number }) {
         />
       )}
     </>
+  );
+}
+
+function IntroHint() {
+  const [visible, setVisible] = useState(true);
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(false), 3000);
+    return () => clearTimeout(t);
+  }, []);
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          aria-hidden
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: [0.85, 1, 0.7, 1, 0.9], x: [0, -1, 1, 0, -1, 0], y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.9, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+          className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-center font-mono-x text-base md:text-xl leading-7 text-white"
+          style={{ textShadow: "0 0 14px rgba(0,0,0,0.8)" }}
+        >
+          <div>
+            do nothing → you{" "}
+            <span style={{ color: "hsl(var(--primary))", textShadow: "0 0 12px hsl(var(--primary) / 0.9)" }}>
+              die
+            </span>
+          </div>
+          <div className="mt-1">
+            tap →{" "}
+            <span style={{ color: "hsl(var(--secondary))", textShadow: "0 0 12px hsl(var(--secondary) / 0.9)" }}>
+              maybe
+            </span>{" "}
+            survive
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
