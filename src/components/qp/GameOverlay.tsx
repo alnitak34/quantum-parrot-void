@@ -469,61 +469,7 @@ export default function GameOverlay() {
               </p>
             </>
           ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="text-center"
-            >
-              <Skull className="mx-auto h-10 w-10" style={{ color: `hsl(${theme.glow})`, filter: `drop-shadow(0 0 12px hsl(${theme.glow} / 0.8))` }} />
-              <h2 className="mt-3 font-graffiti text-3xl md:text-4xl text-foreground">
-                YOU <span style={{ color: `hsl(${theme.glow})`, textShadow: `0 0 18px hsl(${theme.glow} / 0.7)` }}>DIED</span>
-              </h2>
-              <p className="mt-2 font-mono-x text-sm text-muted-foreground">
-                cause of death:{" "}
-                <span style={{ color: `hsl(${theme.glow})` }}>{result.cause}</span>
-              </p>
-              {theme.deathLine && (
-                <p className={`mt-2 font-graffiti text-lg ${theme.accentText}`}>
-                  "{theme.deathLine}"
-                </p>
-              )}
-
-              <div className="mt-6 grid grid-cols-2 gap-4 font-mono-x">
-                <Stat label="SURVIVED" value={`${result.survived.toFixed(1)}s`} accent={theme.glow} />
-                <Stat
-                  label="SIGNAL GENERATED"
-                  value={result.signal.toLocaleString()}
-                  highlight
-                  accent={theme.glow}
-                />
-              </div>
-
-              <p className="mt-3 font-mono-x text-xs text-muted-foreground">
-                Handle: <span className="text-foreground">{result.user}</span>
-              </p>
-              {result.dimension && (
-                <p className="mt-1 font-mono-x text-xs text-muted-foreground">
-                  Dimension: <span className="text-secondary-glow">{result.dimension}</span>
-                </p>
-              )}
-
-              <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">
-                <button
-                  onClick={() => emit("game:start", undefined)}
-                  className="btn-void flex items-center gap-2 px-6 py-3 text-lg"
-                >
-                  RE-ENTER
-                  <ArrowRight className="h-5 w-5" strokeWidth={3} />
-                </button>
-                <button
-                  onClick={close}
-                  className="font-graffiti text-foreground/70 hover:text-foreground transition px-4 py-2"
-                >
-                  EXIT
-                </button>
-              </div>
-            </motion.div>
+            <ResultCard result={result} theme={theme} onClose={close} />
           )}
         </motion.div>
       </motion.div>
