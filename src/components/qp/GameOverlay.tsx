@@ -104,7 +104,7 @@ export default function GameOverlay() {
 
   // event scheduler - interval depends on chaos
   useEffect(() => {
-    if (!open || result) return;
+    if (!open || result || phase !== "playing") return;
 
     let cancelled = false;
     const schedule = () => {
