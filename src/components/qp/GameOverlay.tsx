@@ -475,13 +475,13 @@ export default function GameOverlay() {
               transition={{ duration: 0.35 }}
               className="text-center"
             >
-              <Skull className="mx-auto h-10 w-10 text-primary" />
+              <Skull className="mx-auto h-10 w-10" style={{ color: `hsl(${theme.glow})`, filter: `drop-shadow(0 0 12px hsl(${theme.glow} / 0.8))` }} />
               <h2 className="mt-3 font-graffiti text-3xl md:text-4xl text-foreground">
-                YOU <span className="text-primary">DIED</span>
+                YOU <span style={{ color: `hsl(${theme.glow})`, textShadow: `0 0 18px hsl(${theme.glow} / 0.7)` }}>DIED</span>
               </h2>
               <p className="mt-2 font-mono-x text-sm text-muted-foreground">
                 cause of death:{" "}
-                <span className="text-secondary-glow">{result.cause}</span>
+                <span style={{ color: `hsl(${theme.glow})` }}>{result.cause}</span>
               </p>
               {theme.deathLine && (
                 <p className={`mt-2 font-graffiti text-lg ${theme.accentText}`}>
@@ -490,11 +490,12 @@ export default function GameOverlay() {
               )}
 
               <div className="mt-6 grid grid-cols-2 gap-4 font-mono-x">
-                <Stat label="SURVIVED" value={`${result.survived.toFixed(1)}s`} />
+                <Stat label="SURVIVED" value={`${result.survived.toFixed(1)}s`} accent={theme.glow} />
                 <Stat
                   label="SIGNAL GENERATED"
                   value={result.signal.toLocaleString()}
                   highlight
+                  accent={theme.glow}
                 />
               </div>
 
