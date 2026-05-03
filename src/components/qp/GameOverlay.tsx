@@ -435,6 +435,12 @@ export default function GameOverlay() {
                 </AnimatePresence>
               </div>
 
+              {isTime && (
+                <p className={`mt-4 text-center font-mono-x text-sm ${theme.accentText}`}>
+                  OUTSIDE TIME: +{Math.floor(time * 7)} YEARS
+                </p>
+              )}
+
               <p className="mt-4 text-center font-mono-x text-xs text-muted-foreground">
                 survive. accumulate signal. the void scales.
               </p>
