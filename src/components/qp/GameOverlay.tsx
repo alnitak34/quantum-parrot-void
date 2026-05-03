@@ -439,7 +439,7 @@ export default function GameOverlay() {
           />
         )}
         {themed && phase === "playing" && !result && (
-          <IntroHint />
+          <IntroHint key={`hint-${dimension}`} />
         )}
         {isDark && themed && (
           <>
