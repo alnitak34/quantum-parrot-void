@@ -1542,12 +1542,22 @@ function DarkMatterField({
   const posRef = useRef(pos);
   const dragRef = useRef(false);
   const targetRef = useRef<{ x: number; y: number } | null>(null);
-  const [proximity, setProximity] = useState(0); // 0..1, 1 = at center
+  const [proximity, setProximity] = useState(0); // 0..1, 1 = at a core
+  const [elapsed, setElapsed] = useState(0);
   const audioRef = useRef<{ ctx: AudioContext; osc: OscillatorNode; gain: GainNode } | null>(null);
+
+  // Cores: each has a base position, drift params, and an "appearAt" time (s)
+  type Core = { id: number; bx: number; by: number; rx: number; ry: number; speed: number; phase: number; appearAt: number };
+  const coresRef = useRef<Core[]>([
+    { id: 0, bx: 0.5,  by: 0.5,  rx: 0.06, ry: 0.05, speed: 0.18, phase: 0,    appearAt: 0  },
+    { id: 1, bx: 0.72, by: 0.34, rx: 0.10, ry: 0.08, speed: 0.22, phase: 1.7,  appearAt: 10 },
+    { id: 2, bx: 0.28, by: 0.7,  rx: 0.09, ry: 0.10, speed: 0.26, phase: 3.4,  appearAt: 20 },
+  ]);
+  const [coresPos, setCoresPos] = useState(coresRef.current.map(c => ({ id: c.id, x: c.bx, y: c.by, alive: c.appearAt === 0 })));
 
   useEffect(() => { posRef.current = pos; }, [pos]);
 
-  // low-frequency rumble that intensifies near center
+  // low-frequency rumble that intensifies near a core
   useEffect(() => {
     try {
       const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
@@ -1555,7 +1565,7 @@ function DarkMatterField({
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sine";
-      osc.frequency.value = 38;
+      osc.frequency.value = 34;
       gain.gain.value = 0;
       osc.connect(gain).connect(ctx.destination);
       osc.start();
@@ -1572,8 +1582,8 @@ function DarkMatterField({
     const a = audioRef.current;
     if (!a) return;
     try {
-      a.gain.gain.setTargetAtTime(proximity * 0.18, a.ctx.currentTime, 0.15);
-      a.osc.frequency.setTargetAtTime(28 + proximity * 28, a.ctx.currentTime, 0.2);
+      a.gain.gain.setTargetAtTime(proximity * 0.22, a.ctx.currentTime, 0.15);
+      a.osc.frequency.setTargetAtTime(26 + proximity * 34, a.ctx.currentTime, 0.2);
     } catch { /* ignore */ }
   }, [proximity]);
 
@@ -1586,48 +1596,65 @@ function DarkMatterField({
       const now = performance.now();
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
+      const t = (now - startedAtRef.current) / 1000;
+
+      // Difficulty curve: 0 at t=0, 1 around t=30
+      const diff = Math.min(1, t / 30);
+
+      // Update core positions (slight orbital drift)
+      const cores = coresRef.current.map(c => {
+        const alive = t >= c.appearAt;
+        const cx = c.bx + Math.cos(t * c.speed + c.phase) * c.rx;
+        const cy = c.by + Math.sin(t * c.speed * 0.9 + c.phase) * c.ry;
+        return { id: c.id, x: cx, y: cy, alive };
+      });
+      setCoresPos(cores);
 
       const p = { ...posRef.current };
-      const cx = 0.5, cy = 0.5;
-      const dx = cx - p.x;
-      const dy = cy - p.y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
 
-      const elapsed = (performance.now() - startedAtRef.current) / 1000;
-      // 3-phase pull: phase1 none, phase2 low, phase3 full
-      const pullMult = elapsed < 3 ? 0 : elapsed < 8 ? 0.35 : 1;
-      const pullStrength = (0.4 + chaos * 0.08) * pullMult * dt / Math.max(0.04, dist);
-      const ax = dx * pullStrength;
-      const ay = dy * pullStrength;
-
-      // drag toward pointer target
+      // Drag toward pointer
       if (dragRef.current && targetRef.current) {
-        const t = targetRef.current;
-        p.x += (t.x - p.x) * Math.min(1, dt * 9);
-        p.y += (t.y - p.y) * Math.min(1, dt * 9);
+        const tg = targetRef.current;
+        p.x += (tg.x - p.x) * Math.min(1, dt * 9);
+        p.y += (tg.y - p.y) * Math.min(1, dt * 9);
       }
 
-      p.x += ax;
-      p.y += ay;
+      // Aggregate gravity from all active cores
+      let nearestDist = 1;
+      let nearestIsCenter = false;
+      for (const c of cores) {
+        if (!c.alive) continue;
+        const dx = c.x - p.x;
+        const dy = c.y - p.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < nearestDist) { nearestDist = d; nearestIsCenter = true; }
+        // pull strength scales with difficulty and inverse distance
+        const base = 0.18 + chaos * 0.05;
+        const pullMult = t < 3 ? 0 : t < 8 ? 0.3 + diff * 0.2 : 0.5 + diff * 0.9;
+        const strength = base * pullMult * dt / Math.max(0.05, d * d);
+        p.x += dx * strength;
+        p.y += dy * strength;
+      }
+
       p.x = Math.max(0.02, Math.min(0.98, p.x));
       p.y = Math.max(0.02, Math.min(0.98, p.y));
 
-      const newDist = Math.sqrt((cx - p.x) ** 2 + (cy - p.y) ** 2);
-      const prox = Math.max(0, Math.min(1, 1 - newDist / 0.5));
+      const prox = Math.max(0, Math.min(1, 1 - nearestDist / 0.4));
       setProximity(prox);
       onProximity(prox);
+      setElapsed(t);
 
-      // signal gain ~ proximity (reduced in early phases)
-      const signalMult = elapsed < 3 ? 0.3 : elapsed < 8 ? 0.7 : 1;
-      signalAccum += prox * prox * 30 * signalMult * dt;
+      // signal gain ~ proximity (encourages risk)
+      const signalMult = t < 3 ? 0.3 : t < 8 ? 0.7 : 1;
+      signalAccum += prox * prox * 28 * signalMult * dt;
       if (signalAccum >= 1) {
         const gain = Math.floor(signalAccum);
         signalAccum -= gain;
         onSignalTick(gain);
       }
 
-      // collapse only after 5s minimum, and full danger after 8s
-      if (newDist < 0.04 && elapsed > 5) {
+      // Death only when entering an active core's center, after grace
+      if (nearestIsCenter && nearestDist < 0.028 && t > 5) {
         onCollapse();
         return;
       }
@@ -1660,15 +1687,8 @@ function DarkMatterField({
   };
   const onPointerUp = () => { dragRef.current = false; targetRef.current = null; };
 
-  // streak particles curving toward zones
-  const particles = Array.from({ length: 36 }, (_, i) => i);
-
-  // secondary irregular gravity zones
-  const zones = [
-    { x: 0.28, y: 0.34, s: 0.55, br: "62% 38% 55% 45% / 48% 52% 40% 60%" },
-    { x: 0.74, y: 0.7, s: 0.45, br: "40% 60% 35% 65% / 55% 45% 60% 40%" },
-    { x: 0.7, y: 0.28, s: 0.35, br: "55% 45% 70% 30% / 35% 65% 45% 55%" },
-  ];
+  // streak particles bending toward nearest core
+  const particles = Array.from({ length: 40 }, (_, i) => i);
 
   return (
     <div
@@ -1680,89 +1700,90 @@ function DarkMatterField({
       onPointerCancel={onPointerUp}
       style={{ touchAction: "none", cursor: dragRef.current ? "grabbing" : "grab" }}
     >
-      {/* SVG goo filter for organic blob edges */}
-      <svg aria-hidden width="0" height="0" style={{ position: "absolute" }}>
-        <defs>
-          <filter id="dm-goo">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="14" />
-            <feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" />
-          </filter>
-        </defs>
-      </svg>
+      {/* Dark cores: black center + glowing halo + distortion ring */}
+      {coresPos.map((c) => {
+        if (!c.alive) return null;
+        // size grows slightly with elapsed time (difficulty)
+        const grow = Math.min(1, elapsed / 25);
+        const haloVmin = 22 + grow * 18;
+        const coreVmin = 5 + grow * 3;
+        return (
+          <div key={c.id} className="pointer-events-none absolute" style={{ left: `${c.x * 100}%`, top: `${c.y * 100}%`, transform: "translate(-50%, -50%)" }}>
+            {/* outer distortion */}
+            <motion.div
+              aria-hidden
+              animate={{ scale: [1, 1.08, 1], rotate: [0, 6, -4, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                position: "absolute",
+                left: "50%", top: "50%",
+                width: `${haloVmin * 1.7}vmin`,
+                height: `${haloVmin * 1.7}vmin`,
+                transform: "translate(-50%, -50%)",
+                borderRadius: "50%",
+                background: `radial-gradient(circle, transparent 38%, hsl(${glow} / 0.06) 55%, transparent 78%)`,
+                filter: "blur(8px)",
+                mixBlendMode: "screen",
+              }}
+            />
+            {/* glowing halo */}
+            <motion.div
+              aria-hidden
+              animate={{ opacity: [0.6, 0.95, 0.6] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              style={{
+                position: "absolute",
+                left: "50%", top: "50%",
+                width: `${haloVmin}vmin`,
+                height: `${haloVmin}vmin`,
+                transform: "translate(-50%, -50%)",
+                borderRadius: "50%",
+                background: `radial-gradient(circle, hsl(${glow} / 0.55) 0%, hsl(${glow} / 0.18) 35%, transparent 70%)`,
+                boxShadow: `0 0 60px hsl(${glow} / 0.55)`,
+                filter: "blur(2px)",
+              }}
+            />
+            {/* black core (death zone) */}
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                left: "50%", top: "50%",
+                width: `${coreVmin}vmin`,
+                height: `${coreVmin}vmin`,
+                transform: "translate(-50%, -50%)",
+                borderRadius: "50%",
+                background: "radial-gradient(circle, #000 0%, #000 60%, hsl(0 0% 0% / 0.6) 100%)",
+                boxShadow: `0 0 30px hsl(${glow} / 0.6), inset 0 0 20px #000`,
+              }}
+            />
+          </div>
+        );
+      })}
 
-      {/* Central irregular gravity mass */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute"
-        animate={{
-          borderRadius: [
-            "58% 42% 60% 40% / 45% 55% 45% 55%",
-            "42% 58% 45% 55% / 60% 40% 55% 45%",
-            "55% 45% 50% 50% / 50% 50% 60% 40%",
-            "58% 42% 60% 40% / 45% 55% 45% 55%",
-          ],
-          rotate: [0, 8, -6, 0],
-        }}
-        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-        style={{
-          left: "50%", top: "50%",
-          width: `${28 + proximity * 60}vmin`,
-          height: `${24 + proximity * 50}vmin`,
-          transform: "translate(-50%, -50%)",
-          background: `radial-gradient(ellipse at 45% 55%, hsl(0 0% 0%) 0%, hsl(0 0% 0% / 0.92) 22%, hsl(${glow} / ${0.18 + proximity * 0.35}) 55%, transparent 78%)`,
-          boxShadow: `inset 0 0 ${80 + proximity * 160}px hsl(${glow} / ${0.25 + proximity * 0.5}), 0 0 ${60 + proximity * 120}px hsl(${glow} / ${0.2 + proximity * 0.45})`,
-          filter: `blur(${4 + proximity * 6}px)`,
-          mixBlendMode: "multiply",
-        }}
-      />
-
-      {/* Secondary irregular gravity zones */}
-      {zones.map((z, i) => (
-        <motion.div
-          key={i}
-          aria-hidden
-          className="pointer-events-none absolute"
-          animate={{
-            x: [0, 8, -6, 0],
-            y: [0, -5, 7, 0],
-            borderRadius: [z.br, "50% 50% 40% 60% / 60% 40% 55% 45%", z.br],
-          }}
-          transition={{ duration: 9 + i * 2, repeat: Infinity, ease: "easeInOut" }}
-          style={{
-            left: `${z.x * 100}%`,
-            top: `${z.y * 100}%`,
-            width: `${z.s * 30}vmin`,
-            height: `${z.s * 24}vmin`,
-            transform: "translate(-50%, -50%)",
-            borderRadius: z.br,
-            background: `radial-gradient(ellipse at 50% 50%, hsl(0 0% 0% / 0.85) 0%, hsl(0 0% 0% / 0.55) 35%, hsl(${glow} / 0.12) 65%, transparent 85%)`,
-            boxShadow: `inset 0 0 60px hsl(${glow} / 0.3)`,
-            filter: "blur(10px)",
-            mixBlendMode: "multiply",
-          }}
-        />
-      ))}
-
-      {/* screen stretch when pulled */}
+      {/* screen stretch / vignette when close to any core */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute inset-0"
-        animate={{ scaleX: 1 + proximity * 0.08, scaleY: 1 - proximity * 0.05 }}
+        animate={{ scaleX: 1 + proximity * 0.1, scaleY: 1 - proximity * 0.06 }}
         transition={{ duration: 0.25 }}
         style={{
-          background: `radial-gradient(ellipse at 50% 50%, transparent 30%, hsl(0 0% 0% / ${proximity * 0.45}) 75%)`,
+          background: `radial-gradient(ellipse at 50% 50%, transparent 28%, hsl(0 0% 0% / ${proximity * 0.5}) 78%)`,
           mixBlendMode: "multiply",
         }}
       />
 
-      {/* streak particles curving toward zones */}
+      {/* streak particles bending toward nearest core */}
       {particles.map((i) => {
         const angle = (i / particles.length) * Math.PI * 2;
-        const r = 0.2 + ((i * 37) % 100) / 360;
-        const px = 0.5 + Math.cos(angle) * r;
-        const py = 0.5 + Math.sin(angle) * r;
-        const dx = 0.5 - px;
-        const dy = 0.5 - py;
+        const r = 0.18 + ((i * 37) % 100) / 360;
+        // pick nearest active core for this particle's vector
+        const active = coresPos.filter(c => c.alive);
+        const target = active[i % Math.max(1, active.length)] ?? { x: 0.5, y: 0.5 };
+        const px = target.x + Math.cos(angle) * r;
+        const py = target.y + Math.sin(angle) * r;
+        const dx = target.x - px;
+        const dy = target.y - py;
         const len = 6 + (i % 4) * 3;
         const rot = (Math.atan2(dy, dx) * 180) / Math.PI;
         return (
@@ -1777,11 +1798,11 @@ function DarkMatterField({
               height: 1.5,
               transformOrigin: "left center",
               transform: `rotate(${rot}deg)`,
-              background: `linear-gradient(90deg, transparent, hsl(${glow} / 0.95))`,
+              background: `linear-gradient(90deg, transparent, hsl(${glow} / 0.9))`,
               boxShadow: `0 0 5px hsl(${glow} / 0.7)`,
             }}
-            animate={{ x: [0, dx * 240, 0], y: [0, dy * 240, 0], opacity: [0.15, 0.95, 0.15] }}
-            transition={{ duration: 3 + (i % 5) * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.07 }}
+            animate={{ x: [0, dx * 240, 0], y: [0, dy * 240, 0], opacity: [0.1, 0.9, 0.1] }}
+            transition={{ duration: 3 + (i % 5) * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.06 }}
           />
         );
       })}
@@ -1804,7 +1825,7 @@ function DarkMatterField({
       />
 
       {/* danger flash near collapse */}
-      {proximity > 0.78 && (
+      {proximity > 0.8 && (
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-red-600"
