@@ -446,6 +446,20 @@ export default function GameOverlay() {
                 </span>
               </div>
 
+              {/* Dimension tagline */}
+              <motion.div
+                key={dimension}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: theme.pulseDuration, repeat: Infinity, ease: "easeInOut" }}
+                className={`mt-3 text-center font-graffiti tracking-[0.3em] text-sm ${theme.accentText}`}
+                style={{ textShadow: `0 0 14px hsl(${theme.glow} / 0.8)` }}
+              >
+                {isTime && "TIME IS UNSTABLE"}
+                {isDark && "YOU ARE NOT ALONE"}
+                {isSpag && "STRUCTURE BREAKING"}
+              </motion.div>
+
               <div className="mt-6 grid grid-cols-3 gap-4 font-mono-x text-center">
                 <Stat label="TIME" value={`${time.toFixed(1)}s`} accent={theme.glow} />
                 <Stat
