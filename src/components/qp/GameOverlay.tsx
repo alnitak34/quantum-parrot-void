@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Skull, Zap, X, ArrowRight } from "lucide-react";
+import { Skull, Zap, X, ArrowRight, Copy, Check } from "lucide-react";
 import { emit, on, stamp, randomNick, type GameResult } from "./gameStore";
 
 type EventDef = {
@@ -469,61 +469,7 @@ export default function GameOverlay() {
               </p>
             </>
           ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35 }}
-              className="text-center"
-            >
-              <Skull className="mx-auto h-10 w-10" style={{ color: `hsl(${theme.glow})`, filter: `drop-shadow(0 0 12px hsl(${theme.glow} / 0.8))` }} />
-              <h2 className="mt-3 font-graffiti text-3xl md:text-4xl text-foreground">
-                YOU <span style={{ color: `hsl(${theme.glow})`, textShadow: `0 0 18px hsl(${theme.glow} / 0.7)` }}>DIED</span>
-              </h2>
-              <p className="mt-2 font-mono-x text-sm text-muted-foreground">
-                cause of death:{" "}
-                <span style={{ color: `hsl(${theme.glow})` }}>{result.cause}</span>
-              </p>
-              {theme.deathLine && (
-                <p className={`mt-2 font-graffiti text-lg ${theme.accentText}`}>
-                  "{theme.deathLine}"
-                </p>
-              )}
-
-              <div className="mt-6 grid grid-cols-2 gap-4 font-mono-x">
-                <Stat label="SURVIVED" value={`${result.survived.toFixed(1)}s`} accent={theme.glow} />
-                <Stat
-                  label="SIGNAL GENERATED"
-                  value={result.signal.toLocaleString()}
-                  highlight
-                  accent={theme.glow}
-                />
-              </div>
-
-              <p className="mt-3 font-mono-x text-xs text-muted-foreground">
-                Handle: <span className="text-foreground">{result.user}</span>
-              </p>
-              {result.dimension && (
-                <p className="mt-1 font-mono-x text-xs text-muted-foreground">
-                  Dimension: <span className="text-secondary-glow">{result.dimension}</span>
-                </p>
-              )}
-
-              <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">
-                <button
-                  onClick={() => emit("game:start", undefined)}
-                  className="btn-void flex items-center gap-2 px-6 py-3 text-lg"
-                >
-                  RE-ENTER
-                  <ArrowRight className="h-5 w-5" strokeWidth={3} />
-                </button>
-                <button
-                  onClick={close}
-                  className="font-graffiti text-foreground/70 hover:text-foreground transition px-4 py-2"
-                >
-                  EXIT
-                </button>
-              </div>
-            </motion.div>
+            <ResultCard result={result} theme={theme} onClose={close} />
           )}
         </motion.div>
       </motion.div>
@@ -565,6 +511,165 @@ function Stat({
               ? { color: "hsl(var(--foreground))" }
               : undefined
         }
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function classify(signal: number): string {
+  if (signal >= 500) return "TITAN SURVIVOR";
+  if (signal >= 250) return "CHAOS SIGNAL";
+  if (signal >= 100) return "CONTROLLED DEGEN";
+  return "EVENT HORIZON NPC";
+}
+
+const DIM_LINES: Record<string, string> = {
+  "TIME DILATION": "You survived seconds. The outside world aged badly.",
+  "DARK MATTER": "You trusted what you couldn't see. Very crypto.",
+  "SPAGHETTIFICATION": "Leverage detected. Dignity removed.",
+};
+
+function ResultCard({
+  result,
+  theme,
+  onClose,
+}: {
+  result: GameResult;
+  theme: { glow: string; deathLine: string; accentText: string };
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const classification = classify(result.signal);
+  const dim = result.dimension || "UNKNOWN";
+  const sarcasm = DIM_LINES[dim] || "The void doesn't care.";
+
+  const shareText = `I survived ${result.survived.toFixed(1)}s in QUANTUM PARROTS.
+Dimension: ${dim}
+Signal: ${result.signal}
+Classified as: ${classification}
+
+Top signals leave a trace on Monad.`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="text-center"
+    >
+      <Skull
+        className="mx-auto h-10 w-10"
+        style={{ color: `hsl(${theme.glow})`, filter: `drop-shadow(0 0 12px hsl(${theme.glow} / 0.8))` }}
+      />
+      <h2 className="mt-3 font-graffiti text-3xl md:text-4xl text-foreground">
+        YOU{" "}
+        <span style={{ color: `hsl(${theme.glow})`, textShadow: `0 0 18px hsl(${theme.glow} / 0.7)` }}>
+          DIED
+        </span>
+      </h2>
+      {theme.deathLine && (
+        <p className={`mt-2 font-graffiti text-lg ${theme.accentText}`}>"{theme.deathLine}"</p>
+      )}
+
+      <div
+        className="mt-5 rounded-xl p-5 text-left"
+        style={{
+          background: "rgba(0,0,0,0.45)",
+          border: `1px solid hsl(${theme.glow} / 0.45)`,
+          boxShadow: `0 0 30px hsl(${theme.glow} / 0.35), inset 0 0 40px hsl(${theme.glow} / 0.08)`,
+        }}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-graffiti text-sm tracking-wider text-muted-foreground">
+            VOID RESULT
+          </span>
+          <span
+            className="font-graffiti text-sm tracking-wider px-2 py-0.5 rounded"
+            style={{
+              color: `hsl(${theme.glow})`,
+              background: `hsl(${theme.glow} / 0.12)`,
+              border: `1px solid hsl(${theme.glow} / 0.4)`,
+            }}
+          >
+            {classification}
+          </span>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-3 font-mono-x text-sm">
+          <ResultRow label="HANDLE" value={result.user} accent={theme.glow} />
+          <ResultRow label="DIMENSION" value={dim} accent={theme.glow} />
+          <ResultRow label="SURVIVED" value={`${result.survived.toFixed(1)}s`} accent={theme.glow} />
+          <ResultRow label="SIGNAL" value={result.signal.toLocaleString()} accent={theme.glow} bold />
+          <div className="col-span-2">
+            <ResultRow label="CAUSE" value={result.cause} accent={theme.glow} />
+          </div>
+        </div>
+
+        <p className={`mt-4 font-mono-x text-xs italic ${theme.accentText}`}>{sarcasm}</p>
+      </div>
+
+      <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-2 px-5 py-3 rounded-md font-graffiti tracking-wider transition"
+          style={{
+            color: `hsl(${theme.glow})`,
+            border: `1px solid hsl(${theme.glow} / 0.6)`,
+            background: `hsl(${theme.glow} / 0.08)`,
+          }}
+        >
+          {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+          {copied ? "COPIED" : "COPY RESULT"}
+        </button>
+        <button
+          onClick={() => emit("game:start", undefined)}
+          className="btn-void flex items-center gap-2 px-6 py-3 text-lg"
+        >
+          RE-ENTER
+          <ArrowRight className="h-5 w-5" strokeWidth={3} />
+        </button>
+        <button
+          onClick={onClose}
+          className="font-graffiti text-foreground/70 hover:text-foreground transition px-4 py-2"
+        >
+          EXIT
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+function ResultRow({
+  label,
+  value,
+  accent,
+  bold,
+}: {
+  label: string;
+  value: string;
+  accent: string;
+  bold?: boolean;
+}) {
+  return (
+    <div>
+      <div className="text-[10px] uppercase tracking-widest" style={{ color: `hsl(${accent} / 0.8)` }}>
+        {label}
+      </div>
+      <div
+        className={`mt-0.5 ${bold ? "text-lg font-bold tabular-nums" : "text-sm"} text-foreground break-words`}
+        style={bold ? { color: `hsl(${accent})`, textShadow: `0 0 12px hsl(${accent} / 0.7)` } : undefined}
       >
         {value}
       </div>
