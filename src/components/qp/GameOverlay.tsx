@@ -598,6 +598,177 @@ export default function GameOverlay() {
   );
 }
 
+interface Wave {
+  id: number;
+  y: number;
+  x: number;
+  speed: number;
+  height: number;
+}
+
+function TimeDilationGame({ onHit }: { onHit: () => void }) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [parrotY, setParrotY] = useState(0.5);
+  const parrotYRef = useRef(0.5);
+  const wavesRef = useRef<Wave[]>([]);
+  const [, force] = useState(0);
+  const keysRef = useRef<Set<string>>(new Set());
+  const [flash, setFlash] = useState(false);
+  const flashUntilRef = useRef(0);
+  const hitRef = useRef(false);
+
+  useEffect(() => {
+    parrotYRef.current = parrotY;
+  }, [parrotY]);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      const k = e.key.toLowerCase();
+      if (["arrowup", "arrowdown", "w", "s"].includes(k)) {
+        keysRef.current.add(k);
+        e.preventDefault();
+      }
+    };
+    const up = (e: KeyboardEvent) => {
+      keysRef.current.delete(e.key.toLowerCase());
+    };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let nextId = 1;
+    const spawn = () => {
+      if (cancelled) return;
+      const burst = Math.random() < 0.25;
+      const speed = burst ? 8 + Math.random() * 6 : 2 + Math.random() * 2.5;
+      wavesRef.current.push({
+        id: nextId++,
+        y: 0.1 + Math.random() * 0.8,
+        x: 0,
+        speed,
+        height: 14 + Math.random() * 18,
+      });
+      const delay = 2000 + Math.random() * 2000;
+      setTimeout(spawn, delay);
+    };
+    const t = setTimeout(spawn, 800);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, []);
+
+  useEffect(() => {
+    let raf = 0;
+    const step = () => {
+      const el = containerRef.current;
+      if (!el) {
+        raf = requestAnimationFrame(step);
+        return;
+      }
+      const W = el.clientWidth;
+      const H = el.clientHeight;
+
+      const keys = keysRef.current;
+      let dy = 0;
+      if (keys.has("arrowup") || keys.has("w")) dy -= 6;
+      if (keys.has("arrowdown") || keys.has("s")) dy += 6;
+      if (dy !== 0) {
+        const next = Math.max(0.05, Math.min(0.95, parrotYRef.current + dy / H));
+        parrotYRef.current = next;
+        setParrotY(next);
+      }
+
+      const parrotPx = parrotYRef.current * H;
+      const parrotCx = W / 2;
+      const parrotR = 22;
+      let nearMiss = false;
+      for (const w of wavesRef.current) {
+        w.x += w.speed;
+        const waveLeft = W - w.x;
+        const waveRight = waveLeft + 80;
+        const waveCy = w.y * H;
+        const dyAbs = Math.abs(parrotPx - waveCy);
+        const overlapsX = parrotCx + parrotR > waveLeft && parrotCx - parrotR < waveRight;
+        if (overlapsX) {
+          if (dyAbs < parrotR + w.height / 2) {
+            if (!hitRef.current) {
+              hitRef.current = true;
+              onHit();
+            }
+          } else if (dyAbs < parrotR + w.height / 2 + 22) {
+            nearMiss = true;
+          }
+        }
+      }
+      wavesRef.current = wavesRef.current.filter((w) => W - w.x > -120);
+
+      const now = performance.now();
+      if (nearMiss && now > flashUntilRef.current) {
+        flashUntilRef.current = now + 140;
+        setFlash(true);
+        setTimeout(() => setFlash(false), 140);
+      }
+
+      force((n) => (n + 1) % 1000000);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [onHit]);
+
+  const el = containerRef.current;
+  const W = el?.clientWidth ?? 0;
+  const H = el?.clientHeight ?? 0;
+
+  return (
+    <div
+      ref={containerRef}
+      aria-hidden
+      className="pointer-events-none absolute inset-0 z-[5] overflow-hidden"
+    >
+      {wavesRef.current.map((w) => (
+        <div
+          key={w.id}
+          className="absolute rounded-full"
+          style={{
+            left: W - w.x,
+            top: w.y * H - w.height / 2,
+            width: 80,
+            height: w.height,
+            background:
+              "linear-gradient(90deg, transparent, hsl(var(--time) / 0.95), transparent)",
+            boxShadow:
+              "0 0 30px hsl(var(--time) / 0.9), 0 0 60px hsl(var(--time) / 0.5)",
+            filter: "blur(2px)",
+          }}
+        />
+      ))}
+      <div
+        className="absolute -translate-x-1/2 -translate-y-1/2"
+        style={{ left: "50%", top: `${parrotY * 100}%`, width: 36, height: 36 }}
+      >
+        <div
+          className="h-full w-full rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, hsl(var(--time)) 0%, hsl(38 95% 35%) 60%, transparent 80%)",
+            boxShadow:
+              "0 0 24px hsl(var(--time) / 0.95), 0 0 48px hsl(var(--time) / 0.6)",
+          }}
+        />
+      </div>
+      {flash && <div className="absolute inset-0 bg-time/30 mix-blend-screen" />}
+    </div>
+  );
+}
+
 function Stat({
   label,
   value,
