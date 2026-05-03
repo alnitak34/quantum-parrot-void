@@ -314,6 +314,10 @@ export default function GameOverlay() {
                 />
               </div>
 
+              <p className="mt-3 font-mono-x text-xs text-muted-foreground">
+                Handle: <span className="text-foreground">{result.user}</span>
+              </p>
+
               <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">
                 <button
                   onClick={() => emit("game:start", undefined)}
