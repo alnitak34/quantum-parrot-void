@@ -1,4 +1,4 @@
-import { Zap } from "lucide-react";
+
 
 const links = ["GAME", "NFTS", "LEADERBOARD", "ABOUT"];
 
