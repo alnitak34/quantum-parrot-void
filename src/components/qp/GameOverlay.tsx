@@ -1105,6 +1105,7 @@ ${PROJECT_URL}`;
         </div>
 
         <p className={`mt-4 font-mono-x text-xs italic ${theme.accentText}`}>{sarcasm}</p>
+        <p className="mt-1 font-mono-x text-[11px] text-muted-foreground">— {burn}</p>
       </div>
 
       <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
