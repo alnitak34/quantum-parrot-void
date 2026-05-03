@@ -254,13 +254,13 @@ export default function GameOverlay() {
         initial={{ opacity: 0 }}
         animate={
           isSpag && themed
-            ? { opacity: 1, x: [0, -4, 5, -3, 4, 0], y: [0, 3, -4, 2, -2, 0] }
+            ? { opacity: 1, x: [0, -10, 12, -8, 9, -6, 0], y: [0, 7, -9, 5, -6, 4, 0], rotate: [0, -0.6, 0.7, -0.4, 0.5, 0] }
             : { opacity: 1 }
         }
         exit={{ opacity: 0 }}
         transition={
           isSpag && themed
-            ? { x: { duration: 0.25, repeat: Infinity }, y: { duration: 0.3, repeat: Infinity }, opacity: { duration: 0.25 } }
+            ? { x: { duration: 0.18, repeat: Infinity }, y: { duration: 0.22, repeat: Infinity }, rotate: { duration: 0.3, repeat: Infinity }, opacity: { duration: 0.25 } }
             : { duration: 0.25 }
         }
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
