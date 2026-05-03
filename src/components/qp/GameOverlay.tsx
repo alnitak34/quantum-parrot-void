@@ -30,8 +30,25 @@ interface FlashMsg {
   delta: number;
 }
 
+type Phase = "select" | "playing";
+
+interface DimOpt {
+  key: string;
+  label: string;
+  glow: string; // hsl token
+  badge: string; // tailwind classes for badge bg/text
+}
+
+const DIMENSIONS: DimOpt[] = [
+  { key: "time", label: "TIME DILATION", glow: "var(--time)", badge: "bg-time text-void-deep" },
+  { key: "dark", label: "DARK MATTER", glow: "0 0% 95%", badge: "bg-foreground text-void-deep" },
+  { key: "spag", label: "SPAGHETTIFICATION", glow: "var(--spaghetti)", badge: "bg-spaghetti text-void-deep" },
+];
+
 export default function GameOverlay() {
   const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState<Phase>("select");
+  const [dimension, setDimension] = useState<string>("");
   const [time, setTime] = useState(0); // seconds
   const [points, setPoints] = useState(0);
   const [chaos, setChaos] = useState(1);
@@ -54,14 +71,22 @@ export default function GameOverlay() {
       setFlashes([]);
       setResult(null);
       lastEventRef.current = null;
+      setPhase("select");
+      setDimension("");
       setOpen(true);
     });
     return off;
   }, []);
 
+  const selectDimension = (label: string) => {
+    setDimension(label);
+    try { localStorage.setItem("selectedDimension", label); } catch { /* ignore */ }
+    setPhase("playing");
+  };
+
   // main game loop
   useEffect(() => {
-    if (!open || result) return;
+    if (!open || result || phase !== "playing") return;
 
     // tick survival timer (10/s for smoother progression)
     const tick = setInterval(() => {
@@ -75,7 +100,7 @@ export default function GameOverlay() {
     }, 100);
 
     return () => clearInterval(tick);
-  }, [open, result]);
+  }, [open, result, phase]);
 
   // event scheduler - interval depends on chaos
   useEffect(() => {
