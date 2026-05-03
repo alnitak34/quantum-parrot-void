@@ -754,8 +754,10 @@ export default function GameOverlay() {
           <AnomalyField
             glow={theme.glow}
             chaos={chaos}
-            onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); }}
+            timeScale={timeScale}
+            onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); setParrotHit((h) => h + 1); }}
             onIgnored={() => { playBlip("distort"); setChaos((c) => Math.min(10, +(c + 0.55).toFixed(2))); }}
+            onZoneHit={() => { setChaos((c) => Math.min(10, +(c + 0.9).toFixed(2))); setParrotHit((h) => h + 1); playBlip("distort"); }}
           />
         )}
       </motion.div>
