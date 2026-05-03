@@ -270,6 +270,7 @@ export default function GameOverlay() {
           background: themed ? theme.bgGradient : "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
+          transition: "background 400ms ease",
         }}
       >
         {isDark && themed && (
