@@ -407,6 +407,10 @@ export default function GameOverlay() {
         {themed && phase === "playing" && !result && (
           <SpikeFX spike={spike} chaos={chaos} />
         )}
+        {/* Time-scale visual feedback: blur/trails when slow, streaks/shake/flash when fast */}
+        {themed && phase === "playing" && !result && (
+          <TimeScaleFX timeScale={timeScale} />
+        )}
         {/* Red edge danger vignette (intensifies with chaos) */}
         {themed && phase === "playing" && !result && (
           <div
