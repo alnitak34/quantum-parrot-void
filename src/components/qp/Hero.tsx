@@ -10,6 +10,20 @@ import bad from "@/assets/parrot-bad.png";
 import cosmic from "@/assets/cosmic-bg.jpg";
 
 const Hero = () => {
+  const [handle, setHandle] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("playerHandle");
+    if (saved) setHandle(saved);
+  }, []);
+
+  const handleStart = () => {
+    const trimmed = handle.trim();
+    if (trimmed) localStorage.setItem("playerHandle", trimmed);
+    else localStorage.removeItem("playerHandle");
+    emit("game:start", undefined);
+  };
+
   return (
     <section className="relative overflow-hidden py-6 md:py-8">
       {/* Wormhole background */}
