@@ -198,6 +198,8 @@ export default function GameOverlay() {
     }, 1800);
 
     // death roll: increases sharply with chaos; deathy events boost it
+    // TIME DILATION handles death via the gravity wave minigame
+    if (dimension === "TIME DILATION") return;
     const deathBoost = ev.deathy ? 0.04 : 0;
     const chance = Math.max(0, (chaos - 2) * 0.018) + deathBoost;
     if (Math.random() < chance) {
