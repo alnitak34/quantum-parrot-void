@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Skull, Zap, X, ArrowRight, Copy, Check, Share2 } from "lucide-react";
 
 const PROJECT_URL = "https://quantum-parrot-void.lovable.app";
+import owlBase from "@/assets/owl-base.png";
 import { emit, on, stamp, randomNick, type GameResult } from "./gameStore";
 
 type EventDef = {
@@ -315,6 +316,20 @@ export default function GameOverlay() {
             {isDark && "YOU ARE NOT ALONE"}
             {isSpag && "STRUCTURE BREAKING"}
           </motion.div>
+        )}
+        {themed && phase === "playing" && !result && (
+          <motion.img
+            src={owlBase}
+            alt=""
+            aria-hidden
+            width={96}
+            height={96}
+            loading="lazy"
+            className="pointer-events-none absolute left-1/2 bottom-24 z-10 h-20 w-20 md:h-24 md:w-24 -translate-x-1/2 select-none"
+            style={{ background: "transparent", filter: `drop-shadow(0 0 18px hsl(${theme.glow} / 0.55))` }}
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
         )}
         {isDark && themed && (
           <>
