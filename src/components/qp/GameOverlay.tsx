@@ -101,9 +101,8 @@ export default function GameOverlay() {
     const ev = pick(EVENTS);
     lastEventRef.current = ev;
 
-    // points scale lightly with chaos
-    const delta = Math.round(ev.points * (0.8 + chaos * 0.08));
-    setPoints((p) => p + delta);
+    // signal is now driven purely by survival time; events only escalate chaos
+    const delta = 0;
     setChaos((c) => Math.min(10, +(c + 0.25).toFixed(2)));
 
     // push to live feed
