@@ -43,7 +43,11 @@ export default function GameOverlay() {
   // open game on signal
   useEffect(() => {
     const off = on("game:start", () => {
-      nickRef.current = randomNick();
+      const saved = typeof window !== "undefined" ? localStorage.getItem("playerHandle") : null;
+      const trimmed = saved?.trim();
+      nickRef.current = trimmed
+        ? (trimmed.startsWith("@") ? trimmed : `@${trimmed}`)
+        : randomNick();
       setTime(0);
       setPoints(0);
       setChaos(1);
