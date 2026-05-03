@@ -534,24 +534,35 @@ function Stat({
   label,
   value,
   highlight,
+  accent,
 }: {
   label: string;
   value: string | number;
   highlight?: boolean;
+  accent?: string;
 }) {
+  const color = accent ? `hsl(${accent})` : undefined;
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3">
-      <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+    <div
+      className="rounded-lg border bg-white/[0.03] px-3 py-3"
+      style={accent ? { borderColor: `hsl(${accent} / 0.35)` } : undefined}
+    >
+      <div
+        className="text-[10px] uppercase tracking-widest"
+        style={accent ? { color: `hsl(${accent} / 0.85)` } : undefined}
+      >
         {label}
       </div>
       <div
         className={`mt-1 text-2xl font-bold tabular-nums ${
-          highlight ? "text-primary" : "text-foreground"
+          highlight && !accent ? "text-primary" : !accent ? "text-foreground" : ""
         }`}
         style={
           highlight
-            ? { textShadow: "0 0 14px hsl(var(--primary) / 0.7)" }
-            : undefined
+            ? { color, textShadow: accent ? `0 0 14px hsl(${accent} / 0.85)` : "0 0 14px hsl(var(--primary) / 0.7)" }
+            : accent
+              ? { color: "hsl(var(--foreground))" }
+              : undefined
         }
       >
         {value}
