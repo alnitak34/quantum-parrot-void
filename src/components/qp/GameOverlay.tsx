@@ -490,7 +490,7 @@ export default function GameOverlay() {
               </div>
             </motion.div>
           )}
-        </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
