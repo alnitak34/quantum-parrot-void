@@ -1660,8 +1660,15 @@ function DarkMatterField({
   };
   const onPointerUp = () => { dragRef.current = false; targetRef.current = null; };
 
-  // particles bending toward center
-  const particles = Array.from({ length: 28 }, (_, i) => i);
+  // streak particles curving toward zones
+  const particles = Array.from({ length: 36 }, (_, i) => i);
+
+  // secondary irregular gravity zones
+  const zones = [
+    { x: 0.28, y: 0.34, s: 0.55, br: "62% 38% 55% 45% / 48% 52% 40% 60%" },
+    { x: 0.74, y: 0.7, s: 0.45, br: "40% 60% 35% 65% / 55% 45% 60% 40%" },
+    { x: 0.7, y: 0.28, s: 0.35, br: "55% 45% 70% 30% / 35% 65% 45% 55%" },
+  ];
 
   return (
     <div
@@ -1673,21 +1680,69 @@ function DarkMatterField({
       onPointerCancel={onPointerUp}
       style={{ touchAction: "none", cursor: dragRef.current ? "grabbing" : "grab" }}
     >
-      {/* lens distortion ring */}
-      <div
+      {/* SVG goo filter for organic blob edges */}
+      <svg aria-hidden width="0" height="0" style={{ position: "absolute" }}>
+        <defs>
+          <filter id="dm-goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="14" />
+            <feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 22 -10" />
+          </filter>
+        </defs>
+      </svg>
+
+      {/* Central irregular gravity mass */}
+      <motion.div
         aria-hidden
         className="pointer-events-none absolute"
+        animate={{
+          borderRadius: [
+            "58% 42% 60% 40% / 45% 55% 45% 55%",
+            "42% 58% 45% 55% / 60% 40% 55% 45%",
+            "55% 45% 50% 50% / 50% 50% 60% 40%",
+            "58% 42% 60% 40% / 45% 55% 45% 55%",
+          ],
+          rotate: [0, 8, -6, 0],
+        }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
         style={{
           left: "50%", top: "50%",
-          width: `${30 + proximity * 50}vmin`,
-          height: `${30 + proximity * 50}vmin`,
+          width: `${28 + proximity * 60}vmin`,
+          height: `${24 + proximity * 50}vmin`,
           transform: "translate(-50%, -50%)",
-          borderRadius: "50%",
-          background: `radial-gradient(circle, hsl(0 0% 0%) 0%, hsl(0 0% 0% / 0.85) 18%, transparent 55%)`,
-          boxShadow: `inset 0 0 ${60 + proximity * 120}px hsl(${glow} / ${0.2 + proximity * 0.5}), 0 0 ${40 + proximity * 80}px hsl(${glow} / ${0.15 + proximity * 0.4})`,
-          filter: `blur(${1 + proximity * 3}px)`,
+          background: `radial-gradient(ellipse at 45% 55%, hsl(0 0% 0%) 0%, hsl(0 0% 0% / 0.92) 22%, hsl(${glow} / ${0.18 + proximity * 0.35}) 55%, transparent 78%)`,
+          boxShadow: `inset 0 0 ${80 + proximity * 160}px hsl(${glow} / ${0.25 + proximity * 0.5}), 0 0 ${60 + proximity * 120}px hsl(${glow} / ${0.2 + proximity * 0.45})`,
+          filter: `blur(${4 + proximity * 6}px)`,
+          mixBlendMode: "multiply",
         }}
       />
+
+      {/* Secondary irregular gravity zones */}
+      {zones.map((z, i) => (
+        <motion.div
+          key={i}
+          aria-hidden
+          className="pointer-events-none absolute"
+          animate={{
+            x: [0, 8, -6, 0],
+            y: [0, -5, 7, 0],
+            borderRadius: [z.br, "50% 50% 40% 60% / 60% 40% 55% 45%", z.br],
+          }}
+          transition={{ duration: 9 + i * 2, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            left: `${z.x * 100}%`,
+            top: `${z.y * 100}%`,
+            width: `${z.s * 30}vmin`,
+            height: `${z.s * 24}vmin`,
+            transform: "translate(-50%, -50%)",
+            borderRadius: z.br,
+            background: `radial-gradient(ellipse at 50% 50%, hsl(0 0% 0% / 0.85) 0%, hsl(0 0% 0% / 0.55) 35%, hsl(${glow} / 0.12) 65%, transparent 85%)`,
+            boxShadow: `inset 0 0 60px hsl(${glow} / 0.3)`,
+            filter: "blur(10px)",
+            mixBlendMode: "multiply",
+          }}
+        />
+      ))}
+
       {/* screen stretch when pulled */}
       <motion.div
         aria-hidden
@@ -1699,48 +1754,55 @@ function DarkMatterField({
           mixBlendMode: "multiply",
         }}
       />
-      {/* particles bending toward center */}
+
+      {/* streak particles curving toward zones */}
       {particles.map((i) => {
         const angle = (i / particles.length) * Math.PI * 2;
-        const r = 0.18 + ((i * 37) % 100) / 380;
+        const r = 0.2 + ((i * 37) % 100) / 360;
         const px = 0.5 + Math.cos(angle) * r;
         const py = 0.5 + Math.sin(angle) * r;
         const dx = 0.5 - px;
         const dy = 0.5 - py;
+        const len = 6 + (i % 4) * 3;
+        const rot = (Math.atan2(dy, dx) * 180) / Math.PI;
         return (
           <motion.span
             key={i}
             aria-hidden
-            className="pointer-events-none absolute block rounded-full"
+            className="pointer-events-none absolute block"
             style={{
               left: `${px * 100}%`,
               top: `${py * 100}%`,
-              width: 3,
-              height: 3,
-              background: `hsl(${glow} / 0.85)`,
-              boxShadow: `0 0 6px hsl(${glow} / 0.9)`,
+              width: len,
+              height: 1.5,
+              transformOrigin: "left center",
+              transform: `rotate(${rot}deg)`,
+              background: `linear-gradient(90deg, transparent, hsl(${glow} / 0.95))`,
+              boxShadow: `0 0 5px hsl(${glow} / 0.7)`,
             }}
-            animate={{ x: [0, dx * 220, 0], y: [0, dy * 220, 0], opacity: [0.2, 0.9, 0.2] }}
-            transition={{ duration: 3 + (i % 5) * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.08 }}
+            animate={{ x: [0, dx * 240, 0], y: [0, dy * 240, 0], opacity: [0.15, 0.95, 0.15] }}
+            transition={{ duration: 3 + (i % 5) * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.07 }}
           />
         );
       })}
-      {/* player orb */}
+
+      {/* player marker — small diamond, not a ball */}
       <motion.div
         aria-hidden
-        className="absolute rounded-full"
-        animate={{ scale: dragRef.current ? 1.1 : 1 }}
+        className="absolute"
+        animate={{ scale: dragRef.current ? 1.15 : 1, rotate: 45 }}
         style={{
           left: `${pos.x * 100}%`,
           top: `${pos.y * 100}%`,
-          width: 22,
-          height: 22,
-          transform: "translate(-50%, -50%)",
-          background: `radial-gradient(circle, hsl(${glow}) 0%, hsl(${glow} / 0.4) 70%, transparent 100%)`,
-          boxShadow: `0 0 18px hsl(${glow} / 0.95), 0 0 40px hsl(${glow} / 0.55)`,
-          border: `1px solid hsl(${glow} / 0.7)`,
+          width: 16,
+          height: 16,
+          transform: "translate(-50%, -50%) rotate(45deg)",
+          background: `linear-gradient(135deg, hsl(${glow}) 0%, hsl(${glow} / 0.4) 100%)`,
+          boxShadow: `0 0 14px hsl(${glow} / 0.95), 0 0 32px hsl(${glow} / 0.5)`,
+          border: `1px solid hsl(${glow} / 0.85)`,
         }}
       />
+
       {/* danger flash near collapse */}
       {proximity > 0.78 && (
         <motion.div
