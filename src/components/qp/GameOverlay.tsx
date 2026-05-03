@@ -292,13 +292,14 @@ export default function GameOverlay() {
             ))}
           </div>
         )}
-        {/* glitch chaos overlay - intensifies */}
+        {/* glitch chaos overlay - intensifies, themed */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              "repeating-linear-gradient(0deg, transparent 0 2px, hsl(var(--secondary) / 0.05) 2px 3px)",
+            background: themed
+              ? `repeating-linear-gradient(0deg, transparent 0 2px, hsl(${theme.glow} / 0.08) 2px 3px)`
+              : "repeating-linear-gradient(0deg, transparent 0 2px, hsl(var(--secondary) / 0.05) 2px 3px)",
             opacity: 0.2 + chaos * 0.04,
             mixBlendMode: "screen",
           }}
