@@ -45,6 +45,50 @@ const DIMENSIONS: DimOpt[] = [
   { key: "spag", label: "SPAGHETTIFICATION", glow: "var(--spaghetti)", badge: "bg-spaghetti text-void-deep" },
 ];
 
+type Theme = {
+  glow: string; // hsl token
+  bgGradient: string;
+  pulseDuration: number; // seconds
+  deathLine: string;
+  accentText: string; // tailwind class for accent color
+};
+
+const THEMES: Record<string, Theme> = {
+  "TIME DILATION": {
+    glow: "var(--time)",
+    bgGradient:
+      "radial-gradient(ellipse at center, hsl(var(--time) / 0.18) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+    pulseDuration: 4.5,
+    deathLine: "Your bags are gone.",
+    accentText: "text-time",
+  },
+  "DARK MATTER": {
+    glow: "0 0% 95%",
+    bgGradient:
+      "radial-gradient(ellipse at center, hsl(0 0% 0% / 0.5) 0%, hsl(0 0% 0% / 0.99) 75%)",
+    pulseDuration: 2.4,
+    deathLine: "Like your exit liquidity.",
+    accentText: "text-foreground",
+  },
+  "SPAGHETTIFICATION": {
+    glow: "var(--spaghetti)",
+    bgGradient:
+      "radial-gradient(ellipse at center, hsl(var(--spaghetti) / 0.25) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+    pulseDuration: 1.4,
+    deathLine: "This is fine.",
+    accentText: "text-spaghetti",
+  },
+};
+
+const DEFAULT_THEME: Theme = {
+  glow: "var(--primary)",
+  bgGradient:
+    "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+  pulseDuration: 2.4,
+  deathLine: "",
+  accentText: "text-primary",
+};
+
 export default function GameOverlay() {
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>("select");
