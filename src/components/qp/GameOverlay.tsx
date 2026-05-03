@@ -57,7 +57,7 @@ const THEMES: Record<string, Theme> = {
   "TIME DILATION": {
     glow: "var(--time)",
     bgGradient:
-      "radial-gradient(ellipse at center, hsl(var(--time) / 0.18) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+      "radial-gradient(ellipse at center, hsl(var(--time) / 0.45) 0%, hsl(38 95% 25% / 0.7) 35%, hsl(var(--void-deep) / 0.98) 80%)",
     pulseDuration: 4.5,
     deathLine: "Your bags are gone.",
     accentText: "text-time",
@@ -65,7 +65,7 @@ const THEMES: Record<string, Theme> = {
   "DARK MATTER": {
     glow: "0 0% 95%",
     bgGradient:
-      "radial-gradient(ellipse at center, hsl(0 0% 0% / 0.5) 0%, hsl(0 0% 0% / 0.99) 75%)",
+      "radial-gradient(ellipse at center, hsl(0 0% 12% / 0.6) 0%, hsl(0 0% 0% / 0.99) 70%)",
     pulseDuration: 2.4,
     deathLine: "Like your exit liquidity.",
     accentText: "text-foreground",
@@ -73,8 +73,8 @@ const THEMES: Record<string, Theme> = {
   "SPAGHETTIFICATION": {
     glow: "var(--spaghetti)",
     bgGradient:
-      "radial-gradient(ellipse at center, hsl(var(--spaghetti) / 0.25) 0%, hsl(var(--void-deep) / 0.97) 70%)",
-    pulseDuration: 1.4,
+      "radial-gradient(ellipse at center, hsl(var(--spaghetti) / 0.55) 0%, hsl(15 95% 35% / 0.65) 35%, hsl(var(--void-deep) / 0.98) 80%)",
+    pulseDuration: 1.2,
     deathLine: "This is fine.",
     accentText: "text-spaghetti",
   },
@@ -254,13 +254,13 @@ export default function GameOverlay() {
         initial={{ opacity: 0 }}
         animate={
           isSpag && themed
-            ? { opacity: 1, x: [0, -4, 5, -3, 4, 0], y: [0, 3, -4, 2, -2, 0] }
+            ? { opacity: 1, x: [0, -10, 12, -8, 9, -6, 0], y: [0, 7, -9, 5, -6, 4, 0], rotate: [0, -0.6, 0.7, -0.4, 0.5, 0] }
             : { opacity: 1 }
         }
         exit={{ opacity: 0 }}
         transition={
           isSpag && themed
-            ? { x: { duration: 0.25, repeat: Infinity }, y: { duration: 0.3, repeat: Infinity }, opacity: { duration: 0.25 } }
+            ? { x: { duration: 0.18, repeat: Infinity }, y: { duration: 0.22, repeat: Infinity }, rotate: { duration: 0.3, repeat: Infinity }, opacity: { duration: 0.25 } }
             : { duration: 0.25 }
         }
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
@@ -292,13 +292,14 @@ export default function GameOverlay() {
             ))}
           </div>
         )}
-        {/* glitch chaos overlay - intensifies */}
+        {/* glitch chaos overlay - intensifies, themed */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background:
-              "repeating-linear-gradient(0deg, transparent 0 2px, hsl(var(--secondary) / 0.05) 2px 3px)",
+            background: themed
+              ? `repeating-linear-gradient(0deg, transparent 0 2px, hsl(${theme.glow} / 0.08) 2px 3px)`
+              : "repeating-linear-gradient(0deg, transparent 0 2px, hsl(var(--secondary) / 0.05) 2px 3px)",
             opacity: 0.2 + chaos * 0.04,
             mixBlendMode: "screen",
           }}
@@ -387,13 +388,36 @@ export default function GameOverlay() {
               </div>
 
               <div className="mt-6 grid grid-cols-3 gap-4 font-mono-x text-center">
-                <Stat label="TIME" value={`${time.toFixed(1)}s`} />
+                <Stat label="TIME" value={`${time.toFixed(1)}s`} accent={theme.glow} />
                 <Stat
                   label="SIGNAL"
                   value={points.toLocaleString()}
                   highlight
+                  accent={theme.glow}
                 />
-                <Stat label="CHAOS" value={chaos.toFixed(1)} />
+                <Stat label="CHAOS" value={chaos.toFixed(1)} accent={theme.glow} />
+              </div>
+
+              {/* themed center pulse */}
+              <div className="relative mt-5 flex items-center justify-center">
+                <motion.div
+                  aria-hidden
+                  className="rounded-full"
+                  animate={
+                    isSpag
+                      ? { scaleX: [1, 2.4, 0.6, 2.0, 1], scaleY: [1, 0.4, 1.6, 0.5, 1], opacity: [0.7, 1, 0.8, 1, 0.7] }
+                      : isTime
+                        ? { scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }
+                        : { scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4] }
+                  }
+                  transition={{ duration: theme.pulseDuration, repeat: Infinity, ease: "easeInOut" }}
+                  style={{
+                    width: 64,
+                    height: 64,
+                    background: `radial-gradient(circle, hsl(${theme.glow} / 0.9) 0%, hsl(${theme.glow} / 0.2) 60%, transparent 80%)`,
+                    boxShadow: `0 0 50px hsl(${theme.glow} / 0.85), 0 0 120px hsl(${theme.glow} / 0.45)`,
+                  }}
+                />
               </div>
 
               {/* chaos bar */}
@@ -404,9 +428,8 @@ export default function GameOverlay() {
                     transition={{ duration: 0.3 }}
                     className="h-full"
                     style={{
-                      background:
-                        "linear-gradient(90deg, hsl(var(--secondary)) 0%, hsl(var(--primary)) 100%)",
-                      boxShadow: "0 0 14px hsl(var(--primary) / 0.7)",
+                      background: `linear-gradient(90deg, hsl(${theme.glow} / 0.6) 0%, hsl(${theme.glow}) 100%)`,
+                      boxShadow: `0 0 14px hsl(${theme.glow} / 0.85)`,
                     }}
                   />
                 </div>
@@ -452,13 +475,13 @@ export default function GameOverlay() {
               transition={{ duration: 0.35 }}
               className="text-center"
             >
-              <Skull className="mx-auto h-10 w-10 text-primary" />
+              <Skull className="mx-auto h-10 w-10" style={{ color: `hsl(${theme.glow})`, filter: `drop-shadow(0 0 12px hsl(${theme.glow} / 0.8))` }} />
               <h2 className="mt-3 font-graffiti text-3xl md:text-4xl text-foreground">
-                YOU <span className="text-primary">DIED</span>
+                YOU <span style={{ color: `hsl(${theme.glow})`, textShadow: `0 0 18px hsl(${theme.glow} / 0.7)` }}>DIED</span>
               </h2>
               <p className="mt-2 font-mono-x text-sm text-muted-foreground">
                 cause of death:{" "}
-                <span className="text-secondary-glow">{result.cause}</span>
+                <span style={{ color: `hsl(${theme.glow})` }}>{result.cause}</span>
               </p>
               {theme.deathLine && (
                 <p className={`mt-2 font-graffiti text-lg ${theme.accentText}`}>
@@ -467,11 +490,12 @@ export default function GameOverlay() {
               )}
 
               <div className="mt-6 grid grid-cols-2 gap-4 font-mono-x">
-                <Stat label="SURVIVED" value={`${result.survived.toFixed(1)}s`} />
+                <Stat label="SURVIVED" value={`${result.survived.toFixed(1)}s`} accent={theme.glow} />
                 <Stat
                   label="SIGNAL GENERATED"
                   value={result.signal.toLocaleString()}
                   highlight
+                  accent={theme.glow}
                 />
               </div>
 
@@ -511,24 +535,35 @@ function Stat({
   label,
   value,
   highlight,
+  accent,
 }: {
   label: string;
   value: string | number;
   highlight?: boolean;
+  accent?: string;
 }) {
+  const color = accent ? `hsl(${accent})` : undefined;
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.03] px-3 py-3">
-      <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+    <div
+      className="rounded-lg border bg-white/[0.03] px-3 py-3"
+      style={accent ? { borderColor: `hsl(${accent} / 0.35)` } : undefined}
+    >
+      <div
+        className="text-[10px] uppercase tracking-widest"
+        style={accent ? { color: `hsl(${accent} / 0.85)` } : undefined}
+      >
         {label}
       </div>
       <div
         className={`mt-1 text-2xl font-bold tabular-nums ${
-          highlight ? "text-primary" : "text-foreground"
+          highlight && !accent ? "text-primary" : !accent ? "text-foreground" : ""
         }`}
         style={
           highlight
-            ? { textShadow: "0 0 14px hsl(var(--primary) / 0.7)" }
-            : undefined
+            ? { color, textShadow: accent ? `0 0 14px hsl(${accent} / 0.85)` : "0 0 14px hsl(var(--primary) / 0.7)" }
+            : accent
+              ? { color: "hsl(var(--foreground))" }
+              : undefined
         }
       >
         {value}
