@@ -146,13 +146,13 @@ const Hero = () => {
             transition={{ delay: 0.6 }}
             className="mt-10 flex items-center gap-6 flex-wrap"
           >
-            <button
-              onClick={handleStart}
+            <a
+              href="/game.html"
               className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
             >
               ENTER THE VOID
               <ArrowRight className="h-7 w-7" strokeWidth={3} />
-            </button>
+            </a>
 
             <input
               type="text"
