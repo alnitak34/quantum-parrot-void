@@ -230,8 +230,9 @@ export default function GameOverlay() {
       setTime((t) => {
         const next = +(t + 0.1 * ts).toFixed(1);
         setPoints(Math.floor(next * mult));
-        // chaos rises faster + accelerates over time (scaled by time)
-        setChaos((c) => Math.min(10, +(c + (0.06 + next * 0.0015) * ts).toFixed(2)));
+        // 3-phase chaos growth: phase1 none, phase2 slow, phase3 full
+        const phaseMult = next < 3 ? 0 : next < 8 ? 0.35 : 1;
+        setChaos((c) => Math.min(10, +(c + (0.06 + next * 0.0015) * ts * phaseMult).toFixed(2)));
         return next;
       });
     }, 100);
@@ -267,10 +268,12 @@ export default function GameOverlay() {
       const delay = 3500 + Math.random() * 5500;
       setTimeout(() => {
         if (cancelled) return;
+        // no spikes during phase 1
+        if (timeRef.current < 3) { next(); return; }
         setSpike((s) => s + 1);
         playBlip("glitch");
-        // small chaos kick on spike
-        setChaos((c) => Math.min(10, +(c + 0.4).toFixed(2)));
+        const kick = timeRef.current < 8 ? 0.15 : 0.4;
+        setChaos((c) => Math.min(10, +(c + kick).toFixed(2)));
         next();
       }, delay);
     };
@@ -284,8 +287,10 @@ export default function GameOverlay() {
 
     let cancelled = false;
     const schedule = () => {
-      // 2.4s at chaos 1 → ~0.7s at chaos 10
-      const base = Math.max(700, 2400 - chaos * 180);
+      const t0 = timeRef.current;
+      // slow first 6s, then ramp
+      const phaseSlow = t0 < 6 ? 1800 : 0;
+      const base = Math.max(700, 2400 - chaos * 180) + phaseSlow;
       const jitter = Math.random() * 600;
       const delay = base + jitter;
       const t = setTimeout(() => {
