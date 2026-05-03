@@ -460,6 +460,11 @@ export default function GameOverlay() {
                 cause of death:{" "}
                 <span className="text-secondary-glow">{result.cause}</span>
               </p>
+              {theme.deathLine && (
+                <p className={`mt-2 font-graffiti text-lg ${theme.accentText}`}>
+                  "{theme.deathLine}"
+                </p>
+              )}
 
               <div className="mt-6 grid grid-cols-2 gap-4 font-mono-x">
                 <Stat label="SURVIVED" value={`${result.survived.toFixed(1)}s`} />
