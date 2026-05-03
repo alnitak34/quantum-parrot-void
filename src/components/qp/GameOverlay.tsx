@@ -1359,3 +1359,72 @@ function ParrotAvatar({
     </motion.div>
   );
 }
+
+function TimeScaleFX({ timeScale }: { timeScale: number }) {
+  const slow = timeScale < 0.7;
+  const fast = timeScale > 1.4;
+  const [flashKey, setFlashKey] = useState(0);
+  useEffect(() => {
+    if (fast) setFlashKey((k) => k + 1);
+  }, [fast, timeScale]);
+
+  return (
+    <>
+      {/* SLOW: heavy motion blur + long trails */}
+      {slow && (
+        <>
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              backdropFilter: "blur(6px) saturate(1.4)",
+              WebkitBackdropFilter: "blur(6px) saturate(1.4)",
+              background: "radial-gradient(ellipse at center, hsl(220 60% 30% / 0.18), transparent 70%)",
+              mixBlendMode: "screen",
+            }}
+          />
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            animate={{ opacity: [0.15, 0.35, 0.15] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              background: "repeating-linear-gradient(180deg, transparent 0 14px, hsl(200 80% 70% / 0.12) 14px 16px)",
+              filter: "blur(3px)",
+              mixBlendMode: "screen",
+            }}
+          />
+        </>
+      )}
+      {/* FAST: streak lights + screen shake + flash */}
+      {fast && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          animate={{ x: [0, -3, 4, -2, 2, 0], y: [0, 2, -3, 1, 0] }}
+          transition={{ duration: 0.18, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "repeating-linear-gradient(90deg, transparent 0 6px, hsl(0 0% 100% / 0.18) 6px 7px), repeating-linear-gradient(90deg, transparent 0 22px, hsl(50 100% 70% / 0.14) 22px 24px)",
+              filter: "blur(1px)",
+              mixBlendMode: "screen",
+            }}
+          />
+          <motion.div
+            key={flashKey}
+            className="absolute inset-0 bg-white"
+            initial={{ opacity: 0.45 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+          />
+        </motion.div>
+      )}
+    </>
+  );
+}
