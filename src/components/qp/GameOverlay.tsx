@@ -218,17 +218,40 @@ export default function GameOverlay() {
     const isTimeDim = dimension === "TIME DILATION";
     const mult = isTimeDim ? 12 : 10;
     const tick = setInterval(() => {
+      const ts = tsRef.current;
       setTime((t) => {
-        const next = +(t + 0.1).toFixed(1);
+        const next = +(t + 0.1 * ts).toFixed(1);
         setPoints(Math.floor(next * mult));
-        // chaos rises faster + accelerates over time
-        setChaos((c) => Math.min(10, +(c + 0.06 + next * 0.0015).toFixed(2)));
+        // chaos rises faster + accelerates over time (scaled by time)
+        setChaos((c) => Math.min(10, +(c + (0.06 + next * 0.0015) * ts).toFixed(2)));
         return next;
       });
     }, 100);
 
     return () => clearInterval(tick);
   }, [open, result, phase, dimension]);
+
+  // time dilation scheduler — random global speed shifts (0.3x..2x)
+  useEffect(() => {
+    if (!open || result || phase !== "playing") return;
+    let cancelled = false;
+    const next = () => {
+      if (cancelled) return;
+      const delay = 1200 + Math.random() * 2600;
+      setTimeout(() => {
+        if (cancelled) return;
+        // bias: occasional extreme slow or fast
+        const r = Math.random();
+        const ts = r < 0.15 ? 0.3 + Math.random() * 0.2
+          : r > 0.85 ? 1.6 + Math.random() * 0.4
+          : 0.7 + Math.random() * 0.8;
+        setTimeScale(+ts.toFixed(2));
+        next();
+      }, delay);
+    };
+    next();
+    return () => { cancelled = true; setTimeScale(1); };
+  }, [open, result, phase]);
 
   // threat spike scheduler — random screen shocks
   useEffect(() => {
