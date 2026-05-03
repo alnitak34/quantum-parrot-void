@@ -228,7 +228,7 @@ export default function GameOverlay() {
         />
 
         {/* close */}
-        {result && (
+        {(result || phase === "select") && (
           <button
             onClick={close}
             className="absolute right-5 top-5 z-10 rounded-full p-2 text-foreground/70 hover:bg-white/10 hover:text-foreground transition"
@@ -249,7 +249,45 @@ export default function GameOverlay() {
               "0 0 50px hsl(var(--secondary) / 0.35), inset 0 0 60px hsl(var(--primary) / 0.12)",
           }}
         >
-          {!result ? (
+          {phase === "select" && !result ? (
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Zap className="h-5 w-5 text-primary fill-primary animate-flicker" />
+                <span className="font-graffiti text-xl text-foreground tracking-wide">
+                  CHOOSE YOUR DIMENSION
+                </span>
+              </div>
+              <p className="mt-2 font-mono-x text-xs text-muted-foreground">
+                pick a path. the void doesn't care which.
+              </p>
+
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {DIMENSIONS.map((d, i) => (
+                  <button
+                    key={d.key}
+                    onClick={() => selectDimension(d.label)}
+                    className="group relative rounded-xl border border-white/10 bg-white/[0.03] p-5 text-left transition hover:scale-[1.03] hover:bg-white/[0.06]"
+                    style={{
+                      ["--card-glow" as never]: d.glow,
+                      boxShadow:
+                        "0 0 22px hsl(var(--card-glow) / 0.25), inset 0 0 30px hsl(var(--void-deep) / 0.5)",
+                    }}
+                  >
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full font-graffiti text-base ${d.badge}`}>
+                      {i + 1}
+                    </div>
+                    <div className="mt-3 font-graffiti text-base md:text-lg text-foreground leading-tight">
+                      {d.label}
+                    </div>
+                    <div
+                      className="mt-3 h-1 w-full rounded-full"
+                      style={{ background: "hsl(var(--card-glow) / 0.7)", boxShadow: "0 0 12px hsl(var(--card-glow) / 0.7)" }}
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : !result ? (
             <>
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
