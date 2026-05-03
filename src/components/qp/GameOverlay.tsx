@@ -102,9 +102,19 @@ export default function GameOverlay() {
   const [flashes, setFlashes] = useState<FlashMsg[]>([]);
   const [result, setResult] = useState<GameResult | null>(null);
   const [spike, setSpike] = useState(0); // increments to trigger threat spikes
+  const [timeScale, setTimeScale] = useState(1); // global speed 0.3x..2x
+  const [parrotHit, setParrotHit] = useState(0); // increments on hit -> distortion pulse
+  const [parrotShake, setParrotShake] = useState(0); // increments on chaos rise
   const nickRef = useRef<string>("");
   const lastEventRef = useRef<EventDef | null>(null);
+  const tsRef = useRef(1);
+  const prevChaosRef = useRef(1);
   const audioRef = useRef<{ ctx: AudioContext; hum: GainNode; humOsc: OscillatorNode } | null>(null);
+  useEffect(() => { tsRef.current = timeScale; }, [timeScale]);
+  useEffect(() => {
+    if (chaos > prevChaosRef.current + 0.18) setParrotShake((s) => s + 1);
+    prevChaosRef.current = chaos;
+  }, [chaos]);
 
   // Audio engine: ambient hum + sfx
   useEffect(() => {
