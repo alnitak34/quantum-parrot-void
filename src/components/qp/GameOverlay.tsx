@@ -748,7 +748,16 @@ export default function GameOverlay() {
             onProximity={(p) => { if (p > 0.7) playBlip("distort"); }}
           />
         )}
-        {themed && phase === "playing" && !result && !isDark && (
+        {themed && phase === "playing" && !result && isSpag && (
+          <SpaghettiField
+            glow={theme.glow}
+            chaos={chaos}
+            onSignalTick={(gain) => { setPoints((p) => p + gain); setChaos((c) => Math.min(10, +(c + gain * 0.004).toFixed(2))); }}
+            onCollapse={() => die({ key: "spaghetti", label: "SPAGHETTIFICATION", action: "stretched too far", points: 0, deathy: true })}
+            onStretch={(s) => { if (s > 0.75) playBlip("distort"); }}
+          />
+        )}
+        {themed && phase === "playing" && !result && !isDark && !isSpag && (
           <CentralSphere
             glow={theme.glow}
             chaos={chaos}
@@ -757,7 +766,7 @@ export default function GameOverlay() {
             onExplode={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 1.2).toFixed(2))); setSpike((s) => s + 1); setParrotHit((h) => h + 1); }}
           />
         )}
-        {themed && phase === "playing" && !result && !isDark && (
+        {themed && phase === "playing" && !result && !isDark && !isSpag && (
           <AnomalyField
             glow={theme.glow}
             chaos={chaos}
