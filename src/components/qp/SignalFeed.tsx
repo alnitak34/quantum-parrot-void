@@ -8,7 +8,11 @@ interface Signal {
   user: string;
   action: string;
   points: number;
+  pinned?: boolean;
+  pinnedUntil?: number;
 }
+
+const PIN_MS = 20000;
 
 const POOL: Omit<Signal, "time">[] = [
   { user: "@voidbagger69", action: "got spaghettified", points: 420 },
@@ -44,17 +48,55 @@ const SignalFeed = () => {
   useEffect(() => {
     const id = setInterval(() => {
       setFeed((prev) => {
+        const now = Date.now();
         const next = POOL[Math.floor(Math.random() * POOL.length)];
-        return [{ ...next, time: stamp() }, ...prev].slice(0, 4);
+        const newItem: Signal = { ...next, time: stamp() };
+        // Preserve pinned (active) entries at the top
+        const pinned = prev.filter((s) => s.pinned && s.pinnedUntil && s.pinnedUntil > now);
+        const others = prev.filter((s) => !pinned.includes(s));
+        const remaining = Math.max(0, 4 - pinned.length);
+        return [...pinned, newItem, ...others].slice(0, Math.max(4, pinned.length + remaining));
       });
     }, 3000);
-    return () => clearInterval(id);
+    // tick to refresh once pin expires (so order can settle)
+    const expireTick = setInterval(() => {
+      setFeed((prev) => {
+        const now = Date.now();
+        if (!prev.some((s) => s.pinned && s.pinnedUntil && s.pinnedUntil <= now)) return prev;
+        return prev.map((s) =>
+          s.pinned && s.pinnedUntil && s.pinnedUntil <= now ? { ...s, pinned: false } : s
+        );
+      });
+    }, 1000);
+    return () => {
+      clearInterval(id);
+      clearInterval(expireTick);
+    };
   }, []);
 
   // Listen to live game events
   useEffect(() => {
     const offFeed = on("feed:push", (s) => {
-      setFeed((prev) => [{ time: s.time, user: s.user, action: s.action, points: s.points }, ...prev].slice(0, 4));
+      const isDeath = s.action.startsWith("died");
+      const item: Signal = {
+        time: s.time,
+        user: s.user,
+        action: s.action,
+        points: s.points,
+        pinned: isDeath,
+        pinnedUntil: isDeath ? Date.now() + PIN_MS : undefined,
+      };
+      setFeed((prev) => {
+        if (isDeath) {
+          // remove any existing pinned (only one YOUR RUN at a time), keep others
+          const others = prev.filter((p) => !p.pinned);
+          return [item, ...others].slice(0, 4);
+        }
+        const now = Date.now();
+        const pinned = prev.filter((p) => p.pinned && p.pinnedUntil && p.pinnedUntil > now);
+        const others = prev.filter((p) => !pinned.includes(p));
+        return [...pinned, item, ...others].slice(0, 4);
+      });
     });
     const offTop = on("top:push", (entry) => {
       setTop((prev) => {
@@ -119,6 +161,11 @@ const SignalFeed = () => {
                   >
                     <span className="text-muted-foreground/70">[{s.time}]</span>
                     <span className="signal-line font-bold">{s.user}</span>
+                    {s.pinned && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-primary/20 text-primary border border-primary/40">
+                        YOUR RUN
+                      </span>
+                    )}
                     <span className="text-foreground/70">{s.action}</span>
                     <span className="ml-auto flex items-center gap-1 text-foreground/70">
                       <Skull className="h-3.5 w-3.5" /> +{s.points}
