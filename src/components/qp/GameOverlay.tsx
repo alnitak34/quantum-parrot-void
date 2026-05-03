@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Skull, Zap, X, ArrowRight, Copy, Check } from "lucide-react";
+import { Skull, Zap, X, ArrowRight, Copy, Check, Share2 } from "lucide-react";
+
+const PROJECT_URL = "https://quantum-parrot-void.lovable.app";
 import { emit, on, stamp, randomNick, type GameResult } from "./gameStore";
 
 type EventDef = {
@@ -550,7 +552,14 @@ Dimension: ${dim}
 Signal: ${result.signal}
 Classified as: ${classification}
 
-Top signals leave a trace on Monad.`;
+Top signals leave a trace on Monad.
+
+${PROJECT_URL}`;
+
+  const handleShare = () => {
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
 
   const handleCopy = async () => {
     try {
@@ -632,6 +641,18 @@ Top signals leave a trace on Monad.`;
         >
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           {copied ? "COPIED" : "COPY RESULT"}
+        </button>
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-2 px-5 py-3 rounded-md font-graffiti tracking-wider transition"
+          style={{
+            color: `hsl(${theme.glow})`,
+            border: `1px solid hsl(${theme.glow} / 0.6)`,
+            background: `hsl(${theme.glow} / 0.08)`,
+          }}
+        >
+          <Share2 className="h-4 w-4" />
+          SHARE
         </button>
         <button
           onClick={() => emit("game:start", undefined)}
