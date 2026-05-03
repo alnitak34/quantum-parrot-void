@@ -658,14 +658,14 @@ export default function GameOverlay() {
               </motion.div>
 
               <div className="mt-6 grid grid-cols-3 gap-4 font-mono-x text-center">
-                <Stat label="TIME" value={`${time.toFixed(1)}s`} accent={theme.glow} />
+                <Stat label="TIME" value={`${jitterNum(time, chaos, 0).toFixed(1)}s`} accent={theme.glow} />
                 <Stat
                   label="SIGNAL"
-                  value={points.toLocaleString()}
+                  value={Math.max(0, Math.floor(jitterNum(points, chaos, 1))).toLocaleString()}
                   highlight
                   accent={theme.glow}
                 />
-                <Stat label="CHAOS" value={chaos.toFixed(1)} accent={theme.glow} />
+                <Stat label="CHAOS" value={jitterNum(chaos, chaos, 0).toFixed(1)} accent={theme.glow} />
               </div>
 
               {/* themed center pulse */}
