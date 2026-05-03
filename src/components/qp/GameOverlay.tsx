@@ -605,11 +605,11 @@ export default function GameOverlay() {
             <ResultCard result={result} theme={theme} onClose={close} />
           )}
         </motion.div>
-        {isTime && phase === "playing" && !result && (
-          <TimeDilationGame
-            onHit={() =>
-              die({ key: "gravity-wave", label: "GRAVITY WAVE", action: "crushed by a gravity wave", points: 0, deathy: true })
-            }
+        {themed && phase === "playing" && !result && (
+          <AnomalyField
+            glow={theme.glow}
+            onStabilize={() => setChaos((c) => Math.max(1, +(c - 0.4).toFixed(2)))}
+            onIgnored={() => setChaos((c) => Math.min(10, +(c + 0.35).toFixed(2)))}
           />
         )}
       </motion.div>
