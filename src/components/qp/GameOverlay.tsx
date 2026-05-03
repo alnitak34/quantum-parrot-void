@@ -357,7 +357,7 @@ export default function GameOverlay() {
             ? { x: { duration: 0.18, repeat: Infinity }, y: { duration: 0.22, repeat: Infinity }, rotate: { duration: 0.3, repeat: Infinity }, opacity: { duration: 0.25 } }
             : { duration: 0.25 }
         }
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden"
         style={{
           background: themed ? theme.bgGradient : "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
           backdropFilter: "blur(8px)",
@@ -365,6 +365,34 @@ export default function GameOverlay() {
           transition: "background 400ms ease",
         }}
       >
+        {/* Threat-spike layer: zoom + shake + glitch flash */}
+        {themed && phase === "playing" && !result && (
+          <SpikeFX spike={spike} chaos={chaos} />
+        )}
+        {/* Red edge danger vignette (intensifies with chaos) */}
+        {themed && phase === "playing" && !result && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              boxShadow: `inset 0 0 ${80 + chaos * 30}px ${10 + chaos * 6}px hsl(0 90% 50% / ${Math.max(0, (chaos - 4) * 0.07).toFixed(2)})`,
+              transition: "box-shadow 600ms ease",
+            }}
+          />
+        )}
+        {/* Heartbeat pulse synced with chaos */}
+        {themed && phase === "playing" && !result && (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            animate={{ opacity: [0, 0.25, 0, 0.18, 0] }}
+            transition={{ duration: Math.max(0.5, 1.6 - chaos * 0.12), repeat: Infinity, ease: "easeOut" }}
+            style={{
+              background: `radial-gradient(ellipse at center, transparent 55%, hsl(0 90% 45% / ${Math.min(0.55, 0.1 + chaos * 0.05)}) 100%)`,
+              mixBlendMode: "screen",
+            }}
+          />
+        )}
         {/* Full-screen color wash for instant dimension feel */}
         {themed && (
           <motion.div
