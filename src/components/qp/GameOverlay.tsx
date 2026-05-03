@@ -1584,8 +1584,10 @@ function DarkMatterField({
       const dy = cy - p.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      // gravity pull (stronger near center, scaled by chaos)
-      const pullStrength = (0.4 + chaos * 0.08) * dt / Math.max(0.04, dist);
+      const elapsed = (performance.now() - startedAtRef.current) / 1000;
+      // 3-phase pull: phase1 none, phase2 low, phase3 full
+      const pullMult = elapsed < 3 ? 0 : elapsed < 8 ? 0.35 : 1;
+      const pullStrength = (0.4 + chaos * 0.08) * pullMult * dt / Math.max(0.04, dist);
       const ax = dx * pullStrength;
       const ay = dy * pullStrength;
 
@@ -1606,16 +1608,17 @@ function DarkMatterField({
       setProximity(prox);
       onProximity(prox);
 
-      // signal gain ~ proximity
-      signalAccum += prox * prox * 30 * dt;
+      // signal gain ~ proximity (reduced in early phases)
+      const signalMult = elapsed < 3 ? 0.3 : elapsed < 8 ? 0.7 : 1;
+      signalAccum += prox * prox * 30 * signalMult * dt;
       if (signalAccum >= 1) {
         const gain = Math.floor(signalAccum);
         signalAccum -= gain;
         onSignalTick(gain);
       }
 
-      // collapse if too close
-      if (newDist < 0.04 && performance.now() - startedAtRef.current > 3000) {
+      // collapse only after 5s minimum, and full danger after 8s
+      if (newDist < 0.04 && elapsed > 5) {
         onCollapse();
         return;
       }
