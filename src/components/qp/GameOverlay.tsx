@@ -245,7 +245,7 @@ export default function GameOverlay() {
     let cancelled = false;
     const next = () => {
       if (cancelled) return;
-      const delay = 2000 + Math.random() * 2000;
+      const delay = 2000 + Math.random() * 1000;
       setTimeout(() => {
         if (cancelled) return;
         const choices = [0.4, 1, 2];
@@ -757,13 +757,22 @@ export default function GameOverlay() {
           )}
         </motion.div>
         {themed && phase === "playing" && !result && (
+          <CentralSphere
+            glow={theme.glow}
+            chaos={chaos}
+            timeScale={timeScale}
+            onTap={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.25).toFixed(2))); setParrotHit((h) => h + 1); }}
+            onExplode={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 1.2).toFixed(2))); setSpike((s) => s + 1); setParrotHit((h) => h + 1); }}
+          />
+        )}
+        {themed && phase === "playing" && !result && (
           <AnomalyField
             glow={theme.glow}
             chaos={chaos}
             timeScale={timeScale}
-            onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); setParrotHit((h) => h + 1); }}
-            onIgnored={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 0.7).toFixed(2))); setParrotHit((h) => h + 1); }}
-            onZoneHit={() => { setChaos((c) => Math.min(10, +(c + 0.9).toFixed(2))); setParrotHit((h) => h + 1); playBlip("distort"); }}
+            onStabilize={(fake) => { playBlip("glitch"); if (!fake) setChaos((c) => Math.max(1, +(c - 0.22).toFixed(2))); setParrotHit((h) => h + 1); }}
+            onIgnored={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 0.8).toFixed(2))); setParrotHit((h) => h + 1); }}
+            onZoneHit={() => { setChaos((c) => Math.min(10, +(c + 1.0).toFixed(2))); setParrotHit((h) => h + 1); playBlip("distort"); }}
           />
         )}
       </motion.div>
