@@ -438,6 +438,9 @@ export default function GameOverlay() {
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           />
         )}
+        {themed && phase === "playing" && !result && (
+          <IntroHint />
+        )}
         {isDark && themed && (
           <>
             <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
