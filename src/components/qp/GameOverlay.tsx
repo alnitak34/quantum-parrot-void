@@ -589,15 +589,13 @@ export default function GameOverlay() {
               </div>
 
               {isTime && (
-                <>
-                  <p className={`mt-4 text-center font-mono-x text-sm ${theme.accentText}`}>
-                    OUTSIDE TIME: +{Math.floor(time * 7)} YEARS
-                  </p>
-                  <p className="mt-1 text-center font-mono-x text-[11px] text-muted-foreground">
-                    Use ↑ ↓ or W S to move — dodge the gravity waves
-                  </p>
-                </>
+                <p className={`mt-4 text-center font-mono-x text-sm ${theme.accentText}`}>
+                  OUTSIDE TIME: +{Math.floor(time * 7)} YEARS
+                </p>
               )}
+              <p className="mt-2 text-center font-mono-x text-[11px] text-muted-foreground tracking-wider">
+                tap the anomalies to stabilize · ignore them and chaos consumes you
+              </p>
 
               <p className="mt-4 text-center font-mono-x text-xs text-muted-foreground">
                 survive. accumulate signal. the void scales.
