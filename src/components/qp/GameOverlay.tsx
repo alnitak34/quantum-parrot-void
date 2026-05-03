@@ -481,38 +481,12 @@ export default function GameOverlay() {
           </div>
         )}
         {isDark && themed && (
-          <>
-            <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-              {[
-                { top: "18%", left: "12%", d: 3.2 },
-                { top: "70%", left: "82%", d: 2.6 },
-                { top: "40%", left: "88%", d: 4.1 },
-                { top: "82%", left: "20%", d: 3.5 },
-                { top: "14%", left: "72%", d: 2.9 },
-                { top: "55%", left: "8%", d: 3.7 },
-                { top: "30%", left: "45%", d: 4.4 },
-                { top: "88%", left: "58%", d: 3.0 },
-              ].map((e, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute flex gap-2"
-                  style={{ top: e.top, left: e.left }}
-                  animate={{ opacity: [0.05, 0.95, 0.05] }}
-                  transition={{ duration: e.d, repeat: Infinity, delay: i * 0.3 }}
-                >
-                  <span className="block h-2 w-3 rounded-full bg-white/90 shadow-[0_0_14px_rgba(255,255,255,0.85)]" />
-                  <span className="block h-2 w-3 rounded-full bg-white/90 shadow-[0_0_14px_rgba(255,255,255,0.85)]" />
-                </motion.div>
-              ))}
-            </div>
-            {/* occasional flash */}
-            <motion.div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-white"
-              animate={{ opacity: [0, 0, 0, 0, 0.18, 0, 0, 0, 0.06, 0] }}
-              transition={{ duration: 6, repeat: Infinity, times: [0, 0.2, 0.4, 0.49, 0.5, 0.52, 0.7, 0.79, 0.8, 1] }}
-            />
-          </>
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 bg-white"
+            animate={{ opacity: [0, 0, 0, 0, 0.12, 0, 0, 0, 0.05, 0] }}
+            transition={{ duration: 6, repeat: Infinity, times: [0, 0.2, 0.4, 0.49, 0.5, 0.52, 0.7, 0.79, 0.8, 1] }}
+          />
         )}
         {isTime && themed && (
           <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
