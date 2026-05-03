@@ -45,6 +45,50 @@ const DIMENSIONS: DimOpt[] = [
   { key: "spag", label: "SPAGHETTIFICATION", glow: "var(--spaghetti)", badge: "bg-spaghetti text-void-deep" },
 ];
 
+type Theme = {
+  glow: string; // hsl token
+  bgGradient: string;
+  pulseDuration: number; // seconds
+  deathLine: string;
+  accentText: string; // tailwind class for accent color
+};
+
+const THEMES: Record<string, Theme> = {
+  "TIME DILATION": {
+    glow: "var(--time)",
+    bgGradient:
+      "radial-gradient(ellipse at center, hsl(var(--time) / 0.18) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+    pulseDuration: 4.5,
+    deathLine: "Your bags are gone.",
+    accentText: "text-time",
+  },
+  "DARK MATTER": {
+    glow: "0 0% 95%",
+    bgGradient:
+      "radial-gradient(ellipse at center, hsl(0 0% 0% / 0.5) 0%, hsl(0 0% 0% / 0.99) 75%)",
+    pulseDuration: 2.4,
+    deathLine: "Like your exit liquidity.",
+    accentText: "text-foreground",
+  },
+  "SPAGHETTIFICATION": {
+    glow: "var(--spaghetti)",
+    bgGradient:
+      "radial-gradient(ellipse at center, hsl(var(--spaghetti) / 0.25) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+    pulseDuration: 1.4,
+    deathLine: "This is fine.",
+    accentText: "text-spaghetti",
+  },
+};
+
+const DEFAULT_THEME: Theme = {
+  glow: "var(--primary)",
+  bgGradient:
+    "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+  pulseDuration: 2.4,
+  deathLine: "",
+  accentText: "text-primary",
+};
+
 export default function GameOverlay() {
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState<Phase>("select");
@@ -197,23 +241,57 @@ export default function GameOverlay() {
   if (!open) return null;
 
   const chaosPct = Math.min(100, (chaos / 10) * 100);
+  const theme = THEMES[dimension] ?? DEFAULT_THEME;
+  const isSpag = dimension === "SPAGHETTIFICATION";
+  const isDark = dimension === "DARK MATTER";
+  const isTime = dimension === "TIME DILATION";
+  const themed = phase === "playing" || !!result;
 
   return (
     <AnimatePresence>
       <motion.div
         key="overlay"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        animate={
+          isSpag && themed
+            ? { opacity: 1, x: [0, -4, 5, -3, 4, 0], y: [0, 3, -4, 2, -2, 0] }
+            : { opacity: 1 }
+        }
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={
+          isSpag && themed
+            ? { x: { duration: 0.25, repeat: Infinity }, y: { duration: 0.3, repeat: Infinity }, opacity: { duration: 0.25 } }
+            : { duration: 0.25 }
+        }
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         style={{
-          background:
-            "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+          background: themed ? theme.bgGradient : "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
         }}
       >
+        {isDark && themed && (
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+            {[
+              { top: "18%", left: "12%", d: 3.2 },
+              { top: "70%", left: "82%", d: 2.6 },
+              { top: "40%", left: "88%", d: 4.1 },
+              { top: "82%", left: "20%", d: 3.5 },
+              { top: "14%", left: "72%", d: 2.9 },
+            ].map((e, i) => (
+              <motion.div
+                key={i}
+                className="absolute flex gap-2"
+                style={{ top: e.top, left: e.left }}
+                animate={{ opacity: [0.1, 0.85, 0.1] }}
+                transition={{ duration: e.d, repeat: Infinity, delay: i * 0.3 }}
+              >
+                <span className="block h-2 w-3 rounded-full bg-white/80 shadow-[0_0_12px_rgba(255,255,255,0.7)]" />
+                <span className="block h-2 w-3 rounded-full bg-white/80 shadow-[0_0_12px_rgba(255,255,255,0.7)]" />
+              </motion.div>
+            ))}
+          </div>
+        )}
         {/* glitch chaos overlay - intensifies */}
         <div
           aria-hidden
@@ -238,14 +316,22 @@ export default function GameOverlay() {
         )}
 
         {/* HUD / Result */}
-        <div
+        <motion.div
           className="relative w-full max-w-2xl p-6 md:p-8"
+          animate={
+            themed
+              ? { boxShadow: [
+                  `0 0 30px hsl(${theme.glow} / 0.25), inset 0 0 60px hsl(${theme.glow} / 0.08)`,
+                  `0 0 70px hsl(${theme.glow} / 0.6), inset 0 0 80px hsl(${theme.glow} / 0.18)`,
+                  `0 0 30px hsl(${theme.glow} / 0.25), inset 0 0 60px hsl(${theme.glow} / 0.08)`,
+                ] }
+              : {}
+          }
+          transition={themed ? { duration: theme.pulseDuration, repeat: Infinity, ease: "easeInOut" } : undefined}
           style={{
-            background: "rgba(10, 0, 20, 0.65)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: isDark ? "rgba(0,0,0,0.78)" : "rgba(10, 0, 20, 0.65)",
+            border: `1px solid hsl(${theme.glow} / 0.25)`,
             borderRadius: "20px",
-            boxShadow:
-              "0 0 50px hsl(var(--secondary) / 0.35), inset 0 0 60px hsl(var(--primary) / 0.12)",
           }}
         >
           {phase === "select" && !result ? (
@@ -349,6 +435,12 @@ export default function GameOverlay() {
                 </AnimatePresence>
               </div>
 
+              {isTime && (
+                <p className={`mt-4 text-center font-mono-x text-sm ${theme.accentText}`}>
+                  OUTSIDE TIME: +{Math.floor(time * 7)} YEARS
+                </p>
+              )}
+
               <p className="mt-4 text-center font-mono-x text-xs text-muted-foreground">
                 survive. accumulate signal. the void scales.
               </p>
@@ -368,6 +460,11 @@ export default function GameOverlay() {
                 cause of death:{" "}
                 <span className="text-secondary-glow">{result.cause}</span>
               </p>
+              {theme.deathLine && (
+                <p className={`mt-2 font-graffiti text-lg ${theme.accentText}`}>
+                  "{theme.deathLine}"
+                </p>
+              )}
 
               <div className="mt-6 grid grid-cols-2 gap-4 font-mono-x">
                 <Stat label="SURVIVED" value={`${result.survived.toFixed(1)}s`} />
@@ -404,7 +501,7 @@ export default function GameOverlay() {
               </div>
             </motion.div>
           )}
-        </div>
+        </motion.div>
       </motion.div>
     </AnimatePresence>
   );
