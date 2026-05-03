@@ -1917,7 +1917,10 @@ function SpaghettiField({
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       const t = (now - startedAtRef.current) / 1000;
-      const diff = Math.min(1, t / 30); // deformation grows over time
+      // smooth deformation growth: slow ramp early, steady mid, intense late
+      // smoothstep over ~45s window for an easeInOut feel
+      const u = Math.min(1, Math.max(0, (t - 3) / 42));
+      const diff = u * u * (3 - 2 * u);
 
       const h = { ...headRef.current };
       const tl = { ...tailRef.current };
@@ -1928,8 +1931,8 @@ function SpaghettiField({
       const distH = Math.sqrt(dxh * dxh + dyh * dyh);
 
       // gravity pull on head (inverse square-ish, gated by 3s grace)
-      const pullMult = t < 3 ? 0 : t < 8 ? 0.4 : 1;
-      const pull = (0.12 + chaos * 0.04 + diff * 0.18) * pullMult * dt / Math.max(0.05, distH * distH);
+      const pullMult = t < 3 ? 0 : t < 8 ? 0.35 + diff * 0.2 : 0.55 + diff * 0.7;
+      const pull = (0.10 + chaos * 0.04 + diff * 0.16) * pullMult * dt / Math.max(0.05, distH * distH);
       h.x += dxh * pull;
       h.y += dyh * pull;
 
@@ -1948,7 +1951,8 @@ function SpaghettiField({
       h.y = Math.max(0.02, Math.min(0.98, h.y));
 
       // tail trails head with delay (delay grows near center)
-      const tailEase = Math.min(1, dt * (3.5 - prox * 2.5));
+      // tail trails head with delay (delay grows near center and over time)
+      const tailEase = Math.min(1, dt * (4 - prox * 2.4 - diff * 1.0));
       tl.x += (h.x - tl.x) * tailEase;
       tl.y += (h.y - tl.y) * tailEase;
 
@@ -1956,7 +1960,9 @@ function SpaghettiField({
       const sepDx = h.x - tl.x;
       const sepDy = h.y - tl.y;
       const sep = Math.sqrt(sepDx * sepDx + sepDy * sepDy);
-      const s = Math.min(1, (sep * (3 + diff * 4)) + prox * 0.4);
+      // smooth amplification curve — gentle early, ramps up later
+      const amp = 2.4 + diff * diff * 5.5;
+      const s = Math.min(1, sep * amp + prox * (0.25 + diff * 0.3));
       setStretch(s);
       onStretch(s);
       setProximity(prox);
