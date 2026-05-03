@@ -108,9 +108,11 @@ export default function GameOverlay() {
   const nickRef = useRef<string>("");
   const lastEventRef = useRef<EventDef | null>(null);
   const tsRef = useRef(1);
+  const timeRef = useRef(0);
   const prevChaosRef = useRef(1);
   const audioRef = useRef<{ ctx: AudioContext; hum: GainNode; humOsc: OscillatorNode } | null>(null);
   useEffect(() => { tsRef.current = timeScale; }, [timeScale]);
+  useEffect(() => { timeRef.current = time; }, [time]);
   useEffect(() => {
     if (chaos > prevChaosRef.current + 0.18) setParrotShake((s) => s + 1);
     prevChaosRef.current = chaos;
@@ -230,8 +232,9 @@ export default function GameOverlay() {
       setTime((t) => {
         const next = +(t + 0.1 * ts).toFixed(1);
         setPoints(Math.floor(next * mult));
-        // chaos rises faster + accelerates over time (scaled by time)
-        setChaos((c) => Math.min(10, +(c + (0.06 + next * 0.0015) * ts).toFixed(2)));
+        // 3-phase chaos growth: phase1 none, phase2 slow, phase3 full
+        const phaseMult = next < 3 ? 0 : next < 8 ? 0.35 : 1;
+        setChaos((c) => Math.min(10, +(c + (0.06 + next * 0.0015) * ts * phaseMult).toFixed(2)));
         return next;
       });
     }, 100);
@@ -267,10 +270,12 @@ export default function GameOverlay() {
       const delay = 3500 + Math.random() * 5500;
       setTimeout(() => {
         if (cancelled) return;
+        // no spikes during phase 1
+        if (timeRef.current < 3) { next(); return; }
         setSpike((s) => s + 1);
         playBlip("glitch");
-        // small chaos kick on spike
-        setChaos((c) => Math.min(10, +(c + 0.4).toFixed(2)));
+        const kick = timeRef.current < 8 ? 0.15 : 0.4;
+        setChaos((c) => Math.min(10, +(c + kick).toFixed(2)));
         next();
       }, delay);
     };
@@ -284,8 +289,10 @@ export default function GameOverlay() {
 
     let cancelled = false;
     const schedule = () => {
-      // 2.4s at chaos 1 → ~0.7s at chaos 10
-      const base = Math.max(700, 2400 - chaos * 180);
+      const t0 = timeRef.current;
+      // slow first 6s, then ramp
+      const phaseSlow = t0 < 6 ? 1800 : 0;
+      const base = Math.max(700, 2400 - chaos * 180) + phaseSlow;
       const jitter = Math.random() * 600;
       const delay = base + jitter;
       const t = setTimeout(() => {
@@ -334,6 +341,8 @@ export default function GameOverlay() {
   };
 
   const die = (ev: EventDef) => {
+    // minimum session time: cannot die before 5s
+    if (timeRef.current < 5) return;
     const finalSignal = Math.floor(time * 10);
 
     // resolve handle from localStorage at death time; fallback to random
@@ -1584,8 +1593,10 @@ function DarkMatterField({
       const dy = cy - p.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
 
-      // gravity pull (stronger near center, scaled by chaos)
-      const pullStrength = (0.4 + chaos * 0.08) * dt / Math.max(0.04, dist);
+      const elapsed = (performance.now() - startedAtRef.current) / 1000;
+      // 3-phase pull: phase1 none, phase2 low, phase3 full
+      const pullMult = elapsed < 3 ? 0 : elapsed < 8 ? 0.35 : 1;
+      const pullStrength = (0.4 + chaos * 0.08) * pullMult * dt / Math.max(0.04, dist);
       const ax = dx * pullStrength;
       const ay = dy * pullStrength;
 
@@ -1606,16 +1617,17 @@ function DarkMatterField({
       setProximity(prox);
       onProximity(prox);
 
-      // signal gain ~ proximity
-      signalAccum += prox * prox * 30 * dt;
+      // signal gain ~ proximity (reduced in early phases)
+      const signalMult = elapsed < 3 ? 0.3 : elapsed < 8 ? 0.7 : 1;
+      signalAccum += prox * prox * 30 * signalMult * dt;
       if (signalAccum >= 1) {
         const gain = Math.floor(signalAccum);
         signalAccum -= gain;
         onSignalTick(gain);
       }
 
-      // collapse if too close
-      if (newDist < 0.04 && performance.now() - startedAtRef.current > 3000) {
+      // collapse only after 5s minimum, and full danger after 8s
+      if (newDist < 0.04 && elapsed > 5) {
         onCollapse();
         return;
       }
