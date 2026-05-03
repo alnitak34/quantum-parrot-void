@@ -568,9 +568,14 @@ export default function GameOverlay() {
               </div>
 
               {isTime && (
-                <p className={`mt-4 text-center font-mono-x text-sm ${theme.accentText}`}>
-                  OUTSIDE TIME: +{Math.floor(time * 7)} YEARS
-                </p>
+                <>
+                  <p className={`mt-4 text-center font-mono-x text-sm ${theme.accentText}`}>
+                    OUTSIDE TIME: +{Math.floor(time * 7)} YEARS
+                  </p>
+                  <p className="mt-1 text-center font-mono-x text-[11px] text-muted-foreground">
+                    Use ↑ ↓ or W S to move — dodge the gravity waves
+                  </p>
+                </>
               )}
 
               <p className="mt-4 text-center font-mono-x text-xs text-muted-foreground">
@@ -581,6 +586,13 @@ export default function GameOverlay() {
             <ResultCard result={result} theme={theme} onClose={close} />
           )}
         </motion.div>
+        {isTime && phase === "playing" && !result && (
+          <TimeDilationGame
+            onHit={() =>
+              die({ key: "gravity-wave", label: "GRAVITY WAVE", action: "crushed by a gravity wave", points: 0, deathy: true })
+            }
+          />
+        )}
       </motion.div>
     </AnimatePresence>
   );
