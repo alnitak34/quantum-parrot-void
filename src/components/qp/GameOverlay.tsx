@@ -108,9 +108,11 @@ export default function GameOverlay() {
   const nickRef = useRef<string>("");
   const lastEventRef = useRef<EventDef | null>(null);
   const tsRef = useRef(1);
+  const timeRef = useRef(0);
   const prevChaosRef = useRef(1);
   const audioRef = useRef<{ ctx: AudioContext; hum: GainNode; humOsc: OscillatorNode } | null>(null);
   useEffect(() => { tsRef.current = timeScale; }, [timeScale]);
+  useEffect(() => { timeRef.current = time; }, [time]);
   useEffect(() => {
     if (chaos > prevChaosRef.current + 0.18) setParrotShake((s) => s + 1);
     prevChaosRef.current = chaos;
