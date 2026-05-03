@@ -789,6 +789,7 @@ interface Anomaly {
   speed?: number;
   stabilized?: boolean;
   exploding?: boolean;
+  fake?: boolean;
 }
 
 function AnomalyField({
@@ -802,7 +803,7 @@ function AnomalyField({
   glow: string;
   chaos: number;
   timeScale: number;
-  onStabilize: () => void;
+  onStabilize: (fake: boolean) => void;
   onIgnored: () => void;
   onZoneHit: () => void;
 }) {
@@ -824,22 +825,23 @@ function AnomalyField({
       if (cancelled) return;
       const c = chaosRef.current;
       const ts = tsRef.current;
-      const closeBias = Math.random() < 0.45;
-      const radius = closeBias ? 0.06 + Math.random() * 0.1 : 0.18 + Math.random() * 0.32;
+      const closeBias = Math.random() < 0.7;
+      const radius = closeBias ? 0.04 + Math.random() * 0.08 : 0.12 + Math.random() * 0.22;
       const angle = Math.random() * Math.PI * 2;
       const x = Math.min(0.92, Math.max(0.08, 0.5 + Math.cos(angle) * radius));
       const y = Math.min(0.88, Math.max(0.18, 0.62 + Math.sin(angle) * radius));
-      const ttl = Math.max(700, (2200 + Math.random() * 1400 - c * 140) / ts);
-      const speed = 0.6 + Math.random() * 0.8;
+      const ttl = Math.max(550, (1800 + Math.random() * 1200 - c * 160) / ts);
+      const speed = 0.7 + Math.random() * 0.9;
       const a: Anomaly = {
         id: idRef.current++,
         x, y,
         born: performance.now(),
         ttl,
         speed,
+        fake: Math.random() < 0.25,
       };
       setAnomalies((prev) => [...prev, a]);
-      const delay = Math.max(220, (1300 + Math.random() * 1500 - c * 130) / ts);
+      const delay = Math.max(180, (1100 + Math.random() * 1300 - c * 140) / ts);
       setTimeout(spawn, delay);
     };
     const t = setTimeout(spawn, 700);
@@ -890,10 +892,17 @@ function AnomalyField({
   }, [onIgnored, onZoneHit]);
 
   const tap = (id: number) => {
+    let wasFake = false;
     setAnomalies((prev) =>
-      prev.map((a) => (a.id === id && !a.stabilized && !a.exploding ? { ...a, stabilized: true, born: performance.now() } : a))
+      prev.map((a) => {
+        if (a.id === id && !a.stabilized && !a.exploding) {
+          wasFake = !!a.fake;
+          return { ...a, stabilized: true, born: performance.now() };
+        }
+        return a;
+      })
     );
-    onStabilize();
+    onStabilize(wasFake);
   };
 
   const now = performance.now();
