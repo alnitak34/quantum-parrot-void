@@ -23,6 +23,7 @@ export interface GameResult {
 
 type Events = {
   "game:start": void;
+  "game:startDimension": string;
   "game:end": GameResult;
   "feed:push": FeedSignal;
   "top:push": TopEntry;

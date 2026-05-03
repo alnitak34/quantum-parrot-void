@@ -21,7 +21,8 @@ const Hero = () => {
     const trimmed = handle.trim();
     if (trimmed) localStorage.setItem("playerHandle", trimmed);
     else localStorage.removeItem("playerHandle");
-    emit("game:start", undefined);
+    const el = document.getElementById("game");
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
