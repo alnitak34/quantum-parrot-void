@@ -1244,3 +1244,93 @@ function IntroHint() {
     </AnimatePresence>
   );
 }
+
+function jitterNum(value: number, chaos: number, scale: number): number {
+  // small random offset that grows with chaos; scale 0 = subtle, 1 = bigger for SIGNAL
+  const amp = (chaos / 10) * (scale > 0 ? 6 : 0.25);
+  // brief unstable jitter; uses Math.random so it ticks each render of parent
+  return value + (Math.random() - 0.5) * amp;
+}
+
+function ParrotAvatar({
+  src,
+  glow,
+  chaos,
+  hitKey,
+  shakeKey,
+}: {
+  src: string;
+  glow: string;
+  chaos: number;
+  hitKey: number;
+  shakeKey: number;
+}) {
+  const [hit, setHit] = useState(0);
+  const [shake, setShake] = useState(0);
+  useEffect(() => { if (hitKey > 0) { setHit((n) => n + 1); const t = setTimeout(() => setHit((n) => Math.max(0, n - 1)), 360); return () => clearTimeout(t); } }, [hitKey]);
+  useEffect(() => { if (shakeKey > 0) { setShake((n) => n + 1); const t = setTimeout(() => setShake((n) => Math.max(0, n - 1)), 280); return () => clearTimeout(t); } }, [shakeKey]);
+
+  const nearDeath = chaos > 7.5;
+  const hitActive = hit > 0;
+  const shakeActive = shake > 0;
+
+  return (
+    <motion.div
+      className="pointer-events-none absolute left-1/2 bottom-24 z-10 -translate-x-1/2"
+      animate={shakeActive
+        ? { x: [0, -4, 5, -3, 2, 0], y: [0, 2, -3, 1, 0] }
+        : nearDeath
+          ? { x: [0, -1.5, 1.5, -1, 1, 0], y: [0, 1, -1, 0] }
+          : { x: 0, y: 0 }}
+      transition={shakeActive
+        ? { duration: 0.28, ease: "easeOut" }
+        : nearDeath
+          ? { duration: 0.35, repeat: Infinity, ease: "easeInOut" }
+          : { duration: 0.3 }}
+    >
+      <motion.img
+        src={src}
+        alt=""
+        aria-hidden
+        width={96}
+        height={96}
+        loading="lazy"
+        className="h-20 w-20 md:h-24 md:w-24 select-none"
+        style={{
+          background: "transparent",
+          filter: `drop-shadow(0 0 18px hsl(${glow} / 0.55))${hitActive ? ` hue-rotate(${Math.random() * 80 - 40}deg) saturate(1.6) contrast(1.3)` : ""}${nearDeath ? " contrast(1.2) saturate(1.3)" : ""}`,
+          mixBlendMode: hitActive ? "screen" : "normal",
+        }}
+        animate={hitActive
+          ? { scale: [1, 1.08, 0.94, 1.04, 1], skewX: [0, 6, -5, 3, 0], opacity: [1, 0.7, 1, 0.85, 1] }
+          : { y: [0, -8, 0] }}
+        transition={hitActive
+          ? { duration: 0.36, ease: "easeOut" }
+          : { duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* near-death glitch slices */}
+      {nearDeath && (
+        <>
+          <motion.img
+            src={src}
+            aria-hidden
+            alt=""
+            className="absolute inset-0 h-20 w-20 md:h-24 md:w-24 pointer-events-none"
+            style={{ mixBlendMode: "screen", filter: "hue-rotate(120deg) saturate(2)", opacity: 0.45, clipPath: "inset(20% 0 55% 0)" }}
+            animate={{ x: [0, -4, 5, -3, 0] }}
+            transition={{ duration: 0.18, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.img
+            src={src}
+            aria-hidden
+            alt=""
+            className="absolute inset-0 h-20 w-20 md:h-24 md:w-24 pointer-events-none"
+            style={{ mixBlendMode: "screen", filter: "hue-rotate(-120deg) saturate(2)", opacity: 0.45, clipPath: "inset(60% 0 15% 0)" }}
+            animate={{ x: [0, 5, -4, 3, 0] }}
+            transition={{ duration: 0.22, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
+      )}
+    </motion.div>
+  );
+}
