@@ -124,7 +124,7 @@ export default function GameOverlay() {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [open, result, chaos]);
+  }, [open, result, chaos, phase]);
 
   const runEvent = () => {
     const ev = pick(EVENTS);
