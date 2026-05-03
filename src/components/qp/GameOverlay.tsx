@@ -777,18 +777,28 @@ interface Anomaly {
 function AnomalyField({
   glow,
   chaos,
+  timeScale,
   onStabilize,
   onIgnored,
+  onZoneHit,
 }: {
   glow: string;
   chaos: number;
+  timeScale: number;
   onStabilize: () => void;
   onIgnored: () => void;
+  onZoneHit: () => void;
 }) {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const idRef = useRef(1);
   const chaosRef = useRef(chaos);
+  const tsRef = useRef(timeScale);
+  const zoneHitRef = useRef<Set<number>>(new Set());
   useEffect(() => { chaosRef.current = chaos; }, [chaos]);
+  useEffect(() => { tsRef.current = timeScale; }, [timeScale]);
+
+  // danger zone radius grows slowly with chaos (in viewport units 0..1)
+  const zoneRadius = Math.min(0.22, 0.08 + chaos * 0.014);
 
   // spawn loop — bias near the player (center) and faster as chaos rises
   useEffect(() => {
@@ -796,21 +806,25 @@ function AnomalyField({
     const spawn = () => {
       if (cancelled) return;
       const c = chaosRef.current;
+      const ts = tsRef.current;
       // sometimes spawn very close to force reaction
       const closeBias = Math.random() < 0.45;
       const radius = closeBias ? 0.06 + Math.random() * 0.1 : 0.18 + Math.random() * 0.32;
       const angle = Math.random() * Math.PI * 2;
       const x = Math.min(0.92, Math.max(0.08, 0.5 + Math.cos(angle) * radius));
       const y = Math.min(0.88, Math.max(0.18, 0.62 + Math.sin(angle) * radius));
-      const ttl = Math.max(900, 2200 + Math.random() * 1400 - c * 140);
+      const ttl = Math.max(900, (2200 + Math.random() * 1400 - c * 140) / Math.max(0.4, ts));
+      // each anomaly carries its own speed multiplier — unpredictable
+      const speed = 0.3 + Math.random() * 1.7;
       const a: Anomaly = {
         id: idRef.current++,
         x, y,
         born: performance.now(),
         ttl,
+        speed,
       };
       setAnomalies((prev) => [...prev, a]);
-      const delay = Math.max(350, 1300 + Math.random() * 1500 - c * 130);
+      const delay = Math.max(250, (1300 + Math.random() * 1500 - c * 130) / Math.max(0.4, ts));
       setTimeout(spawn, delay);
     };
     const t = setTimeout(spawn, 700);
@@ -820,17 +834,29 @@ function AnomalyField({
     };
   }, []);
 
-  // expire loop
+  // expire + danger-zone proximity loop
   useEffect(() => {
     const i = setInterval(() => {
       const now = performance.now();
+      const zr = Math.min(0.22, 0.08 + chaosRef.current * 0.014);
+      // parrot center in same coords used for spawn (x=0.5, y=0.62)
+      const px = 0.5, py = 0.62;
       setAnomalies((prev) => {
         const expired: Anomaly[] = [];
         const kept = prev.filter((a) => {
           if (a.stabilized) return now - a.born < 600;
-          if (now - a.born > a.ttl) {
+          // age progresses by speed * timeScale — unpredictable per-anomaly
+          if ((now - a.born) * (a.speed || 1) * Math.max(0.4, tsRef.current) > a.ttl) {
             expired.push(a);
             return false;
+          }
+          // proximity check — ratio approximates distance to parrot
+          const dx = a.x - px;
+          const dy = (a.y - py) * 0.7;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < zr && !zoneHitRef.current.has(a.id)) {
+            zoneHitRef.current.add(a.id);
+            onZoneHit();
           }
           return true;
         });
@@ -839,9 +865,9 @@ function AnomalyField({
         }
         return kept;
       });
-    }, 200);
+    }, 160);
     return () => clearInterval(i);
-  }, [onIgnored]);
+  }, [onIgnored, onZoneHit]);
 
   const tap = (id: number) => {
     setAnomalies((prev) =>
@@ -852,6 +878,23 @@ function AnomalyField({
 
   return (
     <div aria-hidden className="absolute inset-0 z-[5] pointer-events-none">
+      {/* danger zone visualization around parrot */}
+      <motion.div
+        aria-hidden
+        className="absolute rounded-full"
+        animate={{ opacity: [0.25, 0.5, 0.25], scale: [1, 1.05, 1] }}
+        transition={{ duration: Math.max(0.6, 1.4 - chaos * 0.1), repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          left: "50%",
+          top: "62%",
+          width: `${zoneRadius * 200}vmin`,
+          height: `${zoneRadius * 140}vmin`,
+          transform: "translate(-50%, -50%)",
+          background: `radial-gradient(circle, transparent 55%, hsl(0 90% 55% / ${Math.min(0.35, 0.08 + chaos * 0.025)}) 100%)`,
+          border: `1px dashed hsl(0 90% 55% / ${Math.min(0.6, 0.15 + chaos * 0.04)})`,
+          mixBlendMode: "screen",
+        }}
+      />
       {anomalies.map((a) => (
         <button
           key={a.id}
@@ -870,7 +913,7 @@ function AnomalyField({
               ? "none"
               : `0 0 28px hsl(${glow} / 0.85), 0 0 60px hsl(${glow} / 0.45)`,
             border: a.stabilized ? "none" : `1px solid hsl(${glow} / 0.55)`,
-            animation: a.stabilized ? undefined : "pulse 1.1s ease-in-out infinite",
+            animation: a.stabilized ? undefined : `pulse ${(1.1 / Math.max(0.4, (a.speed || 1) * timeScale)).toFixed(2)}s ease-in-out infinite`,
             backdropFilter: "blur(2px)",
             cursor: a.stabilized ? "default" : "pointer",
             transition: "opacity 400ms ease",
