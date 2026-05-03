@@ -75,6 +75,14 @@ const dims: Dim[] = [
 const DimensionCards = () => {
   return (
     <section className="container mx-auto px-4 py-6" id="game">
+      <div className="text-center mb-8">
+        <h2 className="font-graffiti text-4xl md:text-5xl text-foreground tracking-wide">
+          CHOOSE YOUR DIMENSION
+        </h2>
+        <p className="font-handwritten mt-2 text-xl text-foreground/70">
+          Each card is a different survival mode.
+        </p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
         {dims.map((d, i) => (
           <motion.article
@@ -83,8 +91,18 @@ const DimensionCards = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: "-50px" }}
             transition={{ delay: i * 0.15, duration: 0.6 }}
-            whileHover={{ scale: 1.025, y: -4 }}
-            className={`panel-void ${d.border} relative overflow-hidden group flex flex-col h-[340px] transition-shadow duration-300`}
+            whileHover={{ scale: 1.03, y: -6 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => emit("game:startDimension", d.title)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                emit("game:startDimension", d.title);
+              }
+            }}
+            className={`panel-void ${d.border} relative overflow-hidden group flex flex-col h-[360px] transition-shadow duration-300 cursor-pointer focus:outline-none`}
             style={{
               padding: "24px",
               gap: "14px",
@@ -143,6 +161,15 @@ const DimensionCards = () => {
             <pre className={`relative font-mono-x text-xs md:text-sm whitespace-pre-wrap mt-auto ${d.quoteColor}`}>
               {d.quote}
             </pre>
+
+            {/* Click to enter label */}
+            <div
+              className={`relative mt-2 flex items-center justify-center gap-2 font-graffiti text-sm tracking-[0.25em] ${d.quoteColor} opacity-80 group-hover:opacity-100 transition-opacity`}
+            >
+              <span className="h-px flex-1 bg-current opacity-40" />
+              CLICK TO ENTER
+              <span className="h-px flex-1 bg-current opacity-40" />
+            </div>
           </motion.article>
         ))}
       </div>
