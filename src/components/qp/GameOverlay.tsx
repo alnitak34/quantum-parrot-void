@@ -1917,7 +1917,10 @@ function SpaghettiField({
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       const t = (now - startedAtRef.current) / 1000;
-      const diff = Math.min(1, t / 30); // deformation grows over time
+      // smooth deformation growth: slow ramp early, steady mid, intense late
+      // smoothstep over ~45s window for an easeInOut feel
+      const u = Math.min(1, Math.max(0, (t - 3) / 42));
+      const diff = u * u * (3 - 2 * u);
 
       const h = { ...headRef.current };
       const tl = { ...tailRef.current };
