@@ -1931,8 +1931,8 @@ function SpaghettiField({
       const distH = Math.sqrt(dxh * dxh + dyh * dyh);
 
       // gravity pull on head (inverse square-ish, gated by 3s grace)
-      const pullMult = t < 3 ? 0 : t < 8 ? 0.4 : 1;
-      const pull = (0.12 + chaos * 0.04 + diff * 0.18) * pullMult * dt / Math.max(0.05, distH * distH);
+      const pullMult = t < 3 ? 0 : t < 8 ? 0.35 + diff * 0.2 : 0.55 + diff * 0.7;
+      const pull = (0.10 + chaos * 0.04 + diff * 0.16) * pullMult * dt / Math.max(0.05, distH * distH);
       h.x += dxh * pull;
       h.y += dyh * pull;
 
