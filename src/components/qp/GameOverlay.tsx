@@ -149,24 +149,32 @@ export default function GameOverlay() {
     } catch { /* ignore */ }
   }, [chaos, timeScale]);
 
-  const playBlip = (kind: "glitch" | "distort") => {
+  const playBlip = (kind: "glitch" | "distort" | "explode") => {
     const a = audioRef.current;
     if (!a) return;
     try {
+      const ts = tsRef.current;
       const o = a.ctx.createOscillator();
       const g = a.ctx.createGain();
-      o.type = kind === "distort" ? "square" : "triangle";
+      o.type = kind === "distort" ? "square" : kind === "explode" ? "sawtooth" : "triangle";
       const now = a.ctx.currentTime;
       if (kind === "glitch") {
-        o.frequency.setValueAtTime(900 + Math.random() * 600, now);
-        o.frequency.exponentialRampToValueAtTime(120, now + 0.18);
+        o.frequency.setValueAtTime((900 + Math.random() * 600) * ts, now);
+        o.frequency.exponentialRampToValueAtTime(120 * ts, now + 0.18);
         g.gain.setValueAtTime(0.18, now);
         g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
         o.connect(g).connect(a.ctx.destination);
         o.start(now); o.stop(now + 0.22);
+      } else if (kind === "explode") {
+        o.frequency.setValueAtTime(320 * ts, now);
+        o.frequency.exponentialRampToValueAtTime(60 * ts, now + 0.35);
+        g.gain.setValueAtTime(0.32, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        o.connect(g).connect(a.ctx.destination);
+        o.start(now); o.stop(now + 0.42);
       } else {
-        o.frequency.setValueAtTime(180, now);
-        o.frequency.linearRampToValueAtTime(40, now + 0.5);
+        o.frequency.setValueAtTime(180 * ts, now);
+        o.frequency.linearRampToValueAtTime(40 * ts, now + 0.5);
         g.gain.setValueAtTime(0.25, now);
         g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
         o.connect(g).connect(a.ctx.destination);
