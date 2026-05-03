@@ -28,10 +28,6 @@ const Navbar = () => {
           ))}
         </ul>
 
-        <button className="btn-wallet flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 text-sm md:text-base">
-          PLAY NOW
-          <Zap className="h-4 w-4 fill-current" />
-        </button>
       </nav>
     </header>
   );
