@@ -341,6 +341,8 @@ export default function GameOverlay() {
   };
 
   const die = (ev: EventDef) => {
+    // minimum session time: cannot die before 5s
+    if (timeRef.current < 5) return;
     const finalSignal = Math.floor(time * 10);
 
     // resolve handle from localStorage at death time; fallback to random
