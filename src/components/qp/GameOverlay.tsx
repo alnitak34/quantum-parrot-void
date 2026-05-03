@@ -273,26 +273,83 @@ export default function GameOverlay() {
         }}
       >
         {isDark && themed && (
+          <>
+            <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+              {[
+                { top: "18%", left: "12%", d: 3.2 },
+                { top: "70%", left: "82%", d: 2.6 },
+                { top: "40%", left: "88%", d: 4.1 },
+                { top: "82%", left: "20%", d: 3.5 },
+                { top: "14%", left: "72%", d: 2.9 },
+                { top: "55%", left: "8%", d: 3.7 },
+                { top: "30%", left: "45%", d: 4.4 },
+                { top: "88%", left: "58%", d: 3.0 },
+              ].map((e, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute flex gap-2"
+                  style={{ top: e.top, left: e.left }}
+                  animate={{ opacity: [0.05, 0.95, 0.05] }}
+                  transition={{ duration: e.d, repeat: Infinity, delay: i * 0.3 }}
+                >
+                  <span className="block h-2 w-3 rounded-full bg-white/90 shadow-[0_0_14px_rgba(255,255,255,0.85)]" />
+                  <span className="block h-2 w-3 rounded-full bg-white/90 shadow-[0_0_14px_rgba(255,255,255,0.85)]" />
+                </motion.div>
+              ))}
+            </div>
+            {/* occasional flash */}
+            <motion.div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-white"
+              animate={{ opacity: [0, 0, 0, 0, 0.18, 0, 0, 0, 0.06, 0] }}
+              transition={{ duration: 6, repeat: Infinity, times: [0, 0.2, 0.4, 0.49, 0.5, 0.52, 0.7, 0.79, 0.8, 1] }}
+            />
+          </>
+        )}
+        {isTime && themed && (
           <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-            {[
-              { top: "18%", left: "12%", d: 3.2 },
-              { top: "70%", left: "82%", d: 2.6 },
-              { top: "40%", left: "88%", d: 4.1 },
-              { top: "82%", left: "20%", d: 3.5 },
-              { top: "14%", left: "72%", d: 2.9 },
-            ].map((e, i) => (
-              <motion.div
-                key={i}
-                className="absolute flex gap-2"
-                style={{ top: e.top, left: e.left }}
-                animate={{ opacity: [0.1, 0.85, 0.1] }}
-                transition={{ duration: e.d, repeat: Infinity, delay: i * 0.3 }}
+            {/* warped clock ring */}
+            <motion.div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                width: 520,
+                height: 520,
+                border: "2px dashed hsl(var(--time) / 0.45)",
+                boxShadow: "0 0 80px hsl(var(--time) / 0.35), inset 0 0 80px hsl(var(--time) / 0.2)",
+              }}
+              animate={{ rotate: 360, scale: [1, 1.08, 0.96, 1] }}
+              transition={{ rotate: { duration: 24, repeat: Infinity, ease: "linear" }, scale: { duration: 8, repeat: Infinity, ease: "easeInOut" } }}
+            />
+            <motion.div
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{ width: 320, height: 320, border: "1px solid hsl(var(--time) / 0.5)" }}
+              animate={{ rotate: -360 }}
+              transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+            />
+            {[0, 30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330].map((deg) => (
+              <div
+                key={deg}
+                className="absolute left-1/2 top-1/2 font-graffiti text-time/70"
+                style={{
+                  transform: `rotate(${deg}deg) translateY(-240px) rotate(-${deg}deg)`,
+                  textShadow: "0 0 10px hsl(var(--time) / 0.8)",
+                }}
               >
-                <span className="block h-2 w-3 rounded-full bg-white/80 shadow-[0_0_12px_rgba(255,255,255,0.7)]" />
-                <span className="block h-2 w-3 rounded-full bg-white/80 shadow-[0_0_12px_rgba(255,255,255,0.7)]" />
-              </motion.div>
+                {Math.round(deg / 30) || 12}
+              </div>
             ))}
           </div>
+        )}
+        {isSpag && themed && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "repeating-linear-gradient(90deg, transparent 0 6px, hsl(var(--spaghetti) / 0.06) 6px 7px), repeating-linear-gradient(0deg, transparent 0 4px, hsl(0 90% 50% / 0.04) 4px 5px)",
+              mixBlendMode: "screen",
+            }}
+          />
         )}
         {/* glitch chaos overlay - intensifies, themed */}
         <div
@@ -388,6 +445,20 @@ export default function GameOverlay() {
                   {nickRef.current}
                 </span>
               </div>
+
+              {/* Dimension tagline */}
+              <motion.div
+                key={dimension}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: theme.pulseDuration, repeat: Infinity, ease: "easeInOut" }}
+                className={`mt-3 text-center font-graffiti tracking-[0.3em] text-sm ${theme.accentText}`}
+                style={{ textShadow: `0 0 14px hsl(${theme.glow} / 0.8)` }}
+              >
+                {isTime && "TIME IS UNSTABLE"}
+                {isDark && "YOU ARE NOT ALONE"}
+                {isSpag && "STRUCTURE BREAKING"}
+              </motion.div>
 
               <div className="mt-6 grid grid-cols-3 gap-4 font-mono-x text-center">
                 <Stat label="TIME" value={`${time.toFixed(1)}s`} accent={theme.glow} />
