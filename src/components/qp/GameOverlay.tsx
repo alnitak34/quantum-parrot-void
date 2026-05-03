@@ -1951,7 +1951,8 @@ function SpaghettiField({
       h.y = Math.max(0.02, Math.min(0.98, h.y));
 
       // tail trails head with delay (delay grows near center)
-      const tailEase = Math.min(1, dt * (3.5 - prox * 2.5));
+      // tail trails head with delay (delay grows near center and over time)
+      const tailEase = Math.min(1, dt * (4 - prox * 2.4 - diff * 1.0));
       tl.x += (h.x - tl.x) * tailEase;
       tl.y += (h.y - tl.y) * tailEase;
 
@@ -1959,7 +1960,9 @@ function SpaghettiField({
       const sepDx = h.x - tl.x;
       const sepDy = h.y - tl.y;
       const sep = Math.sqrt(sepDx * sepDx + sepDy * sepDy);
-      const s = Math.min(1, (sep * (3 + diff * 4)) + prox * 0.4);
+      // smooth amplification curve — gentle early, ramps up later
+      const amp = 2.4 + diff * diff * 5.5;
+      const s = Math.min(1, sep * amp + prox * (0.25 + diff * 0.3));
       setStretch(s);
       onStretch(s);
       setProximity(prox);
