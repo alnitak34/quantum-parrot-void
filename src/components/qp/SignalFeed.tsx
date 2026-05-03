@@ -161,6 +161,11 @@ const SignalFeed = () => {
                   >
                     <span className="text-muted-foreground/70">[{s.time}]</span>
                     <span className="signal-line font-bold">{s.user}</span>
+                    {s.pinned && (
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-primary/20 text-primary border border-primary/40">
+                        YOUR RUN
+                      </span>
+                    )}
                     <span className="text-foreground/70">{s.action}</span>
                     <span className="ml-auto flex items-center gap-1 text-foreground/70">
                       <Skull className="h-3.5 w-3.5" /> +{s.points}
