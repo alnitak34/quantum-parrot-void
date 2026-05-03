@@ -139,15 +139,15 @@ export default function GameOverlay() {
     };
   }, [open, phase, result]);
 
-  // ramp hum with chaos
+  // ramp hum with chaos AND timeScale (sound pitch follows speed)
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
     try {
       a.hum.gain.setTargetAtTime(0.03 + (chaos / 10) * 0.09, a.ctx.currentTime, 0.4);
-      a.humOsc.frequency.setTargetAtTime(50 + chaos * 6, a.ctx.currentTime, 0.4);
+      a.humOsc.frequency.setTargetAtTime((50 + chaos * 6) * timeScale, a.ctx.currentTime, 0.2);
     } catch { /* ignore */ }
-  }, [chaos]);
+  }, [chaos, timeScale]);
 
   const playBlip = (kind: "glitch" | "distort") => {
     const a = audioRef.current;
