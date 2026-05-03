@@ -316,14 +316,22 @@ export default function GameOverlay() {
         )}
 
         {/* HUD / Result */}
-        <div
+        <motion.div
           className="relative w-full max-w-2xl p-6 md:p-8"
+          animate={
+            themed
+              ? { boxShadow: [
+                  `0 0 30px hsl(${theme.glow} / 0.25), inset 0 0 60px hsl(${theme.glow} / 0.08)`,
+                  `0 0 70px hsl(${theme.glow} / 0.6), inset 0 0 80px hsl(${theme.glow} / 0.18)`,
+                  `0 0 30px hsl(${theme.glow} / 0.25), inset 0 0 60px hsl(${theme.glow} / 0.08)`,
+                ] }
+              : {}
+          }
+          transition={themed ? { duration: theme.pulseDuration, repeat: Infinity, ease: "easeInOut" } : undefined}
           style={{
-            background: "rgba(10, 0, 20, 0.65)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: isDark ? "rgba(0,0,0,0.78)" : "rgba(10, 0, 20, 0.65)",
+            border: `1px solid hsl(${theme.glow} / 0.25)`,
             borderRadius: "20px",
-            boxShadow:
-              "0 0 50px hsl(var(--secondary) / 0.35), inset 0 0 60px hsl(var(--primary) / 0.12)",
           }}
         >
           {phase === "select" && !result ? (
