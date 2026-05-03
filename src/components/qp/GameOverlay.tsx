@@ -139,34 +139,42 @@ export default function GameOverlay() {
     };
   }, [open, phase, result]);
 
-  // ramp hum with chaos
+  // ramp hum with chaos AND timeScale (sound pitch follows speed)
   useEffect(() => {
     const a = audioRef.current;
     if (!a) return;
     try {
       a.hum.gain.setTargetAtTime(0.03 + (chaos / 10) * 0.09, a.ctx.currentTime, 0.4);
-      a.humOsc.frequency.setTargetAtTime(50 + chaos * 6, a.ctx.currentTime, 0.4);
+      a.humOsc.frequency.setTargetAtTime((50 + chaos * 6) * timeScale, a.ctx.currentTime, 0.2);
     } catch { /* ignore */ }
-  }, [chaos]);
+  }, [chaos, timeScale]);
 
-  const playBlip = (kind: "glitch" | "distort") => {
+  const playBlip = (kind: "glitch" | "distort" | "explode") => {
     const a = audioRef.current;
     if (!a) return;
     try {
+      const ts = tsRef.current;
       const o = a.ctx.createOscillator();
       const g = a.ctx.createGain();
-      o.type = kind === "distort" ? "square" : "triangle";
+      o.type = kind === "distort" ? "square" : kind === "explode" ? "sawtooth" : "triangle";
       const now = a.ctx.currentTime;
       if (kind === "glitch") {
-        o.frequency.setValueAtTime(900 + Math.random() * 600, now);
-        o.frequency.exponentialRampToValueAtTime(120, now + 0.18);
+        o.frequency.setValueAtTime((900 + Math.random() * 600) * ts, now);
+        o.frequency.exponentialRampToValueAtTime(120 * ts, now + 0.18);
         g.gain.setValueAtTime(0.18, now);
         g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
         o.connect(g).connect(a.ctx.destination);
         o.start(now); o.stop(now + 0.22);
+      } else if (kind === "explode") {
+        o.frequency.setValueAtTime(320 * ts, now);
+        o.frequency.exponentialRampToValueAtTime(60 * ts, now + 0.35);
+        g.gain.setValueAtTime(0.32, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+        o.connect(g).connect(a.ctx.destination);
+        o.start(now); o.stop(now + 0.42);
       } else {
-        o.frequency.setValueAtTime(180, now);
-        o.frequency.linearRampToValueAtTime(40, now + 0.5);
+        o.frequency.setValueAtTime(180 * ts, now);
+        o.frequency.linearRampToValueAtTime(40 * ts, now + 0.5);
         g.gain.setValueAtTime(0.25, now);
         g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
         o.connect(g).connect(a.ctx.destination);
@@ -237,15 +245,12 @@ export default function GameOverlay() {
     let cancelled = false;
     const next = () => {
       if (cancelled) return;
-      const delay = 1200 + Math.random() * 2600;
+      const delay = 2000 + Math.random() * 2000;
       setTimeout(() => {
         if (cancelled) return;
-        // bias: occasional extreme slow or fast
-        const r = Math.random();
-        const ts = r < 0.15 ? 0.3 + Math.random() * 0.2
-          : r > 0.85 ? 1.6 + Math.random() * 0.4
-          : 0.7 + Math.random() * 0.8;
-        setTimeScale(+ts.toFixed(2));
+        const choices = [0.4, 1, 2];
+        const ts = choices[Math.floor(Math.random() * choices.length)];
+        setTimeScale(ts);
         next();
       }, delay);
     };
@@ -401,6 +406,10 @@ export default function GameOverlay() {
         {/* Threat-spike layer: zoom + shake + glitch flash */}
         {themed && phase === "playing" && !result && (
           <SpikeFX spike={spike} chaos={chaos} />
+        )}
+        {/* Time-scale visual feedback: blur/trails when slow, streaks/shake/flash when fast */}
+        {themed && phase === "playing" && !result && (
+          <TimeScaleFX timeScale={timeScale} />
         )}
         {/* Red edge danger vignette (intensifies with chaos) */}
         {themed && phase === "playing" && !result && (
@@ -751,7 +760,7 @@ export default function GameOverlay() {
             chaos={chaos}
             timeScale={timeScale}
             onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); setParrotHit((h) => h + 1); }}
-            onIgnored={() => { playBlip("distort"); setChaos((c) => Math.min(10, +(c + 0.55).toFixed(2))); }}
+            onIgnored={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 0.7).toFixed(2))); setParrotHit((h) => h + 1); }}
             onZoneHit={() => { setChaos((c) => Math.min(10, +(c + 0.9).toFixed(2))); setParrotHit((h) => h + 1); playBlip("distort"); }}
           />
         )}
@@ -768,6 +777,7 @@ interface Anomaly {
   ttl: number; // ms
   speed?: number;
   stabilized?: boolean;
+  exploding?: boolean;
 }
 
 function AnomalyField({
@@ -786,6 +796,7 @@ function AnomalyField({
   onZoneHit: () => void;
 }) {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
+  const [, force] = useState(0);
   const idRef = useRef(1);
   const chaosRef = useRef(chaos);
   const tsRef = useRef(timeScale);
@@ -793,25 +804,22 @@ function AnomalyField({
   useEffect(() => { chaosRef.current = chaos; }, [chaos]);
   useEffect(() => { tsRef.current = timeScale; }, [timeScale]);
 
-  // danger zone radius grows slowly with chaos (in viewport units 0..1)
   const zoneRadius = Math.min(0.22, 0.08 + chaos * 0.014);
 
-  // spawn loop — bias near the player (center) and faster as chaos rises
+  // spawn loop — speed tied to timeScale
   useEffect(() => {
     let cancelled = false;
     const spawn = () => {
       if (cancelled) return;
       const c = chaosRef.current;
       const ts = tsRef.current;
-      // sometimes spawn very close to force reaction
       const closeBias = Math.random() < 0.45;
       const radius = closeBias ? 0.06 + Math.random() * 0.1 : 0.18 + Math.random() * 0.32;
       const angle = Math.random() * Math.PI * 2;
       const x = Math.min(0.92, Math.max(0.08, 0.5 + Math.cos(angle) * radius));
       const y = Math.min(0.88, Math.max(0.18, 0.62 + Math.sin(angle) * radius));
-      const ttl = Math.max(900, (2200 + Math.random() * 1400 - c * 140) / Math.max(0.4, ts));
-      // each anomaly carries its own speed multiplier — unpredictable
-      const speed = 0.3 + Math.random() * 1.7;
+      const ttl = Math.max(700, (2200 + Math.random() * 1400 - c * 140) / ts);
+      const speed = 0.6 + Math.random() * 0.8;
       const a: Anomaly = {
         id: idRef.current++,
         x, y,
@@ -820,7 +828,7 @@ function AnomalyField({
         speed,
       };
       setAnomalies((prev) => [...prev, a]);
-      const delay = Math.max(250, (1300 + Math.random() * 1500 - c * 130) / Math.max(0.4, ts));
+      const delay = Math.max(220, (1300 + Math.random() * 1500 - c * 130) / ts);
       setTimeout(spawn, delay);
     };
     const t = setTimeout(spawn, 700);
@@ -830,23 +838,30 @@ function AnomalyField({
     };
   }, []);
 
-  // expire + danger-zone proximity loop
+  // expansion / explode / proximity loop — drive re-render for growing visuals
   useEffect(() => {
     const i = setInterval(() => {
       const now = performance.now();
       const zr = Math.min(0.22, 0.08 + chaosRef.current * 0.014);
-      // parrot center in same coords used for spawn (x=0.5, y=0.62)
       const px = 0.5, py = 0.62;
       setAnomalies((prev) => {
-        const expired: Anomaly[] = [];
-        const kept = prev.filter((a) => {
-          if (a.stabilized) return now - a.born < 600;
-          // age progresses by speed * timeScale — unpredictable per-anomaly
-          if ((now - a.born) * (a.speed || 1) * Math.max(0.4, tsRef.current) > a.ttl) {
-            expired.push(a);
-            return false;
+        const next: Anomaly[] = [];
+        for (const a of prev) {
+          if (a.stabilized) {
+            if (now - a.born < 500) next.push(a);
+            continue;
           }
-          // proximity check — ratio approximates distance to parrot
+          if (a.exploding) {
+            if (now - a.born < 450) next.push(a);
+            continue;
+          }
+          const age = (now - a.born) * (a.speed || 1) * tsRef.current;
+          if (age > a.ttl) {
+            // explode: fail
+            onIgnored();
+            next.push({ ...a, exploding: true, born: now });
+            continue;
+          }
           const dx = a.x - px;
           const dy = (a.y - py) * 0.7;
           const d = Math.sqrt(dx * dx + dy * dy);
@@ -854,23 +869,23 @@ function AnomalyField({
             zoneHitRef.current.add(a.id);
             onZoneHit();
           }
-          return true;
-        });
-        if (expired.length) {
-          for (let k = 0; k < expired.length; k++) onIgnored();
+          next.push(a);
         }
-        return kept;
+        return next;
       });
-    }, 160);
+      force((n) => (n + 1) % 1000);
+    }, 60);
     return () => clearInterval(i);
   }, [onIgnored, onZoneHit]);
 
   const tap = (id: number) => {
     setAnomalies((prev) =>
-      prev.map((a) => (a.id === id && !a.stabilized ? { ...a, stabilized: true, born: performance.now() } : a))
+      prev.map((a) => (a.id === id && !a.stabilized && !a.exploding ? { ...a, stabilized: true, born: performance.now() } : a))
     );
     onStabilize();
   };
+
+  const now = performance.now();
 
   return (
     <div aria-hidden className="absolute inset-0 z-[5] pointer-events-none">
@@ -879,7 +894,7 @@ function AnomalyField({
         aria-hidden
         className="absolute rounded-full"
         animate={{ opacity: [0.25, 0.5, 0.25], scale: [1, 1.05, 1] }}
-        transition={{ duration: Math.max(0.6, 1.4 - chaos * 0.1), repeat: Infinity, ease: "easeInOut" }}
+        transition={{ duration: Math.max(0.6, 1.4 - chaos * 0.1) / Math.max(0.4, timeScale), repeat: Infinity, ease: "easeInOut" }}
         style={{
           left: "50%",
           top: "62%",
@@ -891,33 +906,43 @@ function AnomalyField({
           mixBlendMode: "screen",
         }}
       />
-      {anomalies.map((a) => (
-        <button
-          key={a.id}
-          onClick={() => tap(a.id)}
-          className="absolute pointer-events-auto rounded-full focus:outline-none"
-          style={{
-            left: `${a.x * 100}%`,
-            top: `${a.y * 100}%`,
-            transform: "translate(-50%, -50%)",
-            width: 64,
-            height: 64,
-            background: a.stabilized
-              ? `radial-gradient(circle, hsl(${glow} / 0.0) 0%, transparent 70%)`
-              : `radial-gradient(circle, hsl(${glow} / 0.85) 0%, hsl(${glow} / 0.25) 45%, transparent 75%)`,
-            boxShadow: a.stabilized
-              ? "none"
-              : `0 0 28px hsl(${glow} / 0.85), 0 0 60px hsl(${glow} / 0.45)`,
-            border: a.stabilized ? "none" : `1px solid hsl(${glow} / 0.55)`,
-            animation: a.stabilized ? undefined : `pulse ${(1.1 / Math.max(0.4, (a.speed || 1) * timeScale)).toFixed(2)}s ease-in-out infinite`,
-            backdropFilter: "blur(2px)",
-            cursor: a.stabilized ? "default" : "pointer",
-            transition: "opacity 400ms ease",
-            opacity: a.stabilized ? 0 : 1,
-          }}
-          aria-label="stabilize anomaly"
-        />
-      ))}
+      {anomalies.map((a) => {
+        const ageRatio = a.exploding
+          ? Math.min(1, (now - a.born) / 450)
+          : a.stabilized
+            ? 0
+            : Math.min(1, ((now - a.born) * (a.speed || 1) * timeScale) / a.ttl);
+        const baseSize = 28;
+        const grow = a.exploding ? 240 * ageRatio : baseSize + ageRatio * 70; // expand toward explosion
+        const opacity = a.exploding ? 1 - ageRatio : a.stabilized ? 0 : 0.35 + ageRatio * 0.65;
+        const ring = a.exploding ? 6 : 1 + ageRatio * 4;
+        const dangerHue = ageRatio > 0.7 && !a.exploding;
+        return (
+          <button
+            key={a.id}
+            onClick={() => tap(a.id)}
+            className="absolute pointer-events-auto rounded-full focus:outline-none"
+            style={{
+              left: `${a.x * 100}%`,
+              top: `${a.y * 100}%`,
+              transform: "translate(-50%, -50%)",
+              width: grow,
+              height: grow,
+              background: a.exploding
+                ? `radial-gradient(circle, hsl(0 95% 60% / ${0.6 * (1 - ageRatio)}) 0%, hsl(${glow} / ${0.3 * (1 - ageRatio)}) 50%, transparent 75%)`
+                : `radial-gradient(circle, hsl(${dangerHue ? "0 95% 60%" : glow} / ${0.7 + ageRatio * 0.25}) 0%, hsl(${dangerHue ? "0 95% 60%" : glow} / 0.18) 50%, transparent 78%)`,
+              boxShadow: a.stabilized
+                ? "none"
+                : `0 0 ${20 + ageRatio * 60}px hsl(${dangerHue || a.exploding ? "0 95% 60%" : glow} / ${0.6 + ageRatio * 0.3})`,
+              border: a.stabilized || a.exploding ? "none" : `${ring}px solid hsl(${dangerHue ? "0 95% 60%" : glow} / ${0.4 + ageRatio * 0.5})`,
+              cursor: a.stabilized || a.exploding ? "default" : "pointer",
+              transition: a.stabilized ? "opacity 400ms ease" : undefined,
+              opacity,
+            }}
+            aria-label="stabilize anomaly"
+          />
+        );
+      })}
     </div>
   );
 }
@@ -1332,5 +1357,74 @@ function ParrotAvatar({
         </>
       )}
     </motion.div>
+  );
+}
+
+function TimeScaleFX({ timeScale }: { timeScale: number }) {
+  const slow = timeScale < 0.7;
+  const fast = timeScale > 1.4;
+  const [flashKey, setFlashKey] = useState(0);
+  useEffect(() => {
+    if (fast) setFlashKey((k) => k + 1);
+  }, [fast, timeScale]);
+
+  return (
+    <>
+      {/* SLOW: heavy motion blur + long trails */}
+      {slow && (
+        <>
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+            style={{
+              backdropFilter: "blur(6px) saturate(1.4)",
+              WebkitBackdropFilter: "blur(6px) saturate(1.4)",
+              background: "radial-gradient(ellipse at center, hsl(220 60% 30% / 0.18), transparent 70%)",
+              mixBlendMode: "screen",
+            }}
+          />
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            animate={{ opacity: [0.15, 0.35, 0.15] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{
+              background: "repeating-linear-gradient(180deg, transparent 0 14px, hsl(200 80% 70% / 0.12) 14px 16px)",
+              filter: "blur(3px)",
+              mixBlendMode: "screen",
+            }}
+          />
+        </>
+      )}
+      {/* FAST: streak lights + screen shake + flash */}
+      {fast && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          animate={{ x: [0, -3, 4, -2, 2, 0], y: [0, 2, -3, 1, 0] }}
+          transition={{ duration: 0.18, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                "repeating-linear-gradient(90deg, transparent 0 6px, hsl(0 0% 100% / 0.18) 6px 7px), repeating-linear-gradient(90deg, transparent 0 22px, hsl(50 100% 70% / 0.14) 22px 24px)",
+              filter: "blur(1px)",
+              mixBlendMode: "screen",
+            }}
+          />
+          <motion.div
+            key={flashKey}
+            className="absolute inset-0 bg-white"
+            initial={{ opacity: 0.45 }}
+            animate={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+          />
+        </motion.div>
+      )}
+    </>
   );
 }
