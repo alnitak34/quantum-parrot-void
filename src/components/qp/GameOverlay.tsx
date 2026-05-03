@@ -1063,3 +1063,70 @@ function ResultRow({
     </div>
   );
 }
+
+function SpikeFX({ spike, chaos }: { spike: number; chaos: number }) {
+  const [active, setActive] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [shake, setShake] = useState(false);
+  const [flash, setFlash] = useState(false);
+
+  useEffect(() => {
+    if (spike === 0) return;
+    setActive(true);
+    setShake(true);
+    setFlash(true);
+    // sudden zoom in or out
+    const dir = Math.random() < 0.5 ? 1.08 + Math.random() * 0.06 : 0.92 - Math.random() * 0.05;
+    setZoom(dir);
+    const t1 = setTimeout(() => setFlash(false), 120);
+    const t2 = setTimeout(() => setZoom(1), 280);
+    const t3 = setTimeout(() => setShake(false), 500);
+    const t4 = setTimeout(() => setActive(false), 600);
+    return () => { [t1, t2, t3, t4].forEach(clearTimeout); };
+  }, [spike]);
+
+  return (
+    <>
+      {/* zoom + subtle shake on the whole layer */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        animate={shake
+          ? { x: [0, -8, 9, -6, 5, 0], y: [0, 6, -5, 4, -3, 0], scale: zoom }
+          : { x: 0, y: 0, scale: zoom }}
+        transition={{ duration: shake ? 0.45 : 0.3, ease: "easeOut" }}
+        style={{ transformOrigin: "center" }}
+      />
+      {/* glitch flash */}
+      {flash && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `repeating-linear-gradient(${Math.random() * 360}deg, hsl(0 0% 100% / 0.18) 0 3px, transparent 3px 7px), hsl(0 90% 50% / 0.12)`,
+            mixBlendMode: "screen",
+          }}
+        />
+      )}
+      {/* white flash blip */}
+      {active && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-white"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.35, 0] }}
+          transition={{ duration: 0.18 }}
+        />
+      )}
+      {/* persistent low-amp shake when chaos > 7 */}
+      {chaos > 7 && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          animate={{ x: [0, -2, 2, -1, 1, 0], y: [0, 1, -1, 2, -2, 0] }}
+          transition={{ duration: 0.4, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+    </>
+  );
+}
