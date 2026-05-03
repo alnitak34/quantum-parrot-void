@@ -61,7 +61,11 @@ export default function GameOverlay() {
 
     // tick survival timer (10/s for smoother progression)
     const tick = setInterval(() => {
-      setTime((t) => +(t + 0.1).toFixed(1));
+      setTime((t) => {
+        const next = +(t + 0.1).toFixed(1);
+        setPoints(Math.floor(next * 10));
+        return next;
+      });
       // chaos rises slowly with time, capped 10
       setChaos((c) => Math.min(10, +(c + 0.04).toFixed(2)));
     }, 100);
@@ -97,9 +101,8 @@ export default function GameOverlay() {
     const ev = pick(EVENTS);
     lastEventRef.current = ev;
 
-    // points scale lightly with chaos
-    const delta = Math.round(ev.points * (0.8 + chaos * 0.08));
-    setPoints((p) => p + delta);
+    // signal is now driven purely by survival time; events only escalate chaos
+    const delta = 0;
     setChaos((c) => Math.min(10, +(c + 0.25).toFixed(2)));
 
     // push to live feed
@@ -126,12 +129,14 @@ export default function GameOverlay() {
   };
 
   const die = (ev: EventDef) => {
+    const finalSignal = Math.floor(time * 10);
     const finalResult: GameResult = {
       survived: time,
-      signal: points,
+      signal: finalSignal,
       cause: ev.label,
       user: nickRef.current,
     };
+    setPoints(finalSignal);
     setResult(finalResult);
 
     // push death into feed + top signals
@@ -139,9 +144,9 @@ export default function GameOverlay() {
       time: stamp(),
       user: nickRef.current,
       action: `died — ${ev.label.toLowerCase()}`,
-      points: points,
+      points: finalSignal,
     });
-    emit("top:push", { user: nickRef.current, score: points });
+    emit("top:push", { user: nickRef.current, score: finalSignal });
     emit("game:end", finalResult);
   };
 
