@@ -211,14 +211,14 @@ export default function GameOverlay() {
       setTime((t) => {
         const next = +(t + 0.1).toFixed(1);
         setPoints(Math.floor(next * mult));
+        // chaos rises faster + accelerates over time
+        setChaos((c) => Math.min(10, +(c + 0.06 + next * 0.0015).toFixed(2)));
         return next;
       });
-      // chaos rises faster + accelerates over time
-      setChaos((c) => Math.min(10, +(c + 0.06 + time * 0.0015).toFixed(2)));
     }, 100);
 
     return () => clearInterval(tick);
-  }, [open, result, phase, dimension, time]);
+  }, [open, result, phase, dimension]);
 
   // threat spike scheduler — random screen shocks
   useEffect(() => {
