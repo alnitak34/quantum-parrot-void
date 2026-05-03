@@ -771,6 +771,7 @@ interface Anomaly {
   y: number; // 0..1
   born: number;
   ttl: number; // ms
+  speed?: number;
   stabilized?: boolean;
 }
 
