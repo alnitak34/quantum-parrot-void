@@ -129,12 +129,14 @@ export default function GameOverlay() {
   };
 
   const die = (ev: EventDef) => {
+    const finalSignal = Math.floor(time * 10);
     const finalResult: GameResult = {
       survived: time,
-      signal: points,
+      signal: finalSignal,
       cause: ev.label,
       user: nickRef.current,
     };
+    setPoints(finalSignal);
     setResult(finalResult);
 
     // push death into feed + top signals
