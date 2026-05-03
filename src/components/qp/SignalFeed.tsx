@@ -8,7 +8,11 @@ interface Signal {
   user: string;
   action: string;
   points: number;
+  pinned?: boolean;
+  pinnedUntil?: number;
 }
+
+const PIN_MS = 20000;
 
 const POOL: Omit<Signal, "time">[] = [
   { user: "@voidbagger69", action: "got spaghettified", points: 420 },
