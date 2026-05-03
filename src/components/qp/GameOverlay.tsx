@@ -388,13 +388,36 @@ export default function GameOverlay() {
               </div>
 
               <div className="mt-6 grid grid-cols-3 gap-4 font-mono-x text-center">
-                <Stat label="TIME" value={`${time.toFixed(1)}s`} />
+                <Stat label="TIME" value={`${time.toFixed(1)}s`} accent={theme.glow} />
                 <Stat
                   label="SIGNAL"
                   value={points.toLocaleString()}
                   highlight
+                  accent={theme.glow}
                 />
-                <Stat label="CHAOS" value={chaos.toFixed(1)} />
+                <Stat label="CHAOS" value={chaos.toFixed(1)} accent={theme.glow} />
+              </div>
+
+              {/* themed center pulse */}
+              <div className="relative mt-5 flex items-center justify-center">
+                <motion.div
+                  aria-hidden
+                  className="rounded-full"
+                  animate={
+                    isSpag
+                      ? { scaleX: [1, 2.4, 0.6, 2.0, 1], scaleY: [1, 0.4, 1.6, 0.5, 1], opacity: [0.7, 1, 0.8, 1, 0.7] }
+                      : isTime
+                        ? { scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }
+                        : { scale: [1, 1.1, 1], opacity: [0.4, 0.8, 0.4] }
+                  }
+                  transition={{ duration: theme.pulseDuration, repeat: Infinity, ease: "easeInOut" }}
+                  style={{
+                    width: 64,
+                    height: 64,
+                    background: `radial-gradient(circle, hsl(${theme.glow} / 0.9) 0%, hsl(${theme.glow} / 0.2) 60%, transparent 80%)`,
+                    boxShadow: `0 0 50px hsl(${theme.glow} / 0.85), 0 0 120px hsl(${theme.glow} / 0.45)`,
+                  }}
+                />
               </div>
 
               {/* chaos bar */}
@@ -405,9 +428,8 @@ export default function GameOverlay() {
                     transition={{ duration: 0.3 }}
                     className="h-full"
                     style={{
-                      background:
-                        "linear-gradient(90deg, hsl(var(--secondary)) 0%, hsl(var(--primary)) 100%)",
-                      boxShadow: "0 0 14px hsl(var(--primary) / 0.7)",
+                      background: `linear-gradient(90deg, hsl(${theme.glow} / 0.6) 0%, hsl(${theme.glow}) 100%)`,
+                      boxShadow: `0 0 14px hsl(${theme.glow} / 0.85)`,
                     }}
                   />
                 </div>
