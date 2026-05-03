@@ -59,7 +59,7 @@ const THEMES: Record<string, Theme> = {
   "TIME DILATION": {
     glow: "var(--time)",
     bgGradient:
-      "radial-gradient(ellipse at center, hsl(var(--time) / 0.45) 0%, hsl(38 95% 25% / 0.7) 35%, hsl(var(--void-deep) / 0.98) 80%)",
+      "radial-gradient(ellipse at center, hsl(38 100% 55% / 0.85) 0%, hsl(30 100% 35% / 0.95) 40%, hsl(25 95% 12%) 85%)",
     pulseDuration: 4.5,
     deathLine: "Your bags are gone.",
     accentText: "text-time",
@@ -67,7 +67,7 @@ const THEMES: Record<string, Theme> = {
   "DARK MATTER": {
     glow: "0 0% 95%",
     bgGradient:
-      "radial-gradient(ellipse at center, hsl(0 0% 12% / 0.6) 0%, hsl(0 0% 0% / 0.99) 70%)",
+      "radial-gradient(ellipse at center, hsl(0 0% 6%) 0%, hsl(0 0% 0%) 70%)",
     pulseDuration: 2.4,
     deathLine: "Like your exit liquidity.",
     accentText: "text-foreground",
@@ -75,7 +75,7 @@ const THEMES: Record<string, Theme> = {
   "SPAGHETTIFICATION": {
     glow: "var(--spaghetti)",
     bgGradient:
-      "radial-gradient(ellipse at center, hsl(var(--spaghetti) / 0.55) 0%, hsl(15 95% 35% / 0.65) 35%, hsl(var(--void-deep) / 0.98) 80%)",
+      "radial-gradient(ellipse at center, hsl(0 100% 55% / 0.9) 0%, hsl(10 100% 35% / 0.95) 40%, hsl(0 90% 10%) 85%)",
     pulseDuration: 1.2,
     deathLine: "This is fine.",
     accentText: "text-spaghetti",
