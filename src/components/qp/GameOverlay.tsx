@@ -241,23 +241,57 @@ export default function GameOverlay() {
   if (!open) return null;
 
   const chaosPct = Math.min(100, (chaos / 10) * 100);
+  const theme = THEMES[dimension] ?? DEFAULT_THEME;
+  const isSpag = dimension === "SPAGHETTIFICATION";
+  const isDark = dimension === "DARK MATTER";
+  const isTime = dimension === "TIME DILATION";
+  const themed = phase === "playing" || !!result;
 
   return (
     <AnimatePresence>
       <motion.div
         key="overlay"
         initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        animate={
+          isSpag && themed
+            ? { opacity: 1, x: [0, -4, 5, -3, 4, 0], y: [0, 3, -4, 2, -2, 0] }
+            : { opacity: 1 }
+        }
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={
+          isSpag && themed
+            ? { x: { duration: 0.25, repeat: Infinity }, y: { duration: 0.3, repeat: Infinity }, opacity: { duration: 0.25 } }
+            : { duration: 0.25 }
+        }
         className="fixed inset-0 z-[100] flex items-center justify-center p-4"
         style={{
-          background:
-            "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
+          background: themed ? theme.bgGradient : "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
           backdropFilter: "blur(8px)",
           WebkitBackdropFilter: "blur(8px)",
         }}
       >
+        {isDark && themed && (
+          <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+            {[
+              { top: "18%", left: "12%", d: 3.2 },
+              { top: "70%", left: "82%", d: 2.6 },
+              { top: "40%", left: "88%", d: 4.1 },
+              { top: "82%", left: "20%", d: 3.5 },
+              { top: "14%", left: "72%", d: 2.9 },
+            ].map((e, i) => (
+              <motion.div
+                key={i}
+                className="absolute flex gap-2"
+                style={{ top: e.top, left: e.left }}
+                animate={{ opacity: [0.1, 0.85, 0.1] }}
+                transition={{ duration: e.d, repeat: Infinity, delay: i * 0.3 }}
+              >
+                <span className="block h-2 w-3 rounded-full bg-white/80 shadow-[0_0_12px_rgba(255,255,255,0.7)]" />
+                <span className="block h-2 w-3 rounded-full bg-white/80 shadow-[0_0_12px_rgba(255,255,255,0.7)]" />
+              </motion.div>
+            ))}
+          </div>
+        )}
         {/* glitch chaos overlay - intensifies */}
         <div
           aria-hidden
