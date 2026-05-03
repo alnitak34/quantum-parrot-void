@@ -101,8 +101,69 @@ export default function GameOverlay() {
   const [chaos, setChaos] = useState(1);
   const [flashes, setFlashes] = useState<FlashMsg[]>([]);
   const [result, setResult] = useState<GameResult | null>(null);
+  const [spike, setSpike] = useState(0); // increments to trigger threat spikes
   const nickRef = useRef<string>("");
   const lastEventRef = useRef<EventDef | null>(null);
+  const audioRef = useRef<{ ctx: AudioContext; hum: GainNode; humOsc: OscillatorNode } | null>(null);
+
+  // Audio engine: ambient hum + sfx
+  useEffect(() => {
+    if (!open || phase !== "playing" || result) return;
+    let ctx: AudioContext | null = null;
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      ctx = new AC();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.value = 55;
+      gain.gain.value = 0.04;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      audioRef.current = { ctx, hum: gain, humOsc: osc };
+    } catch { /* ignore */ }
+    return () => {
+      try { audioRef.current?.humOsc.stop(); } catch { /* ignore */ }
+      try { ctx?.close(); } catch { /* ignore */ }
+      audioRef.current = null;
+    };
+  }, [open, phase, result]);
+
+  // ramp hum with chaos
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      a.hum.gain.setTargetAtTime(0.03 + (chaos / 10) * 0.09, a.ctx.currentTime, 0.4);
+      a.humOsc.frequency.setTargetAtTime(50 + chaos * 6, a.ctx.currentTime, 0.4);
+    } catch { /* ignore */ }
+  }, [chaos]);
+
+  const playBlip = (kind: "glitch" | "distort") => {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      const o = a.ctx.createOscillator();
+      const g = a.ctx.createGain();
+      o.type = kind === "distort" ? "square" : "triangle";
+      const now = a.ctx.currentTime;
+      if (kind === "glitch") {
+        o.frequency.setValueAtTime(900 + Math.random() * 600, now);
+        o.frequency.exponentialRampToValueAtTime(120, now + 0.18);
+        g.gain.setValueAtTime(0.18, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        o.connect(g).connect(a.ctx.destination);
+        o.start(now); o.stop(now + 0.22);
+      } else {
+        o.frequency.setValueAtTime(180, now);
+        o.frequency.linearRampToValueAtTime(40, now + 0.5);
+        g.gain.setValueAtTime(0.25, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        o.connect(g).connect(a.ctx.destination);
+        o.start(now); o.stop(now + 0.6);
+      }
+    } catch { /* ignore */ }
+  };
 
   // open game on signal
   useEffect(() => {
@@ -150,14 +211,34 @@ export default function GameOverlay() {
       setTime((t) => {
         const next = +(t + 0.1).toFixed(1);
         setPoints(Math.floor(next * mult));
+        // chaos rises faster + accelerates over time
+        setChaos((c) => Math.min(10, +(c + 0.06 + next * 0.0015).toFixed(2)));
         return next;
       });
-      // chaos rises slowly with time, capped 10
-      setChaos((c) => Math.min(10, +(c + 0.04).toFixed(2)));
     }, 100);
 
     return () => clearInterval(tick);
   }, [open, result, phase, dimension]);
+
+  // threat spike scheduler — random screen shocks
+  useEffect(() => {
+    if (!open || result || phase !== "playing") return;
+    let cancelled = false;
+    const next = () => {
+      if (cancelled) return;
+      const delay = 3500 + Math.random() * 5500;
+      setTimeout(() => {
+        if (cancelled) return;
+        setSpike((s) => s + 1);
+        playBlip("glitch");
+        // small chaos kick on spike
+        setChaos((c) => Math.min(10, +(c + 0.4).toFixed(2)));
+        next();
+      }, delay);
+    };
+    next();
+    return () => { cancelled = true; };
+  }, [open, result, phase]);
 
   // event scheduler - interval depends on chaos
   useEffect(() => {
@@ -276,7 +357,7 @@ export default function GameOverlay() {
             ? { x: { duration: 0.18, repeat: Infinity }, y: { duration: 0.22, repeat: Infinity }, rotate: { duration: 0.3, repeat: Infinity }, opacity: { duration: 0.25 } }
             : { duration: 0.25 }
         }
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden"
         style={{
           background: themed ? theme.bgGradient : "radial-gradient(ellipse at center, hsl(var(--void-deep) / 0.85) 0%, hsl(var(--void-deep) / 0.97) 70%)",
           backdropFilter: "blur(8px)",
@@ -284,6 +365,34 @@ export default function GameOverlay() {
           transition: "background 400ms ease",
         }}
       >
+        {/* Threat-spike layer: zoom + shake + glitch flash */}
+        {themed && phase === "playing" && !result && (
+          <SpikeFX spike={spike} chaos={chaos} />
+        )}
+        {/* Red edge danger vignette (intensifies with chaos) */}
+        {themed && phase === "playing" && !result && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            style={{
+              boxShadow: `inset 0 0 ${80 + chaos * 30}px ${10 + chaos * 6}px hsl(0 90% 50% / ${Math.max(0, (chaos - 4) * 0.07).toFixed(2)})`,
+              transition: "box-shadow 600ms ease",
+            }}
+          />
+        )}
+        {/* Heartbeat pulse synced with chaos */}
+        {themed && phase === "playing" && !result && (
+          <motion.div
+            aria-hidden
+            className="pointer-events-none absolute inset-0"
+            animate={{ opacity: [0, 0.25, 0, 0.18, 0] }}
+            transition={{ duration: Math.max(0.5, 1.6 - chaos * 0.12), repeat: Infinity, ease: "easeOut" }}
+            style={{
+              background: `radial-gradient(ellipse at center, transparent 55%, hsl(0 90% 45% / ${Math.min(0.55, 0.1 + chaos * 0.05)}) 100%)`,
+              mixBlendMode: "screen",
+            }}
+          />
+        )}
         {/* Full-screen color wash for instant dimension feel */}
         {themed && (
           <motion.div
@@ -608,8 +717,9 @@ export default function GameOverlay() {
         {themed && phase === "playing" && !result && (
           <AnomalyField
             glow={theme.glow}
-            onStabilize={() => setChaos((c) => Math.max(1, +(c - 0.4).toFixed(2)))}
-            onIgnored={() => setChaos((c) => Math.min(10, +(c + 0.35).toFixed(2)))}
+            chaos={chaos}
+            onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); }}
+            onIgnored={() => { playBlip("distort"); setChaos((c) => Math.min(10, +(c + 0.55).toFixed(2))); }}
           />
         )}
       </motion.div>
@@ -628,31 +738,41 @@ interface Anomaly {
 
 function AnomalyField({
   glow,
+  chaos,
   onStabilize,
   onIgnored,
 }: {
   glow: string;
+  chaos: number;
   onStabilize: () => void;
   onIgnored: () => void;
 }) {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const idRef = useRef(1);
+  const chaosRef = useRef(chaos);
+  useEffect(() => { chaosRef.current = chaos; }, [chaos]);
 
-  // spawn loop
+  // spawn loop — bias near the player (center) and faster as chaos rises
   useEffect(() => {
     let cancelled = false;
     const spawn = () => {
       if (cancelled) return;
-      const ttl = 2200 + Math.random() * 1600;
+      const c = chaosRef.current;
+      // sometimes spawn very close to force reaction
+      const closeBias = Math.random() < 0.45;
+      const radius = closeBias ? 0.06 + Math.random() * 0.1 : 0.18 + Math.random() * 0.32;
+      const angle = Math.random() * Math.PI * 2;
+      const x = Math.min(0.92, Math.max(0.08, 0.5 + Math.cos(angle) * radius));
+      const y = Math.min(0.88, Math.max(0.18, 0.62 + Math.sin(angle) * radius));
+      const ttl = Math.max(900, 2200 + Math.random() * 1400 - c * 140);
       const a: Anomaly = {
         id: idRef.current++,
-        x: 0.15 + Math.random() * 0.7,
-        y: 0.18 + Math.random() * 0.64,
+        x, y,
         born: performance.now(),
         ttl,
       };
       setAnomalies((prev) => [...prev, a]);
-      const delay = 1400 + Math.random() * 1800;
+      const delay = Math.max(350, 1300 + Math.random() * 1500 - c * 130);
       setTimeout(spawn, delay);
     };
     const t = setTimeout(spawn, 700);
@@ -941,5 +1061,72 @@ function ResultRow({
         {value}
       </div>
     </div>
+  );
+}
+
+function SpikeFX({ spike, chaos }: { spike: number; chaos: number }) {
+  const [active, setActive] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [shake, setShake] = useState(false);
+  const [flash, setFlash] = useState(false);
+
+  useEffect(() => {
+    if (spike === 0) return;
+    setActive(true);
+    setShake(true);
+    setFlash(true);
+    // sudden zoom in or out
+    const dir = Math.random() < 0.5 ? 1.08 + Math.random() * 0.06 : 0.92 - Math.random() * 0.05;
+    setZoom(dir);
+    const t1 = setTimeout(() => setFlash(false), 120);
+    const t2 = setTimeout(() => setZoom(1), 280);
+    const t3 = setTimeout(() => setShake(false), 500);
+    const t4 = setTimeout(() => setActive(false), 600);
+    return () => { [t1, t2, t3, t4].forEach(clearTimeout); };
+  }, [spike]);
+
+  return (
+    <>
+      {/* zoom + subtle shake on the whole layer */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        animate={shake
+          ? { x: [0, -8, 9, -6, 5, 0], y: [0, 6, -5, 4, -3, 0], scale: zoom }
+          : { x: 0, y: 0, scale: zoom }}
+        transition={{ duration: shake ? 0.45 : 0.3, ease: "easeOut" }}
+        style={{ transformOrigin: "center" }}
+      />
+      {/* glitch flash */}
+      {flash && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background: `repeating-linear-gradient(${Math.random() * 360}deg, hsl(0 0% 100% / 0.18) 0 3px, transparent 3px 7px), hsl(0 90% 50% / 0.12)`,
+            mixBlendMode: "screen",
+          }}
+        />
+      )}
+      {/* white flash blip */}
+      {active && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-white"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.35, 0] }}
+          transition={{ duration: 0.18 }}
+        />
+      )}
+      {/* persistent low-amp shake when chaos > 7 */}
+      {chaos > 7 && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          animate={{ x: [0, -2, 2, -1, 1, 0], y: [0, 1, -1, 2, -2, 0] }}
+          transition={{ duration: 0.4, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+    </>
   );
 }
