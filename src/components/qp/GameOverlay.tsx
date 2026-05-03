@@ -1514,3 +1514,232 @@ function CentralSphere({
 
 function tsClamp(t: number) { return Math.max(0.3, Math.min(2.5, t)); }
 
+function DarkMatterField({
+  glow,
+  chaos,
+  onSignalTick,
+  onCollapse,
+  onProximity,
+}: {
+  glow: string;
+  chaos: number;
+  onSignalTick: (gain: number) => void;
+  onCollapse: () => void;
+  onProximity: (p: number) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ x: 0.5, y: 0.5 });
+  const posRef = useRef(pos);
+  const dragRef = useRef(false);
+  const targetRef = useRef<{ x: number; y: number } | null>(null);
+  const [proximity, setProximity] = useState(0); // 0..1, 1 = at center
+  const audioRef = useRef<{ ctx: AudioContext; osc: OscillatorNode; gain: GainNode } | null>(null);
+
+  useEffect(() => { posRef.current = pos; }, [pos]);
+
+  // low-frequency rumble that intensifies near center
+  useEffect(() => {
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new AC();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 38;
+      gain.gain.value = 0;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      audioRef.current = { ctx, osc, gain };
+    } catch { /* ignore */ }
+    return () => {
+      try { audioRef.current?.osc.stop(); } catch { /* ignore */ }
+      try { audioRef.current?.ctx.close(); } catch { /* ignore */ }
+      audioRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      a.gain.gain.setTargetAtTime(proximity * 0.18, a.ctx.currentTime, 0.15);
+      a.osc.frequency.setTargetAtTime(28 + proximity * 28, a.ctx.currentTime, 0.2);
+    } catch { /* ignore */ }
+  }, [proximity]);
+
+  // physics + signal loop
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    let signalAccum = 0;
+    const step = () => {
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+
+      const p = { ...posRef.current };
+      const cx = 0.5, cy = 0.5;
+      const dx = cx - p.x;
+      const dy = cy - p.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      // gravity pull (stronger near center, scaled by chaos)
+      const pullStrength = (0.4 + chaos * 0.08) * dt / Math.max(0.04, dist);
+      const ax = dx * pullStrength;
+      const ay = dy * pullStrength;
+
+      // drag toward pointer target
+      if (dragRef.current && targetRef.current) {
+        const t = targetRef.current;
+        p.x += (t.x - p.x) * Math.min(1, dt * 9);
+        p.y += (t.y - p.y) * Math.min(1, dt * 9);
+      }
+
+      p.x += ax;
+      p.y += ay;
+      p.x = Math.max(0.02, Math.min(0.98, p.x));
+      p.y = Math.max(0.02, Math.min(0.98, p.y));
+
+      const newDist = Math.sqrt((cx - p.x) ** 2 + (cy - p.y) ** 2);
+      const prox = Math.max(0, Math.min(1, 1 - newDist / 0.5));
+      setProximity(prox);
+      onProximity(prox);
+
+      // signal gain ~ proximity
+      signalAccum += prox * prox * 30 * dt;
+      if (signalAccum >= 1) {
+        const gain = Math.floor(signalAccum);
+        signalAccum -= gain;
+        onSignalTick(gain);
+      }
+
+      // collapse if too close
+      if (newDist < 0.045) {
+        onCollapse();
+        return;
+      }
+
+      posRef.current = p;
+      setPos(p);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [chaos, onSignalTick, onCollapse, onProximity]);
+
+  const toLocal = (clientX: number, clientY: number) => {
+    const el = containerRef.current;
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: (clientX - r.left) / r.width, y: (clientY - r.top) / r.height };
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragRef.current = true;
+    const t = toLocal(e.clientX, e.clientY);
+    if (t) targetRef.current = t;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const t = toLocal(e.clientX, e.clientY);
+    if (t) targetRef.current = t;
+  };
+  const onPointerUp = () => { dragRef.current = false; targetRef.current = null; };
+
+  // particles bending toward center
+  const particles = Array.from({ length: 28 }, (_, i) => i);
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 z-[5]"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{ touchAction: "none", cursor: dragRef.current ? "grabbing" : "grab" }}
+    >
+      {/* lens distortion ring */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          left: "50%", top: "50%",
+          width: `${30 + proximity * 50}vmin`,
+          height: `${30 + proximity * 50}vmin`,
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          background: `radial-gradient(circle, hsl(0 0% 0%) 0%, hsl(0 0% 0% / 0.85) 18%, transparent 55%)`,
+          boxShadow: `inset 0 0 ${60 + proximity * 120}px hsl(${glow} / ${0.2 + proximity * 0.5}), 0 0 ${40 + proximity * 80}px hsl(${glow} / ${0.15 + proximity * 0.4})`,
+          filter: `blur(${1 + proximity * 3}px)`,
+        }}
+      />
+      {/* screen stretch when pulled */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        animate={{ scaleX: 1 + proximity * 0.08, scaleY: 1 - proximity * 0.05 }}
+        transition={{ duration: 0.25 }}
+        style={{
+          background: `radial-gradient(ellipse at 50% 50%, transparent 30%, hsl(0 0% 0% / ${proximity * 0.45}) 75%)`,
+          mixBlendMode: "multiply",
+        }}
+      />
+      {/* particles bending toward center */}
+      {particles.map((i) => {
+        const angle = (i / particles.length) * Math.PI * 2;
+        const r = 0.18 + ((i * 37) % 100) / 380;
+        const px = 0.5 + Math.cos(angle) * r;
+        const py = 0.5 + Math.sin(angle) * r;
+        const dx = 0.5 - px;
+        const dy = 0.5 - py;
+        return (
+          <motion.span
+            key={i}
+            aria-hidden
+            className="pointer-events-none absolute block rounded-full"
+            style={{
+              left: `${px * 100}%`,
+              top: `${py * 100}%`,
+              width: 3,
+              height: 3,
+              background: `hsl(${glow} / 0.85)`,
+              boxShadow: `0 0 6px hsl(${glow} / 0.9)`,
+            }}
+            animate={{ x: [0, dx * 220, 0], y: [0, dy * 220, 0], opacity: [0.2, 0.9, 0.2] }}
+            transition={{ duration: 3 + (i % 5) * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.08 }}
+          />
+        );
+      })}
+      {/* player orb */}
+      <motion.div
+        aria-hidden
+        className="absolute rounded-full"
+        animate={{ scale: dragRef.current ? 1.1 : 1 }}
+        style={{
+          left: `${pos.x * 100}%`,
+          top: `${pos.y * 100}%`,
+          width: 22,
+          height: 22,
+          transform: "translate(-50%, -50%)",
+          background: `radial-gradient(circle, hsl(${glow}) 0%, hsl(${glow} / 0.4) 70%, transparent 100%)`,
+          boxShadow: `0 0 18px hsl(${glow} / 0.95), 0 0 40px hsl(${glow} / 0.55)`,
+          border: `1px solid hsl(${glow} / 0.7)`,
+        }}
+      />
+      {/* danger flash near collapse */}
+      {proximity > 0.78 && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-red-600"
+          animate={{ opacity: [0, 0.18, 0] }}
+          transition={{ duration: 0.4, repeat: Infinity }}
+          style={{ mixBlendMode: "screen" }}
+        />
+      )}
+    </div>
+  );
+}
+
+
