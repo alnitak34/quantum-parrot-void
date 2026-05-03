@@ -144,9 +144,9 @@ export default function GameOverlay() {
       time: stamp(),
       user: nickRef.current,
       action: `died — ${ev.label.toLowerCase()}`,
-      points: points,
+      points: finalSignal,
     });
-    emit("top:push", { user: nickRef.current, score: points });
+    emit("top:push", { user: nickRef.current, score: finalSignal });
     emit("game:end", finalResult);
   };
 
