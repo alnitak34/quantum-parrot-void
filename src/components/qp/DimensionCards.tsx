@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import clock from "@/assets/icon-clock.png";
 import darkmatter from "@/assets/icon-darkmatter.png";
 import spaghetti from "@/assets/icon-spaghetti.png";
+import { emit } from "./gameStore";
 
 interface Dim {
   n: number;
