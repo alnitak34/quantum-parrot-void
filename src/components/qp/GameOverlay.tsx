@@ -105,7 +105,7 @@ export default function GameOverlay() {
 
   // open game on signal
   useEffect(() => {
-    const off = on("game:start", () => {
+    const init = (preDim?: string) => {
       const saved = typeof window !== "undefined" ? localStorage.getItem("playerHandle") : null;
       const trimmed = saved?.trim();
       nickRef.current = trimmed
@@ -117,11 +117,19 @@ export default function GameOverlay() {
       setFlashes([]);
       setResult(null);
       lastEventRef.current = null;
-      setPhase("select");
-      setDimension("");
+      if (preDim) {
+        setDimension(preDim);
+        try { localStorage.setItem("selectedDimension", preDim); } catch { /* ignore */ }
+        setPhase("playing");
+      } else {
+        setPhase("select");
+        setDimension("");
+      }
       setOpen(true);
-    });
-    return off;
+    };
+    const off1 = on("game:start", () => init());
+    const off2 = on("game:startDimension", (d) => init(d));
+    return () => { off1(); off2(); };
   }, []);
 
   const selectDimension = (label: string) => {
