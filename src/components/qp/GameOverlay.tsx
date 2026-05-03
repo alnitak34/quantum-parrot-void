@@ -1848,3 +1848,323 @@ function DarkMatterField({
 }
 
 
+
+function SpaghettiField({
+  glow,
+  chaos,
+  onSignalTick,
+  onCollapse,
+  onStretch,
+}: {
+  glow: string;
+  chaos: number;
+  onSignalTick: (gain: number) => void;
+  onCollapse: () => void;
+  onStretch: (s: number) => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const startedAtRef = useRef(performance.now());
+  // head = what user drags toward; body trails behind with delay
+  const [head, setHead] = useState({ x: 0.2, y: 0.25 });
+  const [tail, setTail] = useState({ x: 0.2, y: 0.25 });
+  const headRef = useRef(head);
+  const tailRef = useRef(tail);
+  const dragRef = useRef(false);
+  const targetRef = useRef<{ x: number; y: number } | null>(null);
+  const [stretch, setStretch] = useState(0); // 0..1
+  const [proximity, setProximity] = useState(0);
+  const audioRef = useRef<{ ctx: AudioContext; osc: OscillatorNode; gain: GainNode } | null>(null);
+
+  useEffect(() => { headRef.current = head; }, [head]);
+  useEffect(() => { tailRef.current = tail; }, [tail]);
+
+  // bass drone increasing with stretch
+  useEffect(() => {
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new AC();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.value = 42;
+      gain.gain.value = 0;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      audioRef.current = { ctx, osc, gain };
+    } catch { /* ignore */ }
+    return () => {
+      try { audioRef.current?.osc.stop(); } catch { /* ignore */ }
+      try { audioRef.current?.ctx.close(); } catch { /* ignore */ }
+      audioRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      a.gain.gain.setTargetAtTime(stretch * 0.18, a.ctx.currentTime, 0.15);
+      a.osc.frequency.setTargetAtTime(34 + stretch * 50, a.ctx.currentTime, 0.2);
+    } catch { /* ignore */ }
+  }, [stretch]);
+
+  useEffect(() => {
+    let raf = 0;
+    let last = performance.now();
+    let signalAccum = 0;
+    const step = () => {
+      const now = performance.now();
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const t = (now - startedAtRef.current) / 1000;
+      const diff = Math.min(1, t / 30); // deformation grows over time
+
+      const h = { ...headRef.current };
+      const tl = { ...tailRef.current };
+      const cx = 0.5, cy = 0.5;
+
+      // distance of head to center
+      const dxh = cx - h.x, dyh = cy - h.y;
+      const distH = Math.sqrt(dxh * dxh + dyh * dyh);
+
+      // gravity pull on head (inverse square-ish, gated by 3s grace)
+      const pullMult = t < 3 ? 0 : t < 8 ? 0.4 : 1;
+      const pull = (0.12 + chaos * 0.04 + diff * 0.18) * pullMult * dt / Math.max(0.05, distH * distH);
+      h.x += dxh * pull;
+      h.y += dyh * pull;
+
+      // input degradation: jitter near center, lag scales with proximity
+      const prox = Math.max(0, Math.min(1, 1 - distH / 0.5));
+      const inputLag = Math.max(0.05, 1 - prox * 0.85); // lower = sluggish
+      const jitter = prox * 0.004 * (Math.random() - 0.5);
+      if (dragRef.current && targetRef.current) {
+        const tg = targetRef.current;
+        // imprecise drag: ease factor reduced near center, plus jitter
+        const ease = Math.min(1, dt * 6 * inputLag);
+        h.x += (tg.x - h.x) * ease + jitter;
+        h.y += (tg.y - h.y) * ease + jitter;
+      }
+      h.x = Math.max(0.02, Math.min(0.98, h.x));
+      h.y = Math.max(0.02, Math.min(0.98, h.y));
+
+      // tail trails head with delay (delay grows near center)
+      const tailEase = Math.min(1, dt * (3.5 - prox * 2.5));
+      tl.x += (h.x - tl.x) * tailEase;
+      tl.y += (h.y - tl.y) * tailEase;
+
+      // stretch metric: distance between head and tail, amplified by proximity & time
+      const sepDx = h.x - tl.x;
+      const sepDy = h.y - tl.y;
+      const sep = Math.sqrt(sepDx * sepDx + sepDy * sepDy);
+      const s = Math.min(1, (sep * (3 + diff * 4)) + prox * 0.4);
+      setStretch(s);
+      onStretch(s);
+      setProximity(prox);
+
+      // signal accrual scales with risk (proximity)
+      const signalMult = t < 3 ? 0.3 : t < 8 ? 0.7 : 1;
+      signalAccum += prox * prox * 26 * signalMult * dt;
+      if (signalAccum >= 1) {
+        const gain = Math.floor(signalAccum);
+        signalAccum -= gain;
+        onSignalTick(gain);
+      }
+
+      // death: over-stretch OR entering core after grace
+      if (t > 5 && (s > 0.96 || distH < 0.025)) {
+        onCollapse();
+        return;
+      }
+
+      headRef.current = h;
+      tailRef.current = tl;
+      setHead(h);
+      setTail(tl);
+      raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [chaos, onSignalTick, onCollapse, onStretch]);
+
+  const toLocal = (clientX: number, clientY: number) => {
+    const el = containerRef.current;
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: (clientX - r.left) / r.width, y: (clientY - r.top) / r.height };
+  };
+  const onPointerDown = (e: React.PointerEvent) => {
+    dragRef.current = true;
+    const t = toLocal(e.clientX, e.clientY);
+    if (t) targetRef.current = t;
+    (e.target as Element).setPointerCapture?.(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    const t = toLocal(e.clientX, e.clientY);
+    if (t) targetRef.current = t;
+  };
+  const onPointerUp = () => { dragRef.current = false; targetRef.current = null; };
+
+  // body angle and length for stretched player
+  const dxBody = head.x - tail.x;
+  const dyBody = head.y - tail.y;
+  const angleDeg = (Math.atan2(dyBody, dxBody) * 180) / Math.PI;
+  const lenPct = Math.sqrt(dxBody * dxBody + dyBody * dyBody) * 100;
+  const midX = (head.x + tail.x) / 2;
+  const midY = (head.y + tail.y) / 2;
+
+  // stretched particles around center
+  const particles = Array.from({ length: 36 }, (_, i) => i);
+
+  return (
+    <div
+      ref={containerRef}
+      className="absolute inset-0 z-[5]"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{ touchAction: "none", cursor: dragRef.current ? "grabbing" : "grab" }}
+    >
+      {/* central gravity point - distortion well */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute"
+        animate={{ scale: [1, 1.06, 1], rotate: [0, 8, -6, 0] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        style={{
+          left: "50%", top: "50%",
+          width: `${28 + proximity * 30}vmin`,
+          height: `${28 + proximity * 30}vmin`,
+          transform: "translate(-50%, -50%)",
+          borderRadius: "50%",
+          background: `radial-gradient(circle, hsl(0 0% 0%) 0%, hsl(0 0% 0% / 0.7) 18%, hsl(${glow} / ${0.18 + proximity * 0.4}) 45%, transparent 75%)`,
+          boxShadow: `inset 0 0 ${60 + proximity * 120}px hsl(${glow} / ${0.3 + proximity * 0.5}), 0 0 ${50 + proximity * 100}px hsl(${glow} / 0.4)`,
+          filter: `blur(${3 + proximity * 5}px)`,
+        }}
+      />
+
+      {/* radial swirl rings (distortion) */}
+      {[0, 1, 2].map((i) => (
+        <motion.div
+          key={i}
+          aria-hidden
+          className="pointer-events-none absolute rounded-full border"
+          animate={{ rotate: 360, scale: [1, 1.05, 1] }}
+          transition={{ rotate: { duration: 14 + i * 6, repeat: Infinity, ease: "linear" }, scale: { duration: 4 + i, repeat: Infinity, ease: "easeInOut" } }}
+          style={{
+            left: "50%", top: "50%",
+            width: `${(40 + i * 18) + stretch * 20}vmin`,
+            height: `${(40 + i * 18) + stretch * 20}vmin`,
+            transform: "translate(-50%, -50%)",
+            borderColor: `hsl(${glow} / ${0.05 + (1 - i * 0.25) * 0.12})`,
+            borderStyle: "dashed",
+          }}
+        />
+      ))}
+
+      {/* screen elongation when stretched */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        animate={{ scaleX: 1 - stretch * 0.06, scaleY: 1 + stretch * 0.14 }}
+        transition={{ duration: 0.25 }}
+        style={{
+          background: `radial-gradient(ellipse at 50% 50%, transparent 30%, hsl(0 0% 0% / ${stretch * 0.45}) 80%)`,
+          mixBlendMode: "multiply",
+        }}
+      />
+
+      {/* stretched particles streaming toward center */}
+      {particles.map((i) => {
+        const angle = (i / particles.length) * Math.PI * 2;
+        const r = 0.18 + ((i * 41) % 100) / 320;
+        const px = 0.5 + Math.cos(angle) * r;
+        const py = 0.5 + Math.sin(angle) * r;
+        const dx = 0.5 - px;
+        const dy = 0.5 - py;
+        const rot = (Math.atan2(dy, dx) * 180) / Math.PI;
+        const len = 8 + (i % 5) * 4 + stretch * 18;
+        return (
+          <motion.span
+            key={i}
+            aria-hidden
+            className="pointer-events-none absolute block"
+            style={{
+              left: `${px * 100}%`,
+              top: `${py * 100}%`,
+              width: len,
+              height: 1.4,
+              transformOrigin: "left center",
+              transform: `rotate(${rot}deg)`,
+              background: `linear-gradient(90deg, transparent, hsl(${glow} / 0.95))`,
+              boxShadow: `0 0 5px hsl(${glow} / 0.7)`,
+            }}
+            animate={{ x: [0, dx * 260, 0], y: [0, dy * 260, 0], opacity: [0.1, 0.9, 0.1] }}
+            transition={{ duration: 2.6 + (i % 5) * 0.35, repeat: Infinity, ease: "easeInOut", delay: i * 0.05 }}
+          />
+        );
+      })}
+
+      {/* player body — stretched capsule between tail and head */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          left: `${midX * 100}%`,
+          top: `${midY * 100}%`,
+          width: `${Math.max(2.4, lenPct)}%`,
+          height: 6,
+          transform: `translate(-50%, -50%) rotate(${angleDeg}deg)`,
+          background: `linear-gradient(90deg, hsl(${glow} / 0.4), hsl(${glow}) 50%, hsl(${glow} / 0.4))`,
+          boxShadow: `0 0 12px hsl(${glow} / 0.8)`,
+          borderRadius: 999,
+          filter: `blur(${0.4 + stretch * 1.6}px)`,
+        }}
+      />
+
+      {/* tail node */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          left: `${tail.x * 100}%`,
+          top: `${tail.y * 100}%`,
+          width: 10,
+          height: 10,
+          transform: "translate(-50%, -50%)",
+          background: `radial-gradient(circle, hsl(${glow}) 0%, hsl(${glow} / 0.3) 70%, transparent)`,
+          borderRadius: "50%",
+        }}
+      />
+
+      {/* head marker — diamond */}
+      <motion.div
+        aria-hidden
+        className="absolute"
+        animate={{ scale: dragRef.current ? 1.15 : 1 }}
+        style={{
+          left: `${head.x * 100}%`,
+          top: `${head.y * 100}%`,
+          width: 14,
+          height: 14,
+          transform: "translate(-50%, -50%) rotate(45deg)",
+          background: `linear-gradient(135deg, hsl(${glow}) 0%, hsl(${glow} / 0.4) 100%)`,
+          boxShadow: `0 0 14px hsl(${glow} / 0.95), 0 0 32px hsl(${glow} / 0.5)`,
+          border: `1px solid hsl(${glow} / 0.85)`,
+        }}
+      />
+
+      {/* danger flash near collapse */}
+      {(stretch > 0.85 || proximity > 0.85) && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-red-600"
+          animate={{ opacity: [0, 0.18, 0] }}
+          transition={{ duration: 0.4, repeat: Infinity }}
+          style={{ mixBlendMode: "screen" }}
+        />
+      )}
+    </div>
+  );
+}
