@@ -1528,7 +1528,8 @@ function DarkMatterField({
   onProximity: (p: number) => void;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ x: 0.5, y: 0.5 });
+  const [pos, setPos] = useState({ x: 0.18, y: 0.22 });
+  const startedAtRef = useRef(performance.now());
   const posRef = useRef(pos);
   const dragRef = useRef(false);
   const targetRef = useRef<{ x: number; y: number } | null>(null);
@@ -1614,7 +1615,7 @@ function DarkMatterField({
       }
 
       // collapse if too close
-      if (newDist < 0.045) {
+      if (newDist < 0.04 && performance.now() - startedAtRef.current > 3000) {
         onCollapse();
         return;
       }
