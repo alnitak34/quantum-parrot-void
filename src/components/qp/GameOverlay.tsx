@@ -738,31 +738,41 @@ interface Anomaly {
 
 function AnomalyField({
   glow,
+  chaos,
   onStabilize,
   onIgnored,
 }: {
   glow: string;
+  chaos: number;
   onStabilize: () => void;
   onIgnored: () => void;
 }) {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const idRef = useRef(1);
+  const chaosRef = useRef(chaos);
+  useEffect(() => { chaosRef.current = chaos; }, [chaos]);
 
-  // spawn loop
+  // spawn loop — bias near the player (center) and faster as chaos rises
   useEffect(() => {
     let cancelled = false;
     const spawn = () => {
       if (cancelled) return;
-      const ttl = 2200 + Math.random() * 1600;
+      const c = chaosRef.current;
+      // sometimes spawn very close to force reaction
+      const closeBias = Math.random() < 0.45;
+      const radius = closeBias ? 0.06 + Math.random() * 0.1 : 0.18 + Math.random() * 0.32;
+      const angle = Math.random() * Math.PI * 2;
+      const x = Math.min(0.92, Math.max(0.08, 0.5 + Math.cos(angle) * radius));
+      const y = Math.min(0.88, Math.max(0.18, 0.62 + Math.sin(angle) * radius));
+      const ttl = Math.max(900, 2200 + Math.random() * 1400 - c * 140);
       const a: Anomaly = {
         id: idRef.current++,
-        x: 0.15 + Math.random() * 0.7,
-        y: 0.18 + Math.random() * 0.64,
+        x, y,
         born: performance.now(),
         ttl,
       };
       setAnomalies((prev) => [...prev, a]);
-      const delay = 1400 + Math.random() * 1800;
+      const delay = Math.max(350, 1300 + Math.random() * 1500 - c * 130);
       setTimeout(spawn, delay);
     };
     const t = setTimeout(spawn, 700);
