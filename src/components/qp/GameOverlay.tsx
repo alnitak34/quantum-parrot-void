@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Skull, Zap, X, ArrowRight } from "lucide-react";
+import { Skull, Zap, X, ArrowRight, Copy, Check } from "lucide-react";
 import { emit, on, stamp, randomNick, type GameResult } from "./gameStore";
 
 type EventDef = {
