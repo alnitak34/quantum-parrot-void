@@ -134,11 +134,20 @@ export default function GameOverlay() {
 
   const die = (ev: EventDef) => {
     const finalSignal = Math.floor(time * 10);
+
+    // resolve handle from localStorage at death time; fallback to random
+    const saved = typeof window !== "undefined" ? localStorage.getItem("playerHandle") : null;
+    const trimmed = saved?.trim();
+    const handle = trimmed
+      ? (trimmed.startsWith("@") ? trimmed : `@${trimmed}`)
+      : (nickRef.current || randomNick());
+    nickRef.current = handle;
+
     const finalResult: GameResult = {
       survived: time,
       signal: finalSignal,
       cause: ev.label,
-      user: nickRef.current,
+      user: handle,
     };
     setPoints(finalSignal);
     setResult(finalResult);
@@ -146,11 +155,11 @@ export default function GameOverlay() {
     // push death into feed + top signals
     emit("feed:push", {
       time: stamp(),
-      user: nickRef.current,
+      user: handle,
       action: `died to ${ev.label} after ${time.toFixed(1)}s`,
       points: finalSignal,
     });
-    emit("top:push", { user: nickRef.current, score: finalSignal });
+    emit("top:push", { user: handle, score: finalSignal });
     emit("game:end", finalResult);
   };
 
