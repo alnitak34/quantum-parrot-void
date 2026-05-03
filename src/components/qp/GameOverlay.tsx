@@ -135,10 +135,12 @@ export default function GameOverlay() {
     if (!open || result || phase !== "playing") return;
 
     // tick survival timer (10/s for smoother progression)
+    const isTimeDim = dimension === "TIME DILATION";
+    const mult = isTimeDim ? 12 : 10;
     const tick = setInterval(() => {
       setTime((t) => {
         const next = +(t + 0.1).toFixed(1);
-        setPoints(Math.floor(next * 10));
+        setPoints(Math.floor(next * mult));
         return next;
       });
       // chaos rises slowly with time, capped 10
@@ -146,7 +148,7 @@ export default function GameOverlay() {
     }, 100);
 
     return () => clearInterval(tick);
-  }, [open, result, phase]);
+  }, [open, result, phase, dimension]);
 
   // event scheduler - interval depends on chaos
   useEffect(() => {
