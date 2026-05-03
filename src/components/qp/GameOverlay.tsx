@@ -245,15 +245,12 @@ export default function GameOverlay() {
     let cancelled = false;
     const next = () => {
       if (cancelled) return;
-      const delay = 1200 + Math.random() * 2600;
+      const delay = 2000 + Math.random() * 2000;
       setTimeout(() => {
         if (cancelled) return;
-        // bias: occasional extreme slow or fast
-        const r = Math.random();
-        const ts = r < 0.15 ? 0.3 + Math.random() * 0.2
-          : r > 0.85 ? 1.6 + Math.random() * 0.4
-          : 0.7 + Math.random() * 0.8;
-        setTimeScale(+ts.toFixed(2));
+        const choices = [0.4, 1, 2];
+        const ts = choices[Math.floor(Math.random() * choices.length)];
+        setTimeScale(ts);
         next();
       }, delay);
     };
