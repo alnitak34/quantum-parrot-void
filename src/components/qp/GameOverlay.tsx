@@ -466,17 +466,19 @@ export default function GameOverlay() {
             {isSpag && "STRUCTURE BREAKING"}
           </motion.div>
         )}
-        {themed && phase === "playing" && !result && (
-          <ParrotAvatar
-            src={owlBase}
-            glow={theme.glow}
-            chaos={chaos}
-            hitKey={parrotHit}
-            shakeKey={parrotShake}
-          />
-        )}
+        {/* parrot removed from gameplay for clarity */}
         {themed && phase === "playing" && !result && (
           <IntroHint key={`hint-${dimension}`} />
+        )}
+        {/* subtle 10k squad branding */}
+        {themed && phase === "playing" && !result && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-3 left-4 z-20 font-mono-x text-[10px] tracking-[0.3em] text-foreground/50"
+            style={{ textShadow: `0 0 8px hsl(${theme.glow} / 0.6)` }}
+          >
+            10K SQUAD <span style={{ color: `hsl(${theme.glow})` }}>·</span> SIGNAL
+          </div>
         )}
         {isDark && themed && (
           <>
@@ -1013,7 +1015,15 @@ function ResultCard({
   const [copied, setCopied] = useState(false);
   const classification = classify(result.signal);
   const dim = result.dimension || "UNKNOWN";
+  const SARCASM_LINES = [
+    "you reacted too slow",
+    "time moved, you didn't",
+    "skill issue across timelines",
+    "the 10k squad noticed",
+    "blink and you delete yourself",
+  ];
   const sarcasm = DIM_LINES[dim] || "The void doesn't care.";
+  const burn = SARCASM_LINES[Math.floor(Math.random() * SARCASM_LINES.length)];
 
   const shareText = `I survived ${result.survived.toFixed(1)}s in QUANTUM PARROTS.
 Dimension: ${dim}
@@ -1095,6 +1105,7 @@ ${PROJECT_URL}`;
         </div>
 
         <p className={`mt-4 font-mono-x text-xs italic ${theme.accentText}`}>{sarcasm}</p>
+        <p className="mt-1 font-mono-x text-[11px] text-muted-foreground">— {burn}</p>
       </div>
 
       <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
