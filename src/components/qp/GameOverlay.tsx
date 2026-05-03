@@ -101,8 +101,69 @@ export default function GameOverlay() {
   const [chaos, setChaos] = useState(1);
   const [flashes, setFlashes] = useState<FlashMsg[]>([]);
   const [result, setResult] = useState<GameResult | null>(null);
+  const [spike, setSpike] = useState(0); // increments to trigger threat spikes
   const nickRef = useRef<string>("");
   const lastEventRef = useRef<EventDef | null>(null);
+  const audioRef = useRef<{ ctx: AudioContext; hum: GainNode; humOsc: OscillatorNode } | null>(null);
+
+  // Audio engine: ambient hum + sfx
+  useEffect(() => {
+    if (!open || phase !== "playing" || result) return;
+    let ctx: AudioContext | null = null;
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      ctx = new AC();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.value = 55;
+      gain.gain.value = 0.04;
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      audioRef.current = { ctx, hum: gain, humOsc: osc };
+    } catch { /* ignore */ }
+    return () => {
+      try { audioRef.current?.humOsc.stop(); } catch { /* ignore */ }
+      try { ctx?.close(); } catch { /* ignore */ }
+      audioRef.current = null;
+    };
+  }, [open, phase, result]);
+
+  // ramp hum with chaos
+  useEffect(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      a.hum.gain.setTargetAtTime(0.03 + (chaos / 10) * 0.09, a.ctx.currentTime, 0.4);
+      a.humOsc.frequency.setTargetAtTime(50 + chaos * 6, a.ctx.currentTime, 0.4);
+    } catch { /* ignore */ }
+  }, [chaos]);
+
+  const playBlip = (kind: "glitch" | "distort") => {
+    const a = audioRef.current;
+    if (!a) return;
+    try {
+      const o = a.ctx.createOscillator();
+      const g = a.ctx.createGain();
+      o.type = kind === "distort" ? "square" : "triangle";
+      const now = a.ctx.currentTime;
+      if (kind === "glitch") {
+        o.frequency.setValueAtTime(900 + Math.random() * 600, now);
+        o.frequency.exponentialRampToValueAtTime(120, now + 0.18);
+        g.gain.setValueAtTime(0.18, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        o.connect(g).connect(a.ctx.destination);
+        o.start(now); o.stop(now + 0.22);
+      } else {
+        o.frequency.setValueAtTime(180, now);
+        o.frequency.linearRampToValueAtTime(40, now + 0.5);
+        g.gain.setValueAtTime(0.25, now);
+        g.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        o.connect(g).connect(a.ctx.destination);
+        o.start(now); o.stop(now + 0.6);
+      }
+    } catch { /* ignore */ }
+  };
 
   // open game on signal
   useEffect(() => {
