@@ -382,6 +382,11 @@ export default function GameOverlay() {
               <p className="mt-3 font-mono-x text-xs text-muted-foreground">
                 Handle: <span className="text-foreground">{result.user}</span>
               </p>
+              {result.dimension && (
+                <p className="mt-1 font-mono-x text-xs text-muted-foreground">
+                  Dimension: <span className="text-secondary-glow">{result.dimension}</span>
+                </p>
+              )}
 
               <div className="mt-7 flex items-center justify-center gap-3 flex-wrap">
                 <button
