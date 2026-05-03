@@ -717,8 +717,9 @@ export default function GameOverlay() {
         {themed && phase === "playing" && !result && (
           <AnomalyField
             glow={theme.glow}
-            onStabilize={() => setChaos((c) => Math.max(1, +(c - 0.4).toFixed(2)))}
-            onIgnored={() => setChaos((c) => Math.min(10, +(c + 0.35).toFixed(2)))}
+            chaos={chaos}
+            onStabilize={() => { playBlip("glitch"); setChaos((c) => Math.max(1, +(c - 0.18).toFixed(2))); }}
+            onIgnored={() => { playBlip("distort"); setChaos((c) => Math.min(10, +(c + 0.55).toFixed(2))); }}
           />
         )}
       </motion.div>
