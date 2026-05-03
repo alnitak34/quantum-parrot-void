@@ -756,7 +756,16 @@ export default function GameOverlay() {
             <ResultCard result={result} theme={theme} onClose={close} />
           )}
         </motion.div>
-        {themed && phase === "playing" && !result && (
+        {themed && phase === "playing" && !result && isDark && (
+          <DarkMatterField
+            glow={theme.glow}
+            chaos={chaos}
+            onSignalTick={(gain) => { setPoints((p) => p + gain); setChaos((c) => Math.min(10, +(c + gain * 0.004).toFixed(2))); }}
+            onCollapse={() => die({ key: "collapse", label: "GRAVITATIONAL COLLAPSE", action: "fell into the dark", points: 0, deathy: true })}
+            onProximity={(p) => { if (p > 0.7) playBlip("distort"); }}
+          />
+        )}
+        {themed && phase === "playing" && !result && !isDark && (
           <CentralSphere
             glow={theme.glow}
             chaos={chaos}
@@ -765,7 +774,7 @@ export default function GameOverlay() {
             onExplode={() => { playBlip("explode"); setChaos((c) => Math.min(10, +(c + 1.2).toFixed(2))); setSpike((s) => s + 1); setParrotHit((h) => h + 1); }}
           />
         )}
-        {themed && phase === "playing" && !result && (
+        {themed && phase === "playing" && !result && !isDark && (
           <AnomalyField
             glow={theme.glow}
             chaos={chaos}
