@@ -216,28 +216,26 @@ const Navbar = () => {
               dilation, dark matter, gravity, and the strange physics of impossible dimensions.
             </p>
             <p>
-              The 10K Squad parrots are not just collectibles. They are survivors of a quantum fracture:
-              10,000 unstable entities scattered across collapsing timelines, distorted gravity fields, and
+              The 3,333 parrots are not just collectibles. They are fragments of a quantum fracture:
+              unstable entities scattered across collapsing timelines, distorted gravity fields, and
               unknown regions of space.
             </p>
-            <p className="text-foreground/70">Each minigame represents a different cosmic phenomenon:</p>
+            <p className="text-foreground/70">Each minigame represents a different cosmic anomaly:</p>
             <div>
               <p className="font-graffiti text-time text-lg">Time Dilation</p>
-              <p>Time does not move normally. Seconds stretch, collapse, and betray you.</p>
+              <p>Time breaks, stretches, and collapses. Survival becomes prediction.</p>
             </div>
             <div>
               <p className="font-graffiti text-foreground text-lg">Dark Matter</p>
-              <p>Invisible forces pull, bend, and distort movement. You survive by reading what cannot be seen.</p>
+              <p>Invisible forces distort movement. You react to what you cannot see.</p>
             </div>
             <div>
               <p className="font-graffiti text-spaghetti text-lg">Spaghettification</p>
-              <p>Near the edge of a black hole, gravity stretches everything. Reality becomes unstable.</p>
+              <p>Near a black hole, gravity stretches everything. Reality itself becomes unstable.</p>
             </div>
             <div className="pt-2 border-t border-primary/20">
-              <p className="font-handwritten text-xl text-primary">The objective is simple:</p>
-              <p>Survive the void.</p>
-              <p>Adapt to chaos.</p>
-              <p>Become one of the parrots that makes it through the anomaly.</p>
+              <p className="font-handwritten text-xl text-primary">The objective is not to win.</p>
+              <p>The objective is to survive the void.</p>
             </div>
           </div>
         </DialogContent>
