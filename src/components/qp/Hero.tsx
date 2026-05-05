@@ -147,7 +147,7 @@ const Hero = () => {
             className="mt-10 flex items-center gap-6 flex-wrap"
           >
             <a
-              href="https://alnitak34.github.io/quantum-parrot-void/"
+              href="https://alnitak34.github.io/quantum-parrot-void/game.html"
               target="_blank"
               rel="noopener noreferrer"
               className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
