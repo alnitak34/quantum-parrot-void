@@ -17,11 +17,21 @@
       transition: background 0.15s, border-color 0.15s;
     }
     #share-btn:hover { background: rgba(30,30,30,0.85); border-color: rgba(255,255,255,0.65); }
+    #mute-btn {
+      position: fixed; top: 12px; right: 96px; z-index: 10;
+      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 12px;
+      color: #fff; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.30);
+      padding: 6px 10px; cursor: pointer; letter-spacing: 0.06em;
+      transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+    }
+    #mute-btn:hover { background: rgba(30,30,30,0.85); border-color: rgba(255,255,255,0.65); }
+    #mute-btn.muted { opacity: 0.38; }
   </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <button id="share-btn" onclick="(function(){var t=encodeURIComponent('I survived the void in 10K Quantum Parrots. The universe is broken.');var u=encodeURIComponent(window.location.href);window.open('https://x.com/intent/tweet?text='+t+'&url='+u,'_blank');})()">SHARE X</button>
+<button id="mute-btn" title="Toggle sound">♪</button>
 <script>
 'use strict';
 
@@ -138,6 +148,7 @@ const TRAIL_LEN = 10;
 let timeScale=1.0, timeScaleTimer=0, timeScaleInterval=3+Math.random()*2;
 let screenFlash=0, timeSlowFlash=0;
 let timeTransitionLabel='', timeTransitionAlpha=0, timeShake=0;
+let timePosTracker = { x:0, y:0, timer:0 };
 
 /* ─── Shield state ─────────────────────────── */
 let shieldPickup=null, shieldActive=false, shieldTimer=0;
@@ -177,15 +188,22 @@ let shockwaves     = [];
 let bhX=0, bhY=0;
 const BH_R=60;
 let spagChaos=0, spagStretch=0;
-let invertTimer=0, invertCooldown=5;
-let spagWorms=[], spagSpawnTimer=2;
+let spagFailTimer=0;
+let spagStressFlash=0, spagStressAlpha=0;
+let spagGrace=0;
+let spagImpVX=0, spagImpVY=0;
 let spagTrail=[], gravPulses=[], gravPulseTimer=3;
-let warpTime=0;
-let spagParticles=[], bhPulseBoost=0;
+let warpTime=0, bhPulseBoost=0;
+let spagParticles=[];
 let surgeTimer     = 6 + Math.random() * 2;
 let surgeActive    = 0;
 let deathFreezeTimer = 0;
 let posTracker     = { x:0, y:0, timer:0 };
+// Tunnel mechanic
+let tunnelBottomCX=0, tunnelBottomTarget=0;
+let tunnelBend=0, tunnelBendTarget=0;
+let tunnelHalfW=140;
+let tunnelShiftTimer=0, tunnelCornerTimer=0;
 
 function getDespair()   { return Math.min(6, Math.floor(score / 10)); }
 function rampMult()     {
@@ -228,8 +246,9 @@ canvas.addEventListener('touchend', e => {
 let btn=null, btn2=null, menuBtns=[];
 function hitR(r,bx,by) { return r&&bx>=r.x&&bx<=r.x+r.w&&by>=r.y&&by<=r.y+r.h; }
 function handleClick(cx,cy) {
+  initAudio();
   if (state==='menu') {
-    for (const mb of menuBtns) { if (hitR(mb,cx,cy)) { startMode(mb.mode); return; } }
+    for (const mb of menuBtns) { if (hitR(mb,cx,cy)) { sndClick(); startMode(mb.mode); return; } }
   }
   if (state==='dead') {
     if (hitR(btn,cx,cy))  { reset(); return; }
@@ -242,6 +261,7 @@ canvas.addEventListener('click', e => {
 
 /* ─── Mode management ──────────────────────── */
 function startMode(mode) {
+  stopAllContinuousSounds();
   MODE=mode; state='playing'; score=0; lastTs=null;
   player.x=canvas.width/2; deathQuip=''; btn=null; btn2=null;
   if (mode==='dark') {
@@ -252,11 +272,13 @@ function startMode(mode) {
     shockwaves=[]; surgeTimer=6+Math.random()*2;
     posTracker={x:canvas.width/2,y:canvas.height/2,timer:0};
     initDark();
+    startDarkDrone();
   } else if (mode==='spaghetti') {
-    player.y=canvas.height/2-PH/2;
+    player.y=canvas.height-PH*3;
     parrotTilt=parrotShakeX=parrotShakeY=0; parrotSX=parrotSY=1; parrotTrail=[];
     fusionFlash=fusionShake=deathFreezeTimer=0; shockwaves=[];
     initSpaghetti();
+    startSpagTone();
   } else {
     player.y=canvas.height-PH-FLOOR_PAD; obstacles=[];
     spawnT=0; targetedT=0;
@@ -264,10 +286,13 @@ function startMode(mode) {
     screenFlash=0; timeSlowFlash=0; timeTransitionLabel=''; timeTransitionAlpha=0; timeShake=0;
     shieldPickup=null; shieldActive=false; shieldTimer=0;
     shieldSpawnTimer=0; shieldSpawnInterval=12+Math.random()*6; shieldBreakFlash=0;
+    timePosTracker={x:canvas.width/2,y:canvas.height/2,timer:0};
     buildVoidOrbs(); buildWarpLines();
   }
+  sndStart(mode);
 }
 function goMenu() {
+  stopAllContinuousSounds();
   state='menu'; MODE=null; score=0; lastTs=null; btn=null; btn2=null;
 }
 function reset() { startMode(MODE); }
@@ -366,6 +391,7 @@ function checkFusion() {
         singularities.splice(j,1); singularities.splice(i,1);
         singularities.push(ns);
         fusionFlash=1.0; fusionShake=1.0; fusionSlow=1.0;
+        sndFusion();
         shockwaves.push({ x:nx, y:ny, r:0, maxR:Math.hypot(canvas.width,canvas.height)*0.90, alpha:0.90 });
         return;
       }
@@ -404,112 +430,145 @@ function initGravParticles() {
 /* ─── Spaghetti: init ───────────────────────── */
 function initSpaghetti() {
   bhX=canvas.width/2; bhY=canvas.height*0.20;
-  spagChaos=0; spagStretch=0;
-  invertTimer=0; invertCooldown=5;
-  spagWorms=[]; spagSpawnTimer=2.0;
+  spagChaos=0; spagStretch=0; spagFailTimer=0;
+  spagStressFlash=0; spagStressAlpha=0;
+  spagGrace=2.5;
+  spagImpVX=0; spagImpVY=0;
   spagTrail=[]; gravPulses=[]; spagParticles=[];
   gravPulseTimer=3+Math.random()*2;
   warpTime=0; bhPulseBoost=0;
+  tunnelBottomCX=canvas.width/2; tunnelBottomTarget=canvas.width/2;
+  tunnelBend=0; tunnelBendTarget=0;
+  tunnelHalfW=Math.min(canvas.width*0.26,160);
+  tunnelShiftTimer=3+Math.random()*2; tunnelCornerTimer=0;
 }
 
-function spawnWorm() {
-  const W=canvas.width, H=canvas.height;
-  if (Math.random()<0.60) {
-    const fl=Math.random()<0.5;
-    spagWorms.push({ type:'sweep',
-      x:fl?-220:W+220, y:H*(0.28+Math.random()*0.55),
-      vx:fl?175+Math.random()*110:-(175+Math.random()*110),
-      vy:(Math.random()-0.5)*70,
-      len:130+Math.random()*170, w:7+Math.random()*11,
-      color:Math.random()<0.65?'#ff4400':'#ff9900',
-      lethal:spagChaos>0.62, rot:(Math.random()-0.5)*0.30,
-      alpha:0.72+Math.random()*0.28, hit:false });
-  } else {
-    spagWorms.push({ type:'drop',
-      x:W*(0.08+Math.random()*0.84), y:-190,
-      vx:(Math.random()-0.5)*55, vy:145+Math.random()*95,
-      len:100+Math.random()*140, w:5+Math.random()*9,
-      color:'#ff6600',
-      lethal:spagChaos>0.62, rot:Math.PI/2+(Math.random()-0.5)*0.45,
-      alpha:0.65+Math.random()*0.35, hit:false });
-  }
+function getTunnelCX(y) {
+  const H=canvas.height;
+  const frac=Math.max(0,Math.min(1,(H-y)/H));
+  const baseCX=tunnelBottomCX+(bhX-tunnelBottomCX)*frac;
+  return baseCX+Math.sin(frac*Math.PI)*tunnelBend;
 }
+
 
 /* ─── Spaghetti: update ─────────────────────── */
 function updateSpaghetti(dt) {
   warpTime+=dt*1.5;
+  const W=canvas.width, H=canvas.height;
+  const mob=W<768;
+
+  /* grace period */
+  if (spagGrace>0) spagGrace=Math.max(0,spagGrace-dt);
+  const inGrace=spagGrace>0;
 
   /* BH gravity direction */
   const gdx=bhX-player.x, gdy=bhY-(player.y+PH/2);
   const gd=Math.max(Math.hypot(gdx,gdy),BH_R*1.5);
   const gnx=gdx/gd, gny=gdy/gd;
 
-  /* player input — chaos degrades precision, invert at high chaos */
-  const inv=invertTimer>0?-1:1;
-  const prec=1-spagChaos*0.50;
-  if (keys['ArrowLeft']||keys['KeyA']) player.x-=KB_SPEED*dt*inv*prec;
-  if (keys['ArrowRight']||keys['KeyD']) player.x+=KB_SPEED*dt*inv*prec;
-  if (keys['ArrowUp']||keys['KeyW']) player.y-=KB_SPEED*dt*inv*prec;
-  if (keys['ArrowDown']||keys['KeyS']) player.y+=KB_SPEED*dt*inv*prec;
+  /* player input */
+  const prec=Math.max(0.5,1-spagChaos*0.45);
+  if (keys['ArrowLeft']||keys['KeyA']) player.x-=KB_SPEED*dt*prec;
+  if (keys['ArrowRight']||keys['KeyD']) player.x+=KB_SPEED*dt*prec;
+  if (keys['ArrowUp']||keys['KeyW']) player.y-=KB_SPEED*dt*prec;
+  if (keys['ArrowDown']||keys['KeyS']) player.y+=KB_SPEED*dt*prec;
   if (touchX!==null) player.x=touchX;
   if (touchY!==null) player.y=touchY-PH/2;
-  /* chaos jitter */
-  player.x+=(Math.random()-0.5)*spagChaos*100*dt;
-  player.y+=(Math.random()-0.5)*spagChaos*80*dt;
+  if (!inGrace) {
+    player.x+=(Math.random()-0.5)*spagChaos*75*dt;
+    player.y+=(Math.random()-0.5)*spagChaos*55*dt;
+  }
 
-  /* apply gravity — far-field always present */
-  const farF=58/(1+gd*0.0008);
-  let nearF=0;
-  if (gd<520) { const tt=Math.pow(Math.max(0,1-gd/520),1.5); nearF=400*tt*tt; }
-  player.x+=gnx*(farF+nearF)*dt; player.y+=gny*(farF+nearF)*dt;
+  /* gravity — upward pull toward BH */
+  const graceFactor=inGrace?0.18:1.0;
+  const baseGrav=Math.max(55,95/(1+gd*0.0005));
+  let nearGrav=0;
+  if (gd<480) { const tt=Math.pow(Math.max(0,1-gd/480),1.5); nearGrav=480*tt*tt; }
+  player.x+=gnx*(baseGrav+nearGrav)*graceFactor*dt;
+  player.y+=gny*(baseGrav+nearGrav)*graceFactor*dt;
+  player.x+=spagImpVX*dt; player.y+=spagImpVY*dt;
+  spagImpVX*=Math.exp(-4*dt); spagImpVY*=Math.exp(-4*dt);
 
-  player.x=Math.max(PW/2,Math.min(canvas.width-PW/2,player.x));
-  player.y=Math.max(0,Math.min(canvas.height-PH,player.y));
+  player.x=Math.max(PW/2,Math.min(W-PW/2,player.x));
+  player.y=Math.max(0,Math.min(H-PH,player.y));
 
-  /* chaos update */
-  const distFrac=Math.max(0,1-gd/680);
-  spagChaos+=distFrac*0.14*dt;
-  if (gd>680) spagChaos-=0.045*dt;
-  spagChaos=Math.max(0,Math.min(1,spagChaos));
+  /* tunnel — narrow over time, shift periodically */
+  const tunnelMinHW=mob?60:48;
+  const tunnelStartHW=Math.min(W*0.26,mob?170:145);
+  tunnelHalfW=Math.max(tunnelMinHW, tunnelStartHW-score*1.6);
+  tunnelBottomCX+=(tunnelBottomTarget-tunnelBottomCX)*Math.min(1,dt*2.0);
+  tunnelBend+=(tunnelBendTarget-tunnelBend)*Math.min(1,dt*1.6);
+  tunnelShiftTimer-=dt;
+  if (tunnelShiftTimer<=0) {
+    const interval=Math.max(1.5,4.0-score/55);
+    tunnelShiftTimer=interval+Math.random()*1.2;
+    const margin=tunnelHalfW+40;
+    tunnelBottomTarget=Math.max(margin,Math.min(W-margin,W/2+(Math.random()-0.5)*W*0.46));
+    tunnelBendTarget=(Math.random()-0.5)*(70+Math.min(score,45)*2.2);
+  }
 
-  /* stretch amount */
-  spagStretch=Math.min(0.97,Math.max(0,1-gd/480)*2.8);
+  /* corner anti-camping — tunnel shifts away, chaos ticks up */
+  const inCorner=player.x<PW*3||player.x>W-PW*3||player.y>H*0.80;
+  if (inCorner&&!inGrace) {
+    tunnelCornerTimer+=dt;
+    if (tunnelCornerTimer>1.5) {
+      tunnelCornerTimer=0;
+      tunnelBottomTarget=W/2+(Math.random()-0.5)*W*0.32;
+      tunnelBendTarget=(Math.random()-0.5)*150;
+      tunnelShiftTimer=0.15;
+      spagChaos=Math.min(1,spagChaos+0.06);
+    }
+  } else { tunnelCornerTimer=Math.max(0,tunnelCornerTimer-dt*2); }
 
-  /* parrot tilt toward BH */
+  /* tunnel containment check — chaos rises outside walls */
+  const playerTCX=getTunnelCX(player.y+PH/2);
+  const wallDist=Math.abs(player.x-playerTCX)-(tunnelHalfW-PW*0.4);
+  if (!inGrace) {
+    if (wallDist>0) {
+      const hitStr=Math.min(1,wallDist/40);
+      spagChaos=Math.min(1,spagChaos+(0.28+hitStr*0.22)*dt);
+      if (spagStressFlash<=0.05) {
+        spagStressFlash=0.80; spagStressAlpha=1.0;
+        fusionShake=Math.max(fusionShake,0.55+hitStr*0.55);
+        sndHit();
+      }
+    } else {
+      spagChaos=Math.max(0,spagChaos-0.04*dt);
+    }
+    spagChaos=Math.max(0,Math.min(1,spagChaos));
+  }
+
+  /* stretch and tilt */
+  spagStretch=Math.min(0.97,Math.max(0,1-gd/420)*2.8);
   const targetTilt=Math.tanh(gnx*3)*0.28;
   parrotTilt+=(targetTilt-parrotTilt)*Math.min(1,dt*6);
 
-  /* control invert */
-  if (invertTimer>0) { invertTimer=Math.max(0,invertTimer-dt); }
-  else {
-    invertCooldown-=dt;
-    if (invertCooldown<=0&&spagChaos>0.70) {
-      invertTimer=0.5; invertCooldown=3+Math.random()*2.5;
-    }
-  }
-
-  /* shake near BH */
+  /* shake */
   const shakeMult=1+Math.max(0,1-gd/(BH_R*5))*10;
-  parrotShakeX=(Math.random()-0.5)*spagChaos*12*shakeMult;
-  parrotShakeY=(Math.random()-0.5)*spagChaos*10*shakeMult;
+  parrotShakeX=(Math.random()-0.5)*spagChaos*14*shakeMult;
+  parrotShakeY=(Math.random()-0.5)*spagChaos*11*shakeMult;
+  if (spagStressFlash>0) spagStressFlash=Math.max(0,spagStressFlash-dt*4.0);
+  if (spagStressAlpha>0) spagStressAlpha=Math.max(0,spagStressAlpha-dt*2.0);
 
-  /* parrot trail */
+  /* trail */
   spagTrail.unshift({x:player.x,y:player.y+PH/2,stretch:spagStretch,angle:Math.atan2(gny,gnx)});
   if (spagTrail.length>16) spagTrail.pop();
 
-  /* gravity pulses */
+  /* gravity pulses — periodic tidal surge */
   gravPulseTimer-=dt;
   if (gravPulseTimer<=0) {
-    gravPulseTimer=2+Math.random()*3*(1-spagChaos*0.6);
-    gravPulses.push({r:BH_R,maxR:Math.hypot(canvas.width,canvas.height)*0.95,alpha:0.92,speed:420+Math.random()*180});
-    bhPulseBoost=1.0;
-    fusionShake=Math.max(fusionShake,0.6);
+    gravPulseTimer=3+Math.random()*3*(1-spagChaos*0.4);
+    gravPulses.push({r:BH_R,maxR:Math.hypot(W,H)*0.95,alpha:0.90,speed:420+Math.random()*160});
+    sndPulse();
+    spagImpVX=gnx*(420+spagChaos*280); spagImpVY=gny*(420+spagChaos*280);
+    bhPulseBoost=Math.max(bhPulseBoost,1.2);
+    fusionShake=Math.max(fusionShake,0.7+spagChaos*0.5);
   }
-  for (const p of gravPulses) { p.r+=p.speed*dt; p.alpha=Math.max(0,p.alpha-dt*1.6); }
+  for (const p of gravPulses) { p.r+=p.speed*dt; p.alpha=Math.max(0,p.alpha-dt*1.4); }
   gravPulses=gravPulses.filter(p=>p.alpha>0&&p.r<p.maxR);
   bhPulseBoost=Math.max(0,bhPulseBoost-dt*1.8);
 
-  /* star lensing toward BH */
+  /* star lensing */
   for (const s of stars) {
     s.ox=0; s.oy=0;
     const sdx=bhX-s.x, sdy=bhY-s.y;
@@ -518,65 +577,46 @@ function updateSpaghetti(dt) {
     if (sd<lR) { const bend=Math.pow(1-sd/lR,2)*110; s.ox=(sdx/sd)*bend; s.oy=(sdy/sd)*bend; }
   }
 
-  /* spawn + update suction particles */
-  if (spagParticles.length < 90 && Math.random() < (1.2+spagChaos*3)*dt*60) {
+  /* suction particles */
+  if (spagParticles.length<80&&Math.random()<(1.0+spagChaos*2)*dt*60) {
     const ang=Math.random()*Math.PI*2;
-    const spDist=BH_R*3.5+Math.random()*Math.min(canvas.width,canvas.height)*0.52;
+    const spDist=BH_R*3.5+Math.random()*Math.min(W,H)*0.48;
     const sx=bhX+Math.cos(ang)*spDist, sy=bhY+Math.sin(ang)*spDist;
-    if (sx>0&&sx<canvas.width&&sy>0&&sy<canvas.height) {
+    if (sx>0&&sx<W&&sy>0&&sy<H)
       spagParticles.push({x:sx,y:sy,vx:(Math.random()-0.5)*25,vy:(Math.random()-0.5)*25,
-        size:1.5+Math.random()*3.5,alpha:0.55+Math.random()*0.45,isStar:Math.random()<0.35});
-    }
+        size:1.5+Math.random()*3,alpha:0.50+Math.random()*0.45});
   }
   for (const p of spagParticles) {
-    const pdx=bhX-p.x, pdy=bhY-p.y, pd=Math.sqrt(pdx*pdx+pdy*pdy)||1;
+    const pdx=bhX-p.x,pdy=bhY-p.y,pd=Math.sqrt(pdx*pdx+pdy*pdy)||1;
     const pullF=Math.min(2800,11000/(pd+1));
-    p.vx+=(pdx/pd)*pullF*dt + (-pdy/pd)*28*dt;
-    p.vy+=(pdy/pd)*pullF*dt + (pdx/pd)*28*dt;
-    p.x+=p.vx*dt; p.y+=p.vy*dt;
-    p.alpha-=dt*0.18;
-    p.size=Math.max(0.3,p.size-dt*1.0);
+    p.vx+=(pdx/pd)*pullF*dt+(-pdy/pd)*28*dt;
+    p.vy+=(pdy/pd)*pullF*dt+(pdx/pd)*28*dt;
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.alpha-=dt*0.18; p.size=Math.max(0.3,p.size-dt*0.8);
   }
   spagParticles=spagParticles.filter(p=>p.alpha>0.04&&Math.hypot(p.x-bhX,p.y-bhY)>BH_R*0.85);
 
-  /* spawn worms */
-  spagSpawnTimer-=dt;
-  if (spagSpawnTimer<=0) {
-    spagSpawnTimer=Math.max(0.8,2.8-spagChaos*1.4-score/150)+Math.random()*0.9;
-    spawnWorm();
-  }
-  /* move worms */
-  for (const w of spagWorms) {
-    w.x+=w.vx*dt; w.y+=w.vy*dt;
-    const wdx=bhX-w.x, wdy=bhY-w.y, wd=Math.sqrt(wdx*wdx+wdy*wdy)||1;
-    w.vx+=(wdx/wd)*10*dt; w.vy+=(wdy/wd)*10*dt;
-  }
-  spagWorms=spagWorms.filter(w=>!w.hit&&(w.type==='sweep'?Math.abs(w.x-canvas.width/2)<canvas.width*0.9:w.y<canvas.height+220));
+  /* death */
+  let died=false, diedFromBH=false, diedFromTidal=false;
+  if (Math.hypot(player.x-bhX,player.y+PH/2-bhY)<BH_R+6) { died=true; diedFromBH=true; }
 
-  /* collision with worms */
-  let died=false;
-  for (const w of spagWorms) {
-    const dd=Math.hypot(player.x-w.x,player.y+PH/2-w.y);
-    if (dd<w.len/2+30) {
-      const lx=Math.cos(-w.rot)*(player.x-w.x)-Math.sin(-w.rot)*(player.y+PH/2-w.y);
-      const ly=Math.sin(-w.rot)*(player.x-w.x)+Math.cos(-w.rot)*(player.y+PH/2-w.y);
-      if (Math.abs(lx)<w.len/2+14&&Math.abs(ly)<w.w/2+14) {
-        if (w.lethal||spagChaos>=0.90) { died=true; break; }
-        spagChaos=Math.min(1,spagChaos+0.22); w.hit=true;
-      }
-    }
+  if (!died) {
+    if (spagChaos>=1.0) {
+      if (spagFailTimer<=0) spagFailTimer=1.8;
+      spagFailTimer-=dt;
+      fusionShake=Math.max(fusionShake,1.2+Math.random()*0.6);
+      if (spagFailTimer<=0) { spagFailTimer=0; died=true; diedFromTidal=true; }
+    } else { spagFailTimer=0; }
   }
 
-  /* death conditions */
-  if (!died&&Math.hypot(player.x-bhX,player.y+PH/2-bhY)<BH_R+PW*0.26) died=true;
-  if (!died&&spagChaos>=1.0) died=true;
+  const _bhPrx=Math.max(0,1-gd/360);
+  updateSpagTone(spagChaos, Math.max(0,Math.abs(player.x-playerTCX)/Math.max(1,tunnelHalfW)-0.5)/0.5, _bhPrx);
 
   if (died) {
     if (score>best) best=score;
-    deathMsg='cause: SPAGHETTIFICATION';
-    deathQuip=DEATH_QUIPS_SPAG[Math.floor(Math.random()*DEATH_QUIPS_SPAG.length)];
-    shockwaves.push({x:player.x,y:player.y+PH/2,r:0,maxR:Math.hypot(canvas.width,canvas.height),alpha:1.0});
-    fusionFlash=1.0; fusionShake=2.5; deathFreezeTimer=0.22; state='dying';
+    deathMsg=diedFromBH?'EVENT HORIZON':'TIDAL FORCES';
+    deathQuip=diedFromBH?'no exit liquidity beyond this point':'you became liquidity, but longer';
+    shockwaves.push({x:player.x,y:player.y+PH/2,r:0,maxR:Math.hypot(W,H),alpha:1.0});
+    fusionFlash=1.0; fusionShake=2.5; deathFreezeTimer=0.22; sndDeath(); state='dying';
   }
 }
 
@@ -648,39 +688,45 @@ function drawBlackHole() {
   ctx.fillStyle=eg; ctx.beginPath(); ctx.arc(bhX,bhY,BH_R,0,Math.PI*2); ctx.fill();
 }
 
-/* ─── Spaghetti: warp background ────────────── */
+/* ─── Spaghetti: tunnel channel (background) ── */
 function drawWarpLines() {
   const W=canvas.width, H=canvas.height;
-  const STEPS=52;
+  const steps=60;
   ctx.save();
-  function warpLine(isVert, idx, count) {
-    const frac=idx/count;
-    const baseX=isVert?frac*W:0, baseY=isVert?0:frac*H;
-    const midX=isVert?baseX:W/2, midY=isVert?H/2:baseY;
-    const midD=Math.hypot(bhX-midX,bhY-midY)||1;
-    const chaos=spagChaos, pb=bhPulseBoost;
-    const baseAlpha=Math.min(0.65,0.05+180000/(midD*midD/18+200))*(0.45+chaos*0.65+pb*0.20);
-    if (baseAlpha<0.03) return;
-    const lw=midD<BH_R*5?3.0:midD<BH_R*10?1.9:midD<BH_R*18?1.1:0.7;
-    ctx.strokeStyle=`rgba(255,80,15,${baseAlpha.toFixed(3)})`;
-    ctx.lineWidth=lw;
-    ctx.beginPath();
-    let first=true;
-    for (let s=0;s<=STEPS;s++) {
-      const t2=s/STEPS;
-      const x=isVert?baseX:t2*W, y=isVert?t2*H:baseY;
-      const dx=bhX-x, dy=bhY-y;
-      const d=Math.sqrt(dx*dx+dy*dy)||1;
-      const bend=Math.min(320,260000/(d*d/40+80))*(0.65+Math.sin(warpTime*1.3+(isVert?idx+count:idx)*0.58)*0.35)*(1+chaos*1.6+pb*0.5);
-      const px=x+(dx/d)*bend, py=y+(dy/d)*bend;
-      if (first){ctx.moveTo(px,py);first=false;} else ctx.lineTo(px,py);
-    }
-    ctx.stroke();
+
+  /* outside-tunnel danger tint — full screen reddish, then dark inside covers it */
+  ctx.fillStyle='rgba(38,4,4,0.38)';
+  ctx.fillRect(0,0,W,H);
+
+  /* safe-zone dark channel */
+  ctx.beginPath();
+  for (let i=0;i<=steps;i++) {
+    const t=i/steps; const y=bhY+(H-bhY)*t;
+    if (i===0) ctx.moveTo(getTunnelCX(y)-tunnelHalfW,y);
+    else ctx.lineTo(getTunnelCX(y)-tunnelHalfW,y);
   }
-  /* horizontal lines */
-  for (let r=0;r<=20;r++) warpLine(false,r,20);
-  /* vertical lines */
-  for (let c=0;c<=16;c++) warpLine(true,c,16);
+  for (let i=steps;i>=0;i--) {
+    const t=i/steps; const y=bhY+(H-bhY)*t;
+    ctx.lineTo(getTunnelCX(y)+tunnelHalfW,y);
+  }
+  ctx.closePath();
+  const grd=ctx.createLinearGradient(0,H,0,bhY);
+  grd.addColorStop(0,'rgba(18,0,40,0.78)');
+  grd.addColorStop(0.5,'rgba(10,0,26,0.58)');
+  grd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=grd; ctx.fill();
+
+  /* center guide — thin pale violet line */
+  ctx.beginPath();
+  for (let i=0;i<=steps;i++) {
+    const t=i/steps; const y=bhY+(H-bhY)*t;
+    const cx=getTunnelCX(y);
+    if (i===0) ctx.moveTo(cx,y); else ctx.lineTo(cx,y);
+  }
+  ctx.strokeStyle='rgba(210,180,255,0.22)';
+  ctx.lineWidth=1.5;
+  ctx.stroke();
+
   ctx.restore();
 }
 
@@ -688,45 +734,55 @@ function drawWarpLines() {
 function drawSpagParticles() {
   ctx.save();
   for (const p of spagParticles) {
-    const pdx=bhX-p.x, pdy=bhY-p.y, pd=Math.sqrt(pdx*pdx+pdy*pdy)||1;
-    ctx.globalAlpha=Math.min(1,p.alpha);
-    if (p.isStar) {
-      const tx=p.x-(pdx/pd)*p.size*9, ty=p.y-(pdy/pd)*p.size*9;
-      const sg=ctx.createLinearGradient(tx,ty,p.x,p.y);
-      sg.addColorStop(0,'rgba(255,100,0,0)'); sg.addColorStop(1,'rgba(255,230,80,1)');
-      ctx.strokeStyle=sg; ctx.lineWidth=p.size*0.85;
-      ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(p.x,p.y); ctx.stroke();
-    } else {
-      ctx.shadowColor='#ff4400'; ctx.shadowBlur=8;
-      ctx.fillStyle=p.size>2.5?'#ffaa30':'#ff6600';
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
-      ctx.shadowBlur=0;
-    }
+    /* all particles are dim background dust — no glow, no streaks */
+    ctx.globalAlpha=Math.min(0.38,p.alpha*0.55);
+    ctx.fillStyle='#884422';
+    ctx.beginPath(); ctx.arc(p.x,p.y,Math.min(p.size,2.5),0,Math.PI*2); ctx.fill();
   }
   ctx.restore();
 }
 
-/* ─── Spaghetti: worms ──────────────────────── */
+/* ─── Spaghetti: tunnel stress walls ───────── */
 function drawWorms() {
+  const W=canvas.width, H=canvas.height;
+  const steps=60;
+  const now=Date.now()*0.001;
+  const mob=W<768;
+  const chaos=spagChaos;
+
+  /* player proximity to nearest wall — 0=center, 1=at wall */
+  const playerTCX=getTunnelCX(player.y+PH/2);
+  const wallProx=Math.min(1,Math.abs(player.x-playerTCX)/Math.max(1,tunnelHalfW));
+  const closeToWall=Math.max(0,wallProx-0.5)/0.5; // 0 in inner 50%, 1 at wall
+
+  /* pulse speeds up and brightens when near wall */
+  const pulseFreq=3.0+closeToWall*5.0;
+  const pulse=0.55+Math.sin(now*pulseFreq)*0.45;
+
   ctx.save();
-  for (const w of spagWorms) {
-    ctx.save();
-    ctx.globalAlpha=w.alpha;
-    ctx.shadowColor=w.color; ctx.shadowBlur=18;
-    ctx.translate(w.x,w.y); ctx.rotate(w.rot);
-    const g=ctx.createLinearGradient(-w.len/2,0,w.len/2,0);
-    g.addColorStop(0,'rgba(0,0,0,0)');
-    g.addColorStop(0.12,w.color+'bb');
-    g.addColorStop(0.5,w.color);
-    g.addColorStop(0.88,w.color+'bb');
-    g.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=g;
-    ctx.beginPath(); ctx.ellipse(0,0,w.len/2,w.w/2,0,0,Math.PI*2); ctx.fill();
-    if (w.lethal) {
-      ctx.strokeStyle='rgba(255,255,80,0.65)'; ctx.lineWidth=1.2;
-      ctx.beginPath(); ctx.ellipse(0,0,w.len/2,w.w/2,0,0,Math.PI*2); ctx.stroke();
+  for (const side of [-1,1]) {
+    const pts=[];
+    for (let i=0;i<=steps;i++) {
+      const t=i/steps; const y=bhY+(H-bhY)*t;
+      pts.push({x:getTunnelCX(y)+side*tunnelHalfW, y});
     }
-    ctx.shadowBlur=0; ctx.restore();
+    /* broad outer glow */
+    ctx.beginPath();
+    pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    ctx.shadowColor='#ff2200';
+    ctx.shadowBlur=38+chaos*70+pulse*24+closeToWall*40;
+    ctx.strokeStyle=`rgba(255,${Math.floor(28+chaos*72)},0,${(0.52+chaos*0.33+closeToWall*0.15).toFixed(2)})`;
+    ctx.lineWidth=mob?24+chaos*18+closeToWall*10:16+chaos*14+closeToWall*8;
+    ctx.stroke();
+    /* bright core */
+    ctx.beginPath();
+    pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+    ctx.shadowColor='#ff7700';
+    ctx.shadowBlur=14+pulse*16+closeToWall*14;
+    ctx.strokeStyle=`rgba(255,${Math.floor(130+pulse*110)},${Math.floor(pulse*28)},${(0.88+chaos*0.12).toFixed(2)})`;
+    ctx.lineWidth=mob?6.5:4.5;
+    ctx.stroke();
+    ctx.shadowBlur=0;
   }
   ctx.restore();
 }
@@ -1142,7 +1198,7 @@ function updateDark(dt) {
 
   /* surge timer */
   surgeTimer-=dt;
-  if (surgeTimer<=0) { surgeTimer=6+Math.random()*2; if (score >= 15) surgeActive=2.2; }
+  if (surgeTimer<=0) { surgeTimer=6+Math.random()*2; if (score >= 15) { surgeActive=2.2; sndSurgePulse(); } }
   if (surgeActive>0) surgeActive=Math.max(0,surgeActive-dt);
 
   /* drift singularities — real mutual gravity + weak player chase */
@@ -1273,6 +1329,8 @@ function updateDark(dt) {
     const shk=critT*critT*12;
     parrotShakeX=(Math.random()-0.5)*shk; parrotShakeY=(Math.random()-0.5)*shk*0.60;
   }
+  updateDarkDrone(nearDist, nearSing, gravMag, dt);
+  updateDarkWhisper(dt);
 
   /* parrot afterimage trail */
   parrotTrail.unshift({x:player.x,y:player.y+PH/2,tilt:parrotTilt,sx:parrotSX,sy:parrotSY});
@@ -1340,10 +1398,10 @@ function updateDark(dt) {
   for (const sing of singularities) {
     if (Math.hypot(sing.x-pcx,sing.y-pcy)<sing.r+PW*0.28) {
       if (score>best) best=score;
-      deathMsg=DEATH_LINES_DARK[Math.floor(Math.random()*DEATH_LINES_DARK.length)];
+      deathMsg='Pulled into singularity';
       shockwaves.push({x:pcx,y:pcy,r:0,maxR:Math.hypot(canvas.width,canvas.height),alpha:1.0});
       fusionFlash=1.0; fusionShake=2.0;
-      deathFreezeTimer=0.22; state='dying'; return;
+      deathFreezeTimer=0.22; sndDeath(); state='dying'; return;
     }
   }
 }
@@ -1382,12 +1440,15 @@ function update(dt) {
       screenFlash=0.85; timeShake=1.4;
       timeTransitionLabel=(prev===0.35?'TIME FRACTURE':'FAST');
       timeTransitionAlpha=1.0;
+      sndTimeBend('up');
     } else if (timeScale===0.35) {
       timeSlowFlash=0.70;
       timeTransitionLabel=(prev===2.2?'TIME FRACTURE':'SLOW');
       timeTransitionAlpha=1.0;
+      sndTimeBend('down');
     } else {
       timeTransitionLabel='NORMAL'; timeTransitionAlpha=0.75;
+      sndTimeBend('norm');
     }
   }
   if (screenFlash>0)       screenFlash       =Math.max(0,screenFlash       -dt*2.2);
@@ -1412,6 +1473,20 @@ function update(dt) {
   if (touchY!==null) player.y=touchY-PH/2;
   player.x=Math.max(PW/2,Math.min(canvas.width-PW/2,player.x));
   player.y=Math.max(0,Math.min(canvas.height-PH,player.y));
+  /* anti-camping: idle > 2.5s spawns targeted obstacles */
+  {
+    const moveDist=Math.hypot(player.x-timePosTracker.x,player.y-timePosTracker.y);
+    if (moveDist<20) {
+      timePosTracker.timer+=dt;
+      if (timePosTracker.timer>=2.5) {
+        timePosTracker.timer=0; timePosTracker.x=player.x; timePosTracker.y=player.y;
+        spawnObstacle(true); spawnObstacle(true);
+      }
+    } else {
+      timePosTracker.timer=Math.max(0,timePosTracker.timer-dt*2);
+      timePosTracker.x=player.x; timePosTracker.y=player.y;
+    }
+  }
   shieldSpawnTimer+=dt;
   if (shieldSpawnTimer>=shieldSpawnInterval&&shieldPickup===null&&!shieldActive) {
     shieldSpawnTimer=0; shieldSpawnInterval=12+Math.random()*6; spawnShield();
@@ -1421,7 +1496,7 @@ function update(dt) {
     if (shieldPickup.y>canvas.height+60) { shieldPickup=null; }
     else {
       const phx=player.x-PW/2+SHRINK,phy=player.y+SHRINK,phw=PW-SHRINK*2,phh=PH-SHRINK*2,su=shieldPickup;
-      if (phx<su.x+su.w&&phx+phw>su.x&&phy<su.y+su.h&&phy+phh>su.y) { shieldPickup=null; shieldActive=true; shieldTimer=10.0; }
+      if (phx<su.x+su.w&&phx+phw>su.x&&phy<su.y+su.h&&phy+phh>su.y) { shieldPickup=null; shieldActive=true; shieldTimer=10.0; sndShieldPickup(); }
     }
   }
   if (shieldActive) { shieldTimer-=dt; if (shieldTimer<=0) { shieldActive=false; shieldTimer=0; } }
@@ -1441,16 +1516,24 @@ function update(dt) {
     ob.y+=ob.speed*dt*timeScale;
   }
   obstacles=obstacles.filter(ob=>ob.y<canvas.height+120);
+  { let _mdy=Infinity; for (const ob of obstacles) { const dy=ob.y-player.y; if (dy>-40) _mdy=Math.min(_mdy,dy); } updateTimeTick(_mdy,canvas.height,dt); }
   const hx=player.x-PW/2+SHRINK,hy=player.y+SHRINK,hw=PW-SHRINK*2,hh=PH-SHRINK*2;
   let hitOb=null;
   for (const ob of obstacles) { if (hx<ob.x+ob.w&&hx+hw>ob.x&&hy<ob.y+ob.h&&hy+hh>ob.y) { hitOb=ob; break; } }
   if (hitOb) {
-    if (shieldActive) { shieldBreakFlash=1.0; obstacles=obstacles.filter(o=>o!==hitOb); }
+    if (shieldActive) { shieldBreakFlash=1.0; obstacles=obstacles.filter(o=>o!==hitOb); sndShieldSnap(); }
     else {
       if (score>best) best=score;
-      deathMsg='cause: TIME DILATION';
+      deathMsg='Time collapse caught you';
       deathQuip=DEATH_QUIPS_TIME[Math.floor(Math.random()*DEATH_QUIPS_TIME.length)];
-      state='dead'; return;
+      sndDeath(); state='dead'; return;
+    }
+  }
+  /* near-miss shake: clock passes within 30px of expanded hitbox */
+  for (const ob of obstacles) {
+    if (ob===hitOb) continue;
+    if ((hx-30)<ob.x+ob.w && (hx+hw+30)>ob.x && hy<ob.y+ob.h+30 && hy+hh>ob.y-20) {
+      timeShake=Math.max(timeShake,0.50); break;
     }
   }
 }
@@ -1553,7 +1636,8 @@ function draw() {
   /* screen shake (dark/spag) */
   ctx.save();
   {
-    const _sh=(MODE==='dark'||MODE==='spaghetti')?fusionShake+(MODE==='spaghetti'?bhPulseBoost*0.6:0):(MODE==='time'?timeShake:0);
+    const _wallShk=MODE==='spaghetti'&&spagGrace<=0?Math.max(0,(Math.abs(player.x-getTunnelCX(player.y+PH/2))/Math.max(1,tunnelHalfW)-0.55)/0.45*0.45):0;
+    const _sh=(MODE==='dark'||MODE==='spaghetti')?fusionShake+(MODE==='spaghetti'?bhPulseBoost*0.6+_wallShk:0):(MODE==='time'?timeShake:0);
     if (_sh>0) ctx.translate((Math.random()-0.5)*_sh*16,(Math.random()-0.5)*_sh*12);
   }
 
@@ -1732,6 +1816,20 @@ function draw() {
     drawWorms();
     drawBlackHole();
 
+    /* wall proximity pre-danger — edge glow on near side */
+    if (spagGrace<=0) {
+      const _ptcx=getTunnelCX(player.y+PH/2);
+      const _wdelta=player.x-_ptcx;
+      const _wprox=Math.max(0,Math.abs(_wdelta)/Math.max(1,tunnelHalfW)-0.48)/0.52;
+      if (_wprox>0) {
+        const _sx=_wdelta>=0?W:0;
+        const _eg=ctx.createRadialGradient(_sx,H*0.5,H*0.06,_sx,H*0.5,W*0.72);
+        _eg.addColorStop(0,`rgba(255,70,0,${(_wprox*0.32).toFixed(2)})`);
+        _eg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.save(); ctx.fillStyle=_eg; ctx.fillRect(0,0,W,H); ctx.restore();
+      }
+    }
+
     /* danger proximity vignette */
     {
       const dist=Math.hypot(player.x-bhX,player.y+PH/2-bhY);
@@ -1775,17 +1873,18 @@ function draw() {
       ctx.restore();
     }
 
-    /* invert warning flash */
-    if (invertTimer>0) {
-      ctx.save(); ctx.globalAlpha=Math.min(0.22,invertTimer*0.5);
-      ctx.fillStyle='#ffaa00'; ctx.fillRect(0,0,W,H); ctx.restore();
-    }
-
     /* fusion flash reuse for death flash */
     if (fusionFlash>0) {
       ctx.save(); ctx.globalAlpha=fusionFlash*0.35;
       ctx.fillStyle='#ff2200'; ctx.fillRect(0,0,W,H); ctx.restore();
     }
+
+    /* worm hit flash */
+    if (spagStressFlash>0) {
+      ctx.save(); ctx.globalAlpha=spagStressFlash*0.50;
+      ctx.fillStyle='#ff4400'; ctx.fillRect(0,0,W,H); ctx.restore();
+    }
+
   }
 
   /* warp lines / speed streaks (time mode) */
@@ -1904,6 +2003,26 @@ function draw() {
       ctx.shadowBlur=0; ctx.restore();
     }
     for (const ob of obstacles) drawMeltingClock(ob);
+
+    /* danger vignette when clock is close to player */
+    {
+      const pcx=player.x, pcy=player.y+PH/2;
+      let minClockDist=Infinity;
+      for (const ob of obstacles) {
+        const d=Math.hypot(ob.x+ob.w/2-pcx, ob.y+ob.h/2-pcy);
+        if (d<minClockDist) minClockDist=d;
+      }
+      const dangerT=Math.max(0,1-minClockDist/130);
+      if (dangerT>0) {
+        ctx.save();
+        const dvg=ctx.createRadialGradient(W/2,H/2,H*0.15,W/2,H/2,H*0.96);
+        dvg.addColorStop(0,'rgba(0,0,0,0)');
+        dvg.addColorStop(1,`rgba(120,0,60,${(dangerT*dangerT*0.68).toFixed(3)})`);
+        ctx.fillStyle=dvg; ctx.fillRect(0,0,W,H);
+        ctx.globalAlpha=dangerT*dangerT*0.11; ctx.fillStyle='#cc0044';
+        ctx.fillRect(0,0,W,H); ctx.restore();
+      }
+    }
   }
 
   /* shield pickup */
@@ -1931,11 +2050,15 @@ function draw() {
     const pcx=player.x+parrotShakeX, pcy=player.y+PH/2+parrotShakeY;
     ctx.save();
     if (MODE==='spaghetti'&&spagStretch>0.04) {
+      const _ptcx=getTunnelCX(player.y+PH/2);
+      const _wlean=Math.max(0,(Math.abs(player.x-_ptcx)/Math.max(1,tunnelHalfW)-0.45)/0.55);
+      const _wdir=player.x>=_ptcx?1:-1;
       const angle=Math.atan2(bhY-(player.y+PH/2),bhX-player.x);
       ctx.translate(pcx,pcy);
+      ctx.rotate(_wdir*_wlean*0.14);
       const ax=angle+Math.PI/2;
       ctx.rotate(ax);
-      ctx.scale(1-spagStretch*0.60,1+spagStretch*1.05);
+      ctx.scale(1-spagStretch*0.60+_wlean*0.08,1+spagStretch*1.05);
       ctx.rotate(-ax);
     } else {
       ctx.translate(pcx,pcy); ctx.rotate(parrotTilt); ctx.scale(parrotSX,parrotSY);
@@ -1996,110 +2119,4 @@ function draw() {
 
   /* HUD */
   const hudAccent=MODE==='dark'?'#E8447A':MODE==='spaghetti'?'#FF5500':'#4499FF';
-  const hudMode=MODE==='dark'?'DARK MATTER':MODE==='spaghetti'?'SPAGHETTIFICATION':'TIME DILATION';
-  ctx.fillStyle='rgba(0,0,0,0.58)'; ctx.fillRect(10,10,244,56);
-  ctx.fillStyle=hudAccent; ctx.font='700 11px "Space Mono",monospace';
-  ctx.fillText(hudMode,18,26);
-  ctx.fillStyle='#F4F0E6'; ctx.font='700 19px "Space Mono",monospace';
-  ctx.fillText(`SIGNAL  ${Math.floor(score*10)}`,18,48);
-  if (MODE==='time') {
-    const tsLabel=timeScale===0.35?'SLOW  0.35×':timeScale===2.2?'FAST  2.2×':'1×';
-    const tsColor=timeScale===0.35?'#4488FF':timeScale===2.2?'#FF8800':'#8E6BFF';
-    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(10,72,244,26);
-    ctx.fillStyle=tsColor; ctx.font='700 13px "Space Mono",monospace'; ctx.fillText(tsLabel,18,89);
-  }
-  if (MODE==='dark') {
-    const dp=getDespair();
-    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(10,72,244,26);
-    ctx.fillStyle=`rgba(255,${Math.max(0,80-dp*12)},20,0.70)`;
-    if (dp>0) ctx.fillRect(12,74,Math.floor(dp*(236/6)),22);
-    ctx.fillStyle='rgba(255,180,180,0.88)'; ctx.font='700 11px "Space Mono",monospace';
-    ctx.fillText(`PRESSURE  ${dp}/6`,18,89);
-  }
-  if (MODE==='spaghetti') {
-    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(10,72,244,26);
-    const chaosCol=spagChaos>0.7?`rgb(255,${Math.floor((1-spagChaos)*160)},0)`:'#cc3300';
-    ctx.fillStyle=chaosCol; ctx.fillRect(12,74,Math.floor(240*spagChaos),22);
-    ctx.fillStyle='rgba(255,180,80,0.88)'; ctx.font='700 11px "Space Mono",monospace';
-    ctx.fillText('CHAOS',18,89);
-    if (invertTimer>0) {
-      ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(10,104,244,26);
-      ctx.fillStyle='#ffaa00'; ctx.font='700 12px "Space Mono",monospace';
-      ctx.fillText('CONTROLS INVERTED',18,120);
-    }
-  }
-
-  /* death screen */
-  if (state==='dead') {
-    ctx.fillStyle='rgba(4,0,7,0.90)'; ctx.fillRect(0,0,W,H);
-    const cx=W/2;
-    const dieColor=MODE==='spaghetti'?'#ff4400':MODE==='time'?'#4499FF':'#E8447A';
-    const mName=MODE==='dark'?'DARK MATTER':MODE==='spaghetti'?'SPAGHETTIFICATION':'TIME DILATION';
-    let nextY=H*0.13;
-    ctx.textAlign='center';
-    /* YOU DIED */
-    const dSz=Math.min(96,W*0.13);
-    ctx.font=`${dSz}px "Bangers",cursive`;
-    ctx.fillStyle='#000'; ctx.fillText('YOU DIED',cx+5,nextY+5);
-    ctx.shadowColor=dieColor; ctx.shadowBlur=22; ctx.fillStyle=dieColor;
-    ctx.fillText('YOU DIED',cx,nextY); ctx.shadowBlur=0;
-    nextY+=Math.floor(dSz*0.70);
-    /* mode name */
-    ctx.font=`700 ${Math.min(12,W*0.019)}px "Space Mono",monospace`;
-    ctx.fillStyle=dieColor+'99'; ctx.fillText(mName,cx,nextY); nextY+=18;
-    /* divider */
-    ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.fillRect(cx-120,nextY,240,1); nextY+=12;
-    /* cause */
-    const mSz=Math.min(17,W*0.027);
-    ctx.font=`700 ${mSz}px "Space Mono",monospace`;
-    ctx.fillStyle='#000'; ctx.fillText(deathMsg,cx+2,nextY+2);
-    ctx.fillStyle='#F4F0E6'; ctx.fillText(deathMsg,cx,nextY); nextY+=mSz+6;
-    /* quip */
-    if (deathQuip) {
-      const qSz=Math.min(11,W*0.017);
-      ctx.font=`700 ${qSz}px "Space Mono",monospace`;
-      ctx.fillStyle=MODE==='time'?'rgba(80,160,255,0.82)':MODE==='dark'?'rgba(200,80,120,0.80)':'rgba(255,130,50,0.80)';
-      ctx.fillText(`"${deathQuip}"`,cx,nextY); nextY+=qSz+10;
-    }
-    nextY+=6;
-    /* stats block */
-    const sSz=Math.min(14,W*0.022);
-    ctx.font=`700 ${sSz}px "Space Mono",monospace`;
-    ctx.fillStyle='rgba(244,240,230,0.50)';
-    ctx.fillText(`survived  ${score.toFixed(1)}s`,cx,nextY); nextY+=sSz+5;
-    ctx.fillText(`signal  ${Math.floor(score*10)}`,cx,nextY); nextY+=sSz+4;
-    if (best>0) { ctx.fillStyle='#F2B544'; ctx.fillText(`best  ${Math.floor(best*10)}`,cx,nextY); }
-    nextY+=sSz+18;
-    /* RE-ENTER button */
-    const bW=Math.min(300,W*0.58), bH=52, bX=cx-bW/2;
-    btn={x:bX,y:nextY,w:bW,h:bH};
-    ctx.fillStyle='#000'; ctx.fillRect(bX+4,nextY+4,bW,bH);
-    ctx.fillStyle=dieColor; ctx.fillRect(bX,nextY,bW,bH);
-    ctx.strokeStyle='#000'; ctx.lineWidth=2.5; ctx.strokeRect(bX,nextY,bW,bH);
-    ctx.fillStyle='#000'; ctx.font=`${Math.min(20,W*0.032)}px "Bangers",cursive`;
-    ctx.fillText('RE-ENTER THE VOID',cx,nextY+34); nextY+=bH+10;
-    /* CHANGE DIMENSION button */
-    btn2={x:bX,y:nextY,w:bW,h:bH};
-    ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.fillRect(bX,nextY,bW,bH);
-    ctx.strokeStyle='rgba(255,255,255,0.28)'; ctx.lineWidth=2; ctx.strokeRect(bX,nextY,bW,bH);
-    ctx.fillStyle='rgba(255,255,255,0.65)'; ctx.font=`${Math.min(20,W*0.032)}px "Bangers",cursive`;
-    ctx.fillText('CHANGE DIMENSION',cx,nextY+34);
-    ctx.textAlign='left';
-  }
-}
-
-/* ─── Game loop ────────────────────────────── */
-function loop(ts) {
-  if (lastTs===null) lastTs=ts;
-  const dt=Math.min((ts-lastTs)/1000,0.08);
-  lastTs=ts; update(dt); draw();
-  requestAnimationFrame(loop);
-}
-
-/* ─── Initialize ────────────────────────────── */
-player.x=canvas.width/2; player.y=canvas.height/2-PH/2;
-if (MODE) startMode(MODE);
-requestAnimationFrame(loop);
-</script>
-</body>
-</html>
+  const hudMode=MODE==='dark'
