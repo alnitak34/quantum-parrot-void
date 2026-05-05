@@ -31,21 +31,29 @@ function useSound() {
     const ctx = ensureCtx();
     if (ambientRef.current) return;
     const master = ctx.createGain();
-    master.gain.value = 0.045;
-    master.connect(ctx.destination);
+    master.gain.value = 0.012; // very low, mostly silence
+    // gentle low-pass to keep it dark and muffled
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 220;
+    lp.Q.value = 0.3;
+    master.connect(lp).connect(ctx.destination);
 
-    const freqs = [55, 82.4, 110, 146.8];
+    // Two very deep sine drones, slightly detuned for slow beating
+    const freqs = [38, 41.2];
     const oscs = freqs.map((f, i) => {
       const o = ctx.createOscillator();
-      o.type = i % 2 ? "sine" : "triangle";
+      o.type = "sine";
       o.frequency.value = f;
       const g = ctx.createGain();
-      g.gain.value = 0.5 / (i + 1);
-      // slow LFO for drift
+      g.gain.value = 0.0001;
+      // very slow fade-in
+      g.gain.exponentialRampToValueAtTime(0.5 / (i + 1), ctx.currentTime + 6);
+      // ultra-slow LFO for subtle drift
       const lfo = ctx.createOscillator();
-      lfo.frequency.value = 0.05 + i * 0.03;
+      lfo.frequency.value = 0.02 + i * 0.013;
       const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 0.6 + i * 0.2;
+      lfoGain.gain.value = 0.15;
       lfo.connect(lfoGain).connect(o.frequency);
       o.connect(g).connect(master);
       o.start();
@@ -70,18 +78,7 @@ function useSound() {
   };
 
   const click = () => {
-    if (!enabled || !ctxRef.current) return;
-    const ctx = ctxRef.current;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = "square";
-    o.frequency.setValueAtTime(880, ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.08);
-    g.gain.setValueAtTime(0.08, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
-    o.connect(g).connect(ctx.destination);
-    o.start();
-    o.stop(ctx.currentTime + 0.12);
+    // Intentionally silent — no button click / glitch / shimmer sounds.
   };
 
   const toggle = () => {
