@@ -8,6 +8,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
+import { gameUrlWithHandle } from "./handle";
+
 const GAME_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
 const OPENSEA_URL = "https://opensea.io/collection/the-10k-squad-350905768";
 
@@ -116,7 +118,7 @@ const Navbar = () => {
   const links: { label: string; onClick: () => void }[] = [
     {
       label: "GAME",
-      onClick: () => handleNav(() => window.open(GAME_URL, "_blank", "noopener,noreferrer")),
+      onClick: () => handleNav(() => window.open(gameUrlWithHandle(), "_blank", "noopener,noreferrer")),
     },
     {
       label: "NFTS",
@@ -258,7 +260,7 @@ const Navbar = () => {
             href={GAME_URL}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => sound.click()}
+            onClick={(e) => { sound.click(); e.currentTarget.href = gameUrlWithHandle(); }}
             className="btn-void inline-flex items-center justify-center px-6 py-3 text-lg mt-2"
           >
             PLAY NOW

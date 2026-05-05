@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { emit } from "./gameStore";
+import { saveHandle, gameUrlWithHandle, getHandle } from "./handle";
 import wizard from "@/assets/parrot-wizard.png";
 import hearts from "@/assets/parrot-hearts.png";
 import redeye from "@/assets/parrot-control.png";
@@ -10,19 +11,25 @@ import bad from "@/assets/parrot-bad.png";
 import cosmic from "@/assets/cosmic-bg.jpg";
 
 const Hero = () => {
-  const [handle, setHandle] = useState("");
+  const [handle, setHandleState] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("playerHandle");
-    if (saved) setHandle(saved);
+    const saved = getHandle() || localStorage.getItem("playerHandle") || "";
+    if (saved) setHandleState(saved);
   }, []);
 
-  const handleStart = () => {
-    const trimmed = handle.trim();
+  const onHandleChange = (val: string) => {
+    setHandleState(val);
+    saveHandle(val);
+    // keep legacy key in sync for any older readers
+    const trimmed = val.trim();
     if (trimmed) localStorage.setItem("playerHandle", trimmed);
     else localStorage.removeItem("playerHandle");
-    const el = document.getElementById("game");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const onEnterVoid = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    saveHandle(handle);
+    e.currentTarget.href = gameUrlWithHandle();
   };
 
   return (
@@ -147,7 +154,8 @@ const Hero = () => {
             className="mt-10 flex items-center gap-6 flex-wrap"
           >
             <a
-              href="https://alnitak34.github.io/quantum-parrot-void/game.html"
+              href={gameUrlWithHandle()}
+              onClick={onEnterVoid}
               target="_blank"
               rel="noopener noreferrer"
               className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
@@ -156,6 +164,7 @@ const Hero = () => {
               <ArrowRight className="h-7 w-7" strokeWidth={3} />
             </a>
 
+<<<<<<< HEAD
             <div className="flex flex-col gap-1" style={{ width: "200px" }}>
               <label className="font-mono text-xs text-foreground/60 tracking-wide">
                 Player name (optional)
@@ -167,11 +176,32 @@ const Hero = () => {
                 placeholder="your name or @yourX"
                 maxLength={24}
                 className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all"
+=======
+            <div className="flex flex-col gap-1" style={{ width: "240px" }}>
+              <label
+                htmlFor="qp-handle-input"
+                className="font-mono-x text-[10px] uppercase tracking-[0.2em] text-foreground/60"
+              >
+                Player name (optional)
+              </label>
+              <input
+                id="qp-handle-input"
+                type="text"
+                value={handle}
+                onChange={(e) => onHandleChange(e.target.value.slice(0, 24))}
+                placeholder="your name or @yourX"
+                maxLength={24}
+                className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all w-full"
+>>>>>>> e52a4d8fe097ccf29cc739134e851dbfa774cb65
                 style={{
                   boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
                 }}
               />
+<<<<<<< HEAD
               <p className="font-mono text-xs text-foreground/40 leading-snug">
+=======
+              <p className="font-mono-x text-[10px] leading-snug text-foreground/50">
+>>>>>>> e52a4d8fe097ccf29cc739134e851dbfa774cb65
                 Appears on the leaderboard. You can use any name or your X (Twitter) username. Leave empty to play as anonymous.
               </p>
             </div>
