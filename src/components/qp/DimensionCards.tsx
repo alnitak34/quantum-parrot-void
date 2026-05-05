@@ -4,11 +4,11 @@ import clock from "@/assets/icon-clock.png";
 import darkmatter from "@/assets/icon-darkmatter.png";
 import spaghetti from "@/assets/icon-spaghetti.png";
 
-const GAME_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
+import { gameUrlWithHandle } from "./handle";
 
 const handleCardClick = () => {
   toast("This is a preview. Enter the Void to play the real game.");
-  window.open(GAME_URL, "_blank", "noopener,noreferrer");
+  window.open(gameUrlWithHandle(), "_blank", "noopener,noreferrer");
 };
 
 interface Dim {
