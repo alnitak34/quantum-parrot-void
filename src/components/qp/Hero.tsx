@@ -164,18 +164,29 @@ const Hero = () => {
               <ArrowRight className="h-7 w-7" strokeWidth={3} />
             </a>
 
-            <input
-              type="text"
-              value={handle}
-              onChange={(e) => onHandleChange(e.target.value.slice(0, 24))}
-              placeholder="Enter handle"
-              maxLength={24}
-              className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all"
-              style={{
-                boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
-                width: "200px",
-              }}
-            />
+            <div className="flex flex-col gap-1" style={{ width: "240px" }}>
+              <label
+                htmlFor="qp-handle-input"
+                className="font-mono-x text-[10px] uppercase tracking-[0.2em] text-foreground/60"
+              >
+                X handle optional
+              </label>
+              <input
+                id="qp-handle-input"
+                type="text"
+                value={handle}
+                onChange={(e) => onHandleChange(e.target.value.slice(0, 24))}
+                placeholder="@yourhandle"
+                maxLength={24}
+                className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all w-full"
+                style={{
+                  boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
+                }}
+              />
+              <p className="font-mono-x text-[10px] leading-snug text-foreground/50">
+                Used only for leaderboard credit. Leave blank to play anonymous.
+              </p>
+            </div>
 
 
             {/* Chaos Awaits stamp */}
