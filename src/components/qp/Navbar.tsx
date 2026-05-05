@@ -1,35 +1,274 @@
+import { useEffect, useRef, useState } from "react";
+import { Menu, X, Volume2, VolumeX } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
+const GAME_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
+const OPENSEA_URL = "https://opensea.io/collection/the-10k-squad-350905768";
 
-const links = ["GAME", "NFTS", "LEADERBOARD", "ABOUT"];
+type ModalKind = null | "about" | "leaderboard";
+
+// Lightweight sound manager using WebAudio (no assets)
+function useSound() {
+  const [enabled, setEnabled] = useState(false);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const ambientRef = useRef<{ stop: () => void } | null>(null);
+
+  const ensureCtx = () => {
+    if (!ctxRef.current) {
+      const AC = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
+      ctxRef.current = new AC();
+    }
+    return ctxRef.current!;
+  };
+
+  const startAmbient = () => {
+    const ctx = ensureCtx();
+    if (ambientRef.current) return;
+    const master = ctx.createGain();
+    master.gain.value = 0.045;
+    master.connect(ctx.destination);
+
+    const freqs = [55, 82.4, 110, 146.8];
+    const oscs = freqs.map((f, i) => {
+      const o = ctx.createOscillator();
+      o.type = i % 2 ? "sine" : "triangle";
+      o.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.value = 0.5 / (i + 1);
+      // slow LFO for drift
+      const lfo = ctx.createOscillator();
+      lfo.frequency.value = 0.05 + i * 0.03;
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.value = 0.6 + i * 0.2;
+      lfo.connect(lfoGain).connect(o.frequency);
+      o.connect(g).connect(master);
+      o.start();
+      lfo.start();
+      return { o, lfo };
+    });
+
+    ambientRef.current = {
+      stop: () => {
+        oscs.forEach(({ o, lfo }) => {
+          try { o.stop(); } catch {}
+          try { lfo.stop(); } catch {}
+        });
+        try { master.disconnect(); } catch {}
+      },
+    };
+  };
+
+  const stopAmbient = () => {
+    ambientRef.current?.stop();
+    ambientRef.current = null;
+  };
+
+  const click = () => {
+    if (!enabled || !ctxRef.current) return;
+    const ctx = ctxRef.current;
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type = "square";
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.08);
+    g.gain.setValueAtTime(0.08, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
+    o.connect(g).connect(ctx.destination);
+    o.start();
+    o.stop(ctx.currentTime + 0.12);
+  };
+
+  const toggle = () => {
+    setEnabled((prev) => {
+      const next = !prev;
+      if (next) {
+        const ctx = ensureCtx();
+        if (ctx.state === "suspended") ctx.resume();
+        startAmbient();
+      } else {
+        stopAmbient();
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => () => stopAmbient(), []);
+
+  return { enabled, toggle, click };
+}
 
 const Navbar = () => {
+  const [open, setOpen] = useState(false);
+  const [modal, setModal] = useState<ModalKind>(null);
+  const sound = useSound();
+
+  const handleNav = (action: () => void) => {
+    sound.click();
+    setOpen(false);
+    action();
+  };
+
+  const links: { label: string; onClick: () => void }[] = [
+    {
+      label: "GAME",
+      onClick: () => handleNav(() => window.open(GAME_URL, "_blank", "noopener,noreferrer")),
+    },
+    {
+      label: "NFTS",
+      onClick: () => handleNav(() => window.open(OPENSEA_URL, "_blank", "noopener,noreferrer")),
+    },
+    { label: "LEADERBOARD", onClick: () => handleNav(() => setModal("leaderboard")) },
+    { label: "ABOUT", onClick: () => handleNav(() => setModal("about")) },
+  ];
+
   return (
-    <header className="relative z-30 w-full">
-      <nav className="container mx-auto flex items-center justify-between gap-4 px-4 py-5 md:py-6">
-        <a href="#" className="flex items-baseline gap-2" aria-label="10K Squad home">
-          <span className="font-graffiti text-3xl md:text-4xl text-primary" style={{ textShadow: "2px 2px 0 hsl(var(--void-deep))" }}>
-            10K
-          </span>
-          <span className="font-graffiti text-2xl md:text-3xl text-foreground" style={{ textShadow: "2px 2px 0 hsl(var(--void-deep))" }}>
-            SQUAD
-          </span>
-        </a>
+    <>
+      <header className="relative z-40 w-full">
+        <nav className="container mx-auto flex items-center justify-between gap-4 px-4 py-5 md:py-6">
+          <a href="#" className="flex items-baseline gap-2" aria-label="10K Squad home">
+            <span
+              className="font-graffiti text-3xl md:text-4xl text-primary"
+              style={{ textShadow: "2px 2px 0 hsl(var(--void-deep))" }}
+            >
+              10K
+            </span>
+            <span
+              className="font-graffiti text-2xl md:text-3xl text-foreground"
+              style={{ textShadow: "2px 2px 0 hsl(var(--void-deep))" }}
+            >
+              SQUAD
+            </span>
+          </a>
 
-        <ul className="hidden md:flex items-center gap-8 lg:gap-12">
-          {links.map((l) => (
-            <li key={l}>
-              <a
-                href={`#${l.toLowerCase()}`}
-                className="font-graffiti text-lg lg:text-xl text-foreground/90 hover:text-primary transition-colors"
-              >
-                {l}
-              </a>
-            </li>
-          ))}
-        </ul>
+          {/* Desktop links */}
+          <ul className="hidden md:flex items-center gap-8 lg:gap-12">
+            {links.map((l) => (
+              <li key={l.label}>
+                <button
+                  onClick={l.onClick}
+                  className="font-graffiti text-lg lg:text-xl text-foreground/90 hover:text-primary transition-colors"
+                >
+                  {l.label}
+                </button>
+              </li>
+            ))}
+          </ul>
 
-      </nav>
-    </header>
+          <div className="flex items-center gap-2">
+            {/* Sound toggle */}
+            <button
+              onClick={sound.toggle}
+              aria-label={sound.enabled ? "Turn sound off" : "Turn sound on"}
+              className="font-graffiti text-xs md:text-sm text-foreground/80 hover:text-primary transition-colors flex items-center gap-1.5 border border-primary/40 rounded-md px-2.5 py-1.5"
+            >
+              {sound.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              <span className="hidden sm:inline">{sound.enabled ? "SOUND ON" : "SOUND OFF"}</span>
+            </button>
+
+            {/* Mobile hamburger */}
+            <button
+              className="md:hidden p-2 rounded-md border border-primary/40 text-foreground"
+              onClick={() => setOpen((v) => !v)}
+              aria-label="Toggle navigation menu"
+              aria-expanded={open}
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </nav>
+
+        {/* Mobile menu panel */}
+        {open && (
+          <div className="md:hidden absolute left-0 right-0 top-full z-50 mx-4 panel-void border border-primary/30 rounded-md bg-background/95 backdrop-blur-md shadow-2xl">
+            <ul className="flex flex-col p-2">
+              {links.map((l) => (
+                <li key={l.label}>
+                  <button
+                    onClick={l.onClick}
+                    className="w-full text-left font-graffiti text-xl text-foreground/90 hover:text-primary px-4 py-4 rounded-md hover:bg-primary/10 transition-colors"
+                  >
+                    {l.label}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </header>
+
+      {/* About modal */}
+      <Dialog open={modal === "about"} onOpenChange={(o) => !o && setModal(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-background/95 border-primary/40">
+          <DialogHeader>
+            <DialogTitle className="font-graffiti text-3xl md:text-4xl text-primary">
+              ABOUT THE QUANTUM VOID
+            </DialogTitle>
+            <DialogDescription className="sr-only">About the project</DialogDescription>
+          </DialogHeader>
+          <div className="font-mono-x text-sm md:text-base text-foreground/85 space-y-4 leading-relaxed">
+            <p>
+              10K Quantum Parrots is a chaotic cosmic game inspired by Interstellar, black holes, time
+              dilation, dark matter, gravity, and the strange physics of impossible dimensions.
+            </p>
+            <p>
+              The 10K Squad parrots are not just collectibles. They are survivors of a quantum fracture:
+              10,000 unstable entities scattered across collapsing timelines, distorted gravity fields, and
+              unknown regions of space.
+            </p>
+            <p className="text-foreground/70">Each minigame represents a different cosmic phenomenon:</p>
+            <div>
+              <p className="font-graffiti text-time text-lg">Time Dilation</p>
+              <p>Time does not move normally. Seconds stretch, collapse, and betray you.</p>
+            </div>
+            <div>
+              <p className="font-graffiti text-foreground text-lg">Dark Matter</p>
+              <p>Invisible forces pull, bend, and distort movement. You survive by reading what cannot be seen.</p>
+            </div>
+            <div>
+              <p className="font-graffiti text-spaghetti text-lg">Spaghettification</p>
+              <p>Near the edge of a black hole, gravity stretches everything. Reality becomes unstable.</p>
+            </div>
+            <div className="pt-2 border-t border-primary/20">
+              <p className="font-handwritten text-xl text-primary">The objective is simple:</p>
+              <p>Survive the void.</p>
+              <p>Adapt to chaos.</p>
+              <p>Become one of the parrots that makes it through the anomaly.</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Leaderboard modal */}
+      <Dialog open={modal === "leaderboard"} onOpenChange={(o) => !o && setModal(null)}>
+        <DialogContent className="max-w-md bg-background/95 border-primary/40">
+          <DialogHeader>
+            <DialogTitle className="font-graffiti text-3xl text-primary">
+              LEADERBOARD COMING SOON
+            </DialogTitle>
+            <DialogDescription className="sr-only">Leaderboard coming soon</DialogDescription>
+          </DialogHeader>
+          <p className="font-mono-x text-sm text-foreground/80 leading-relaxed">
+            Soon, survivors of the Quantum Void will be ranked by score, survival time, and chaos
+            resistance.
+          </p>
+          <a
+            href={GAME_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => sound.click()}
+            className="btn-void inline-flex items-center justify-center px-6 py-3 text-lg mt-2"
+          >
+            PLAY NOW
+          </a>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
