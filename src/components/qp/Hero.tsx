@@ -11,19 +11,25 @@ import bad from "@/assets/parrot-bad.png";
 import cosmic from "@/assets/cosmic-bg.jpg";
 
 const Hero = () => {
-  const [handle, setHandle] = useState("");
+  const [handle, setHandleState] = useState("");
 
   useEffect(() => {
-    const saved = localStorage.getItem("playerHandle");
-    if (saved) setHandle(saved);
+    const saved = getHandle() || localStorage.getItem("playerHandle") || "";
+    if (saved) setHandleState(saved);
   }, []);
 
-  const handleStart = () => {
-    const trimmed = handle.trim();
+  const onHandleChange = (val: string) => {
+    setHandleState(val);
+    saveHandle(val);
+    // keep legacy key in sync for any older readers
+    const trimmed = val.trim();
     if (trimmed) localStorage.setItem("playerHandle", trimmed);
     else localStorage.removeItem("playerHandle");
-    const el = document.getElementById("game");
-    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const onEnterVoid = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    saveHandle(handle);
+    e.currentTarget.href = gameUrlWithHandle();
   };
 
   return (
