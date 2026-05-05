@@ -100,13 +100,14 @@ const DimensionCards = () => {
             transition={{ delay: i * 0.15, duration: 0.6 }}
             whileHover={{ scale: 1.03, y: -6 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => emit("game:startDimension", d.title)}
+            onClick={handleCardClick}
             role="button"
             tabIndex={0}
+            aria-label={`${d.title} preview — opens the real game in a new tab`}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                emit("game:startDimension", d.title);
+                handleCardClick();
               }
             }}
             className={`panel-void ${d.border} relative overflow-hidden group flex flex-col h-[360px] transition-shadow duration-300 cursor-pointer focus:outline-none`}
