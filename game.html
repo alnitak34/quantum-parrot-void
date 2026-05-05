@@ -2641,13 +2641,14 @@ const _sessionId = (() => {
 })();
 
 const _xHandle = (() => {
-  const raw = new URLSearchParams(location.search).get('handle');
-  if (!raw) return null;
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  const handle = trimmed.startsWith('@') ? trimmed : '@' + trimmed;
-  console.log('Handle detected: ' + handle);
-  return handle;
+  const params = new URLSearchParams(window.location.search);
+  let playerName = params.get("player") || params.get("handle") || null;
+  if (playerName) {
+    playerName = decodeURIComponent(playerName).trim();
+    if (playerName === "") playerName = null;
+  }
+  console.log("Player detected:", playerName);
+  return playerName;
 })();
 
 if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
