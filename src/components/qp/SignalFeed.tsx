@@ -26,13 +26,8 @@ const POOL: Omit<Signal, "time">[] = [
   { user: "@parrot_paradox", action: "looped reality", points: 256 },
 ];
 
-const TOP = [
-  { rank: 1, user: "@voidbagger69", score: 9420 },
-  { rank: 2, user: "@rektparrot", score: 7777 },
-  { rank: 3, user: "@hodlorama", score: 5555 },
-  { rank: 4, user: "@baguettebird", score: 3333 },
-  { rank: 5, user: "@im_bad_bro", score: 2222 },
-];
+const SUPABASE_URL = "https://fdjdwfdmqqyzkvqwkelk.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_cwmeuLKWxTcDon9vofJ0xQ_hu67qQvc";
 
 const stamp = () => {
   const d = new Date();
