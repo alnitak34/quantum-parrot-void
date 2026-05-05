@@ -31,11 +31,13 @@ function useSound() {
     const ctx = ensureCtx();
     if (ambientRef.current) return;
     const master = ctx.createGain();
-    master.gain.value = 0.012; // very low, mostly silence
+    master.gain.value = 0.0001;
+    // gentle fade-in to target volume (audible but low)
+    master.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 4);
     // gentle low-pass to keep it dark and muffled
     const lp = ctx.createBiquadFilter();
     lp.type = "lowpass";
-    lp.frequency.value = 220;
+    lp.frequency.value = 420;
     lp.Q.value = 0.3;
     master.connect(lp).connect(ctx.destination);
 
