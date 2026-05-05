@@ -8,6 +8,8 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
+import { gameUrlWithHandle } from "./handle";
+
 const GAME_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
 const OPENSEA_URL = "https://opensea.io/collection/the-10k-squad-350905768";
 
