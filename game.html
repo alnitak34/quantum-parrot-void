@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
   <title>10K Quantum Parrots</title>
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
@@ -262,6 +266,7 @@ canvas.addEventListener('click', e => {
 /* ─── Mode management ──────────────────────── */
 function startMode(mode) {
   stopAllContinuousSounds();
+  _runSaved=false;
   MODE=mode; state='playing'; score=0; lastTs=null;
   player.x=canvas.width/2; deathQuip=''; btn=null; btn2=null;
   if (mode==='dark') {
@@ -616,6 +621,7 @@ function updateSpaghetti(dt) {
     deathMsg=diedFromBH?'EVENT HORIZON':'TIDAL FORCES';
     deathQuip=diedFromBH?'no exit liquidity beyond this point':'you became liquidity, but longer';
     shockwaves.push({x:player.x,y:player.y+PH/2,r:0,maxR:Math.hypot(W,H),alpha:1.0});
+    saveRun('spaghettification');
     fusionFlash=1.0; fusionShake=2.5; deathFreezeTimer=0.22; sndDeath(); state='dying';
   }
 }
@@ -1401,6 +1407,7 @@ function updateDark(dt) {
       deathMsg='Pulled into singularity';
       shockwaves.push({x:pcx,y:pcy,r:0,maxR:Math.hypot(canvas.width,canvas.height),alpha:1.0});
       fusionFlash=1.0; fusionShake=2.0;
+      saveRun('dark_matter');
       deathFreezeTimer=0.22; sndDeath(); state='dying'; return;
     }
   }
@@ -1526,6 +1533,7 @@ function update(dt) {
       if (score>best) best=score;
       deathMsg='Time collapse caught you';
       deathQuip=DEATH_QUIPS_TIME[Math.floor(Math.random()*DEATH_QUIPS_TIME.length)];
+      saveRun('time_dilation');
       sndDeath(); state='dead'; return;
     }
   }
@@ -2521,6 +2529,46 @@ function stopSpagTone() {
   _spagTone=null;
 }
 function stopAllContinuousSounds() { stopDarkDrone(); stopSpagTone(); }
+
+/* ─── Supabase ───────────────────────────────── */
+let _sbClient = null;
+let _runSaved  = false;
+
+const _sessionId = (() => {
+  const KEY = 'qp_session_id';
+  let id = localStorage.getItem(KEY);
+  if (!id) {
+    id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem(KEY, id);
+  }
+  return id;
+})();
+
+if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
+  try {
+    _sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+    console.log('Supabase connected');
+  } catch (e) {
+    console.warn('Supabase init failed', e);
+  }
+}
+
+function saveRun(game) {
+  if (!_sbClient || _runSaved) return;
+  _runSaved = true;
+  const row = {
+    game,
+    score:         Math.round(score),
+    survival_time: Math.round(score),
+    session_id:    _sessionId,
+    device:        canvas.width < 768 ? 'mobile' : 'desktop',
+    x_handle:      null,
+  };
+  _sbClient.from('game_runs').insert(row).then(({ error }) => {
+    if (error) console.warn('Run save failed', error);
+    else       console.log('Run saved');
+  });
+}
 
 /* ─── Initialize ────────────────────────────── */
 player.x=canvas.width/2; player.y=canvas.height/2-PH/2;
