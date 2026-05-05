@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import clock from "@/assets/icon-clock.png";
 import darkmatter from "@/assets/icon-darkmatter.png";
 import spaghetti from "@/assets/icon-spaghetti.png";
-import { emit } from "./gameStore";
+
+const GAME_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
+
+const handleCardClick = () => {
+  toast("This is a preview. Enter the Void to play the real game.");
+  window.open(GAME_URL, "_blank", "noopener,noreferrer");
+};
 
 interface Dim {
   n: number;
