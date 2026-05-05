@@ -169,14 +169,14 @@ const Hero = () => {
                 htmlFor="qp-handle-input"
                 className="font-mono-x text-[10px] uppercase tracking-[0.2em] text-foreground/60"
               >
-                X handle optional
+                Player name optional
               </label>
               <input
                 id="qp-handle-input"
                 type="text"
                 value={handle}
                 onChange={(e) => onHandleChange(e.target.value.slice(0, 24))}
-                placeholder="@yourhandle"
+                placeholder="your name or @handle"
                 maxLength={24}
                 className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all w-full"
                 style={{
