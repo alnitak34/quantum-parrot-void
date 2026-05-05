@@ -1,31 +1,46 @@
-// Shared helpers for the X handle used to deep-link into the real game.
-export const HANDLE_KEY = "qp_x_handle";
+// Shared helpers for the player name used to deep-link into the real game.
+export const PLAYER_KEY = "qp_player_name";
+export const HANDLE_KEY = "qp_x_handle"; // legacy
 export const GAME_BASE_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
 
-export function normalizeHandle(raw: string | null | undefined): string {
+export function normalizePlayer(raw: string | null | undefined): string {
   if (!raw) return "";
-  const trimmed = raw.trim();
-  if (!trimmed) return "";
-  const stripped = trimmed.replace(/^@+/, "");
-  if (!stripped) return "";
-  return "@" + stripped;
+  return raw.trim();
 }
 
-export function saveHandle(raw: string): string {
+function migrateLegacy() {
+  if (typeof window === "undefined") return;
+  const current = localStorage.getItem(PLAYER_KEY);
+  if (current) return;
+  const legacy = localStorage.getItem(HANDLE_KEY);
+  if (legacy) {
+    const normalized = normalizePlayer(legacy);
+    if (normalized) localStorage.setItem(PLAYER_KEY, normalized);
+    localStorage.removeItem(HANDLE_KEY);
+  }
+}
+
+export function savePlayer(raw: string): string {
   if (typeof window === "undefined") return "";
-  const normalized = normalizeHandle(raw);
-  if (normalized) localStorage.setItem(HANDLE_KEY, normalized);
-  else localStorage.removeItem(HANDLE_KEY);
+  const normalized = normalizePlayer(raw);
+  if (normalized) localStorage.setItem(PLAYER_KEY, normalized);
+  else localStorage.removeItem(PLAYER_KEY);
   return normalized;
 }
 
-export function getHandle(): string {
+export function getPlayer(): string {
   if (typeof window === "undefined") return "";
-  return normalizeHandle(localStorage.getItem(HANDLE_KEY));
+  migrateLegacy();
+  return normalizePlayer(localStorage.getItem(PLAYER_KEY));
 }
 
 export function gameUrlWithHandle(): string {
-  const h = getHandle();
-  if (!h) return GAME_BASE_URL;
-  return `${GAME_BASE_URL}?handle=${encodeURIComponent(h)}`;
+  const p = getPlayer();
+  if (!p) return GAME_BASE_URL;
+  return `${GAME_BASE_URL}?player=${encodeURIComponent(p)}`;
 }
+
+// Backwards-compat aliases (still used by other components)
+export const saveHandle = savePlayer;
+export const getHandle = getPlayer;
+export const normalizeHandle = normalizePlayer;
