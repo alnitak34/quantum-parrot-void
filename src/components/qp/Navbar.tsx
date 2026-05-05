@@ -78,18 +78,7 @@ function useSound() {
   };
 
   const click = () => {
-    if (!enabled || !ctxRef.current) return;
-    const ctx = ctxRef.current;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = "square";
-    o.frequency.setValueAtTime(880, ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(220, ctx.currentTime + 0.08);
-    g.gain.setValueAtTime(0.08, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
-    o.connect(g).connect(ctx.destination);
-    o.start();
-    o.stop(ctx.currentTime + 0.12);
+    // Intentionally silent — no button click / glitch / shimmer sounds.
   };
 
   const toggle = () => {
