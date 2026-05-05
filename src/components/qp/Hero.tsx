@@ -156,18 +156,25 @@ const Hero = () => {
               <ArrowRight className="h-7 w-7" strokeWidth={3} />
             </a>
 
-            <input
-              type="text"
-              value={handle}
-              onChange={(e) => setHandle(e.target.value.slice(0, 24))}
-              placeholder="Enter handle"
-              maxLength={24}
-              className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all"
-              style={{
-                boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
-                width: "200px",
-              }}
-            />
+            <div className="flex flex-col gap-1" style={{ width: "200px" }}>
+              <label className="font-mono text-xs text-foreground/60 tracking-wide">
+                Player name (optional)
+              </label>
+              <input
+                type="text"
+                value={handle}
+                onChange={(e) => setHandle(e.target.value.slice(0, 24))}
+                placeholder="your name or @yourX"
+                maxLength={24}
+                className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all"
+                style={{
+                  boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
+                }}
+              />
+              <p className="font-mono text-xs text-foreground/40 leading-snug">
+                Appears on the leaderboard. You can use any name or your X (Twitter) username. Leave empty to play as anonymous.
+              </p>
+            </div>
 
 
             {/* Chaos Awaits stamp */}
