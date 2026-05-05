@@ -260,7 +260,7 @@ const Navbar = () => {
             href={GAME_URL}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => sound.click()}
+            onClick={(e) => { sound.click(); e.currentTarget.href = gameUrlWithHandle(); }}
             className="btn-void inline-flex items-center justify-center px-6 py-3 text-lg mt-2"
           >
             PLAY NOW
