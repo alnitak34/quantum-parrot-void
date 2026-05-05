@@ -138,15 +138,15 @@ const DimensionCards = () => {
             />
 
             {/* Top row: badge + title */}
-            <div className="relative flex items-center gap-3">
+            <div className="relative flex items-center gap-2 md:gap-3 min-w-0">
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-graffiti text-lg ${d.numColor}`}>
                 {d.n}
               </div>
-              <h3 className="font-graffiti text-xl md:text-2xl text-foreground leading-tight flex-1">
+              <h3 className="font-graffiti text-lg md:text-2xl text-foreground leading-tight flex-1 min-w-0 truncate">
                 {d.title}
               </h3>
-              <span className="font-mono-x text-[10px] tracking-[0.2em] uppercase border border-current/40 rounded px-1.5 py-0.5 text-foreground/70">
-                Preview only
+              <span className="shrink-0 font-mono-x text-[9px] md:text-[10px] tracking-[0.15em] md:tracking-[0.2em] uppercase border border-current/40 rounded px-1 md:px-1.5 py-0.5 text-foreground/70 whitespace-nowrap">
+                Preview
               </span>
             </div>
 
