@@ -2,6 +2,7 @@ import Stars from "@/components/qp/Stars";
 import Navbar from "@/components/qp/Navbar";
 import Hero from "@/components/qp/Hero";
 import DimensionCards from "@/components/qp/DimensionCards";
+import NftCta from "@/components/qp/NftCta";
 import SignalFeed from "@/components/qp/SignalFeed";
 import StickyNote from "@/components/qp/StickyNote";
 import Footer from "@/components/qp/Footer";
@@ -19,6 +20,7 @@ const Index = () => {
       <Navbar />
       <Hero />
       <DimensionCards />
+      <NftCta />
 
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-center">
