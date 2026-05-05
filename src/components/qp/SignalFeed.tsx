@@ -12,64 +12,86 @@ interface Signal {
   pinnedUntil?: number;
 }
 
-const PIN_MS = 20000;
+interface TopRow {
+  rank: number;
+  user: string;
+  score: number;
+}
 
-const POOL: Omit<Signal, "time">[] = [
-  { user: "@voidbagger69", action: "got spaghettified", points: 420 },
-  { user: "@rektparrot", action: "entered dark matter", points: 311 },
-  { user: "@hodlorama", action: "warped through time", points: 277 },
-  { user: "@baguettebird", action: "stretched too far", points: 233 },
-  { user: "@im_bad_bro", action: "vanished into void", points: 199 },
-  { user: "@quantum_qween", action: "got time dilated", points: 512 },
-  { user: "@nft_necromancer", action: "fed the dark", points: 369 },
-  { user: "@monad_mage", action: "bent gravity", points: 444 },
-  { user: "@parrot_paradox", action: "looped reality", points: 256 },
-];
+const PIN_MS = 20000;
 
 const SUPABASE_URL = "https://fdjdwfdmqqyzkvqwkelk.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_cwmeuLKWxTcDon9vofJ0xQ_hu67qQvc";
 
-const stamp = () => {
-  const d = new Date();
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
+const stamp = (d: Date = new Date()) =>
+  `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(d.getSeconds()).padStart(2, "0")}`;
+
+const actionFor = (game: string | null | undefined) => {
+  const g = (game || "").toLowerCase();
+  if (g.includes("time")) return "warped through time";
+  if (g.includes("dark")) return "entered dark matter";
+  if (g.includes("spaghet")) return "got spaghettified";
+  if (g.includes("void")) return "vanished into void";
+  return "survived the void";
 };
 
 const SignalFeed = () => {
-  const [feed, setFeed] = useState<Signal[]>(() =>
-    POOL.slice(0, 4).map((s) => ({ ...s, time: stamp() }))
-  );
-  const [top, setTop] = useState(TOP);
+  const [feed, setFeed] = useState<Signal[]>([]);
+  const [top, setTop] = useState<TopRow[]>([]);
+  const [error, setError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
+  // Fetch leaderboard from Supabase
   useEffect(() => {
-    const id = setInterval(() => {
-      setFeed((prev) => {
-        const now = Date.now();
-        const next = POOL[Math.floor(Math.random() * POOL.length)];
-        const newItem: Signal = { ...next, time: stamp() };
-        // Preserve pinned (active) entries at the top
-        const pinned = prev.filter((s) => s.pinned && s.pinnedUntil && s.pinnedUntil > now);
-        const others = prev.filter((s) => !pinned.includes(s));
-        const remaining = Math.max(0, 4 - pinned.length);
-        return [...pinned, newItem, ...others].slice(0, Math.max(4, pinned.length + remaining));
-      });
-    }, 3000);
-    // tick to refresh once pin expires (so order can settle)
-    const expireTick = setInterval(() => {
-      setFeed((prev) => {
-        const now = Date.now();
-        if (!prev.some((s) => s.pinned && s.pinnedUntil && s.pinnedUntil <= now)) return prev;
-        return prev.map((s) =>
-          s.pinned && s.pinnedUntil && s.pinnedUntil <= now ? { ...s, pinned: false } : s
-        );
-      });
-    }, 1000);
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=score,game,created_at,x_handle&order=score.desc&limit=10`;
+        const res = await fetch(url, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const rows: Array<{
+          score: number;
+          game: string | null;
+          created_at: string;
+          x_handle: string | null;
+        }> = await res.json();
+        if (cancelled) return;
+
+        const topRows: TopRow[] = rows.map((r, i) => ({
+          rank: i + 1,
+          user: r.x_handle ? (r.x_handle.startsWith("@") ? r.x_handle : `@${r.x_handle}`) : "anonymous_parrot",
+          score: Number(r.score) || 0,
+        }));
+        setTop(topRows);
+
+        const feedRows: Signal[] = rows.slice(0, 6).map((r) => ({
+          time: stamp(new Date(r.created_at)),
+          user: r.x_handle ? (r.x_handle.startsWith("@") ? r.x_handle : `@${r.x_handle}`) : "anonymous_parrot",
+          action: actionFor(r.game),
+          points: Number(r.score) || 0,
+        }));
+        setFeed(feedRows);
+        setError(false);
+      } catch (e) {
+        if (!cancelled) setError(true);
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    };
+    load();
+    const id = setInterval(load, 30000);
     return () => {
+      cancelled = true;
       clearInterval(id);
-      clearInterval(expireTick);
     };
   }, []);
 
-  // Listen to live game events
+  // Live game events still pin "YOUR RUN" entries on top of the feed
   useEffect(() => {
     const offFeed = on("feed:push", (s) => {
       const isDeath = s.action.startsWith("died");
@@ -82,31 +104,57 @@ const SignalFeed = () => {
         pinnedUntil: isDeath ? Date.now() + PIN_MS : undefined,
       };
       setFeed((prev) => {
-        if (isDeath) {
-          // remove any existing pinned (only one YOUR RUN at a time), keep others
-          const others = prev.filter((p) => !p.pinned);
-          return [item, ...others].slice(0, 4);
-        }
+        const others = prev.filter((p) => !p.pinned);
+        return [item, ...others].slice(0, 6);
+      });
+    });
+    const expireTick = setInterval(() => {
+      setFeed((prev) => {
         const now = Date.now();
-        const pinned = prev.filter((p) => p.pinned && p.pinnedUntil && p.pinnedUntil > now);
-        const others = prev.filter((p) => !pinned.includes(p));
-        return [...pinned, item, ...others].slice(0, 4);
+        if (!prev.some((s) => s.pinned && s.pinnedUntil && s.pinnedUntil <= now)) return prev;
+        return prev.map((s) =>
+          s.pinned && s.pinnedUntil && s.pinnedUntil <= now ? { ...s, pinned: false } : s
+        );
       });
-    });
-    const offTop = on("top:push", (entry) => {
-      setTop((prev) => {
-        const merged = [...prev, { rank: 0, ...entry }]
-          .sort((a, b) => b.score - a.score)
-          .slice(0, 5)
-          .map((t, i) => ({ ...t, rank: i + 1 }));
-        return merged;
-      });
-    });
+    }, 1000);
     return () => {
       offFeed();
-      offTop();
+      clearInterval(expireTick);
     };
   }, []);
+
+  const rankStyles: Record<number, { row: string; user: string; score: string; bar: string }> = {
+    1: {
+      row: "text-lg py-1.5",
+      user: "text-primary font-bold drop-shadow-[0_0_10px_hsl(var(--primary)/0.8)]",
+      score: "text-primary font-bold tabular-nums",
+      bar: "h-4 w-4 text-primary",
+    },
+    2: {
+      row: "text-base",
+      user: "text-foreground font-semibold",
+      score: "text-foreground/90 tabular-nums",
+      bar: "h-3.5 w-3.5 text-signal",
+    },
+    3: {
+      row: "text-sm",
+      user: "text-foreground/90",
+      score: "text-foreground/80 tabular-nums",
+      bar: "h-3.5 w-3.5 text-signal",
+    },
+    4: {
+      row: "text-sm opacity-60",
+      user: "text-foreground/70",
+      score: "text-foreground/60 tabular-nums",
+      bar: "h-3 w-3 text-signal/70",
+    },
+    5: {
+      row: "text-sm opacity-50",
+      user: "text-foreground/60",
+      score: "text-foreground/50 tabular-nums",
+      bar: "h-3 w-3 text-signal/60",
+    },
+  };
 
   return (
     <section className="w-full" id="leaderboard">
@@ -143,33 +191,42 @@ const SignalFeed = () => {
               <Zap className="h-4 w-4 text-primary fill-primary animate-flicker" />
               <span className="font-graffiti text-lg text-foreground tracking-wide">LIVE SIGNAL FEED</span>
             </div>
-            <ul className="font-mono-x text-sm space-y-1.5 min-h-[120px]">
-              <AnimatePresence initial={false}>
-                {feed.map((s, i) => (
-                  <motion.li
-                    key={`${s.time}-${s.user}-${i}`}
-                    initial={{ opacity: 0, x: -10, height: 0 }}
-                    animate={{ opacity: 1 - i * 0.15, x: 0, height: "auto" }}
-                    exit={{ opacity: 0, x: 10 }}
-                    transition={{ duration: 0.4 }}
-                    className={`flex items-center gap-2 flex-wrap px-2 py-1 -mx-2 rounded-md transition-all duration-200 hover:bg-secondary/10 hover:shadow-[0_0_18px_hsl(var(--secondary)/0.35)] ${i === 0 ? "animate-pulse-soft" : ""}`}
-                  >
-                    <span className="text-muted-foreground/70">[{s.time}]</span>
-                    <span className="signal-line font-bold">{s.user}</span>
-                    {s.pinned && (
-                      <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-primary/20 text-primary border border-primary/40">
-                        YOUR RUN
+            {error ? (
+              <p className="font-mono-x text-sm text-muted-foreground min-h-[120px]">
+                Signal feed temporarily unavailable.
+              </p>
+            ) : (
+              <ul className="font-mono-x text-sm space-y-1.5 min-h-[120px]">
+                <AnimatePresence initial={false}>
+                  {feed.map((s, i) => (
+                    <motion.li
+                      key={`${s.time}-${s.user}-${i}`}
+                      initial={{ opacity: 0, x: -10, height: 0 }}
+                      animate={{ opacity: 1 - i * 0.12, x: 0, height: "auto" }}
+                      exit={{ opacity: 0, x: 10 }}
+                      transition={{ duration: 0.4 }}
+                      className={`flex items-center gap-2 flex-wrap px-2 py-1 -mx-2 rounded-md transition-all duration-200 hover:bg-secondary/10 hover:shadow-[0_0_18px_hsl(var(--secondary)/0.35)] ${i === 0 && s.pinned ? "animate-pulse-soft" : ""}`}
+                    >
+                      <span className="text-muted-foreground/70">[{s.time}]</span>
+                      <span className="signal-line font-bold">{s.user}</span>
+                      {s.pinned && (
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-primary/20 text-primary border border-primary/40">
+                          YOUR RUN
+                        </span>
+                      )}
+                      <span className="text-foreground/70">{s.action}</span>
+                      <span className="ml-auto flex items-center gap-1 text-foreground/70">
+                        <Skull className="h-3.5 w-3.5" /> +{s.points}
+                        <BarChart3 className="h-3.5 w-3.5 text-signal" />
                       </span>
-                    )}
-                    <span className="text-foreground/70">{s.action}</span>
-                    <span className="ml-auto flex items-center gap-1 text-foreground/70">
-                      <Skull className="h-3.5 w-3.5" /> +{s.points}
-                      <BarChart3 className="h-3.5 w-3.5 text-signal" />
-                    </span>
-                  </motion.li>
-                ))}
-              </AnimatePresence>
-            </ul>
+                    </motion.li>
+                  ))}
+                </AnimatePresence>
+                {loaded && feed.length === 0 && (
+                  <li className="text-muted-foreground/70">Awaiting signals from the void…</li>
+                )}
+              </ul>
+            )}
           </div>
 
           {/* RIGHT: Top signals */}
@@ -178,51 +235,28 @@ const SignalFeed = () => {
               <span className="font-graffiti text-lg text-foreground tracking-wide">TOP SIGNALS</span>
               <Crown className="h-5 w-5 text-primary fill-primary/40" />
             </div>
-            <ol className="font-mono-x space-y-1.5">
-              {top.map((t) => {
-                const styles: Record<number, { row: string; user: string; score: string; bar: string }> = {
-                  1: {
-                    row: "text-lg py-1.5",
-                    user: "text-primary font-bold drop-shadow-[0_0_10px_hsl(var(--primary)/0.8)]",
-                    score: "text-primary font-bold tabular-nums",
-                    bar: "h-4 w-4 text-primary",
-                  },
-                  2: {
-                    row: "text-base",
-                    user: "text-foreground font-semibold",
-                    score: "text-foreground/90 tabular-nums",
-                    bar: "h-3.5 w-3.5 text-signal",
-                  },
-                  3: {
-                    row: "text-sm",
-                    user: "text-foreground/90",
-                    score: "text-foreground/80 tabular-nums",
-                    bar: "h-3.5 w-3.5 text-signal",
-                  },
-                  4: {
-                    row: "text-sm opacity-60",
-                    user: "text-foreground/70",
-                    score: "text-foreground/60 tabular-nums",
-                    bar: "h-3 w-3 text-signal/70",
-                  },
-                  5: {
-                    row: "text-sm opacity-50",
-                    user: "text-foreground/60",
-                    score: "text-foreground/50 tabular-nums",
-                    bar: "h-3 w-3 text-signal/60",
-                  },
-                };
-                const s = styles[t.rank];
-                return (
-                  <li key={t.rank} className={`flex items-center gap-3 ${s.row}`}>
-                    <span className="text-muted-foreground/70 w-6 text-right tabular-nums">{t.rank}.</span>
-                    <span className={`flex-1 truncate ${s.user}`}>{t.user}</span>
-                    <span className={`ml-auto w-20 text-right ${s.score}`}>{t.score.toLocaleString()}</span>
-                    <BarChart3 className={s.bar} />
-                  </li>
-                );
-              })}
-            </ol>
+            {error ? (
+              <p className="font-mono-x text-sm text-muted-foreground">
+                Signal feed temporarily unavailable.
+              </p>
+            ) : (
+              <ol className="font-mono-x space-y-1.5">
+                {top.map((t) => {
+                  const s = rankStyles[Math.min(t.rank, 5)];
+                  return (
+                    <li key={`${t.rank}-${t.user}`} className={`flex items-center gap-3 ${s.row}`}>
+                      <span className="text-muted-foreground/70 w-6 text-right tabular-nums">{t.rank}.</span>
+                      <span className={`flex-1 truncate ${s.user}`}>{t.user}</span>
+                      <span className={`ml-auto w-20 text-right ${s.score}`}>{t.score.toLocaleString()}</span>
+                      <BarChart3 className={s.bar} />
+                    </li>
+                  );
+                })}
+                {loaded && top.length === 0 && (
+                  <li className="text-muted-foreground/70 text-sm">No signals yet.</li>
+                )}
+              </ol>
+            )}
             <button className="mt-4 flex items-center gap-1 font-graffiti text-primary hover:text-primary-glow transition-colors text-sm">
               VIEW FULL FEED <ArrowRight className="h-4 w-4" strokeWidth={3} />
             </button>
