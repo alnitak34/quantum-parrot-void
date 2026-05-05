@@ -118,7 +118,7 @@ const Navbar = () => {
   const links: { label: string; onClick: () => void }[] = [
     {
       label: "GAME",
-      onClick: () => handleNav(() => window.open(GAME_URL, "_blank", "noopener,noreferrer")),
+      onClick: () => handleNav(() => window.open(gameUrlWithHandle(), "_blank", "noopener,noreferrer")),
     },
     {
       label: "NFTS",
