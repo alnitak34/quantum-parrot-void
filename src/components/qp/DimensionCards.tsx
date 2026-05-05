@@ -142,9 +142,12 @@ const DimensionCards = () => {
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-graffiti text-lg ${d.numColor}`}>
                 {d.n}
               </div>
-              <h3 className="font-graffiti text-xl md:text-2xl text-foreground leading-tight">
+              <h3 className="font-graffiti text-xl md:text-2xl text-foreground leading-tight flex-1">
                 {d.title}
               </h3>
+              <span className="font-mono-x text-[10px] tracking-[0.2em] uppercase border border-current/40 rounded px-1.5 py-0.5 text-foreground/70">
+                Preview only
+              </span>
             </div>
 
             {/* Middle: description + image right */}
