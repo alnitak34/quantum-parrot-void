@@ -2119,4 +2119,414 @@ function draw() {
 
   /* HUD */
   const hudAccent=MODE==='dark'?'#E8447A':MODE==='spaghetti'?'#FF5500':'#4499FF';
-  const hudMode=MODE==='dark'
+  const hudMode=MODE==='dark'?'DARK MATTER':MODE==='spaghetti'?'SPAGHETTIFICATION':'TIME DILATION';
+  ctx.fillStyle='rgba(0,0,0,0.58)'; ctx.fillRect(10,10,244,56);
+  ctx.fillStyle=hudAccent; ctx.font='700 11px "Space Mono",monospace';
+  ctx.fillText(hudMode,18,26);
+  ctx.fillStyle='#F4F0E6'; ctx.font='700 19px "Space Mono",monospace';
+  ctx.fillText(`SIGNAL  ${Math.floor(score*10)}`,18,48);
+  if (MODE==='time') {
+    const tsLabel=timeScale===0.35?'SLOW  0.35×':timeScale===2.2?'FAST  2.2×':'1×';
+    const tsColor=timeScale===0.35?'#4488FF':timeScale===2.2?'#FF8800':'#8E6BFF';
+    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(10,72,244,26);
+    ctx.fillStyle=tsColor; ctx.font='700 13px "Space Mono",monospace'; ctx.fillText(tsLabel,18,89);
+  }
+  if (MODE==='dark') {
+    const dp=getDespair();
+    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(10,72,244,26);
+    ctx.fillStyle=`rgba(255,${Math.max(0,80-dp*12)},20,0.70)`;
+    if (dp>0) ctx.fillRect(12,74,Math.floor(dp*(236/6)),22);
+    ctx.fillStyle='rgba(255,180,180,0.88)'; ctx.font='700 11px "Space Mono",monospace';
+    ctx.fillText(`PRESSURE  ${dp}/6`,18,89);
+  }
+  if (MODE==='spaghetti') {
+    ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(10,72,244,26);
+    const chaosCol=spagChaos>0.7?`rgb(255,${Math.floor((1-spagChaos)*160)},0)`:'#cc3300';
+    ctx.fillStyle=chaosCol; ctx.fillRect(12,74,Math.floor(240*spagChaos),22);
+    ctx.fillStyle='rgba(255,180,80,0.88)'; ctx.font='700 11px "Space Mono",monospace';
+    ctx.fillText('CHAOS',18,89);
+    /* first 2s + grace: tunnel hint */
+    if (score<2.2||spagGrace>0) {
+      const hFade=spagGrace>0?Math.min(1,spagGrace*2):Math.max(0,1-score/2);
+      const hSz=Math.min(14,W*0.024);
+      ctx.save(); ctx.textAlign='center'; ctx.globalAlpha=hFade*0.92;
+      ctx.font=`700 ${hSz}px "Space Mono",monospace`;
+      ctx.fillStyle='rgba(0,0,0,0.62)'; ctx.fillRect(0,H*0.82,W,hSz*2+22);
+      ctx.globalAlpha=hFade*0.92; ctx.fillStyle='#88CCFF';
+      ctx.fillText('STAY INSIDE THE TUNNEL',W/2,H*0.87);
+      ctx.fillStyle='#FF9940';
+      ctx.fillText('AVOID STRESS WALLS',W/2,H*0.87+hSz+6);
+      ctx.textAlign='left'; ctx.restore();
+    }
+    /* STRESS WALL hit feedback */
+    if (spagStressAlpha>0) {
+      const tSz=Math.max(26,Math.min(50,W*0.10));
+      ctx.save(); ctx.textAlign='center'; ctx.globalAlpha=spagStressAlpha;
+      ctx.shadowColor='#ff4400'; ctx.shadowBlur=22;
+      ctx.font=`700 ${tSz}px "Space Mono",monospace`;
+      ctx.fillStyle='rgba(0,0,0,0.72)'; ctx.fillText('STRESS WALL!',W/2+3,H*0.55+3);
+      ctx.fillStyle='#FF8800'; ctx.fillText('STRESS WALL!',W/2,H*0.55);
+      ctx.shadowBlur=0; ctx.textAlign='left'; ctx.restore();
+    }
+    /* structural failure — countdown warning */
+    if (spagFailTimer>0) {
+      const warnFrac=Math.max(0,1-spagFailTimer/1.8);
+      const pulse=0.5+Math.sin(Date.now()*0.016)*0.5;
+      ctx.save();
+      ctx.globalAlpha=(0.25+warnFrac*0.35)*(0.55+pulse*0.45);
+      ctx.fillStyle='#ff0000'; ctx.fillRect(0,0,W,H);
+      ctx.restore();
+      const tSz=Math.min(40,W*0.082);
+      ctx.save(); ctx.textAlign='center';
+      ctx.globalAlpha=0.70+Math.sin(Date.now()*0.014)*0.30;
+      ctx.font=`700 ${tSz}px "Space Mono",monospace`;
+      ctx.fillStyle='rgba(0,0,0,0.80)'; ctx.fillText('STRUCTURAL FAILURE',W/2+2,H*0.50+2);
+      ctx.fillStyle='#ffee00'; ctx.fillText('STRUCTURAL FAILURE',W/2,H*0.50);
+      ctx.textAlign='left'; ctx.restore();
+    }
+  }
+
+  /* death screen */
+  if (state==='dead') {
+    ctx.fillStyle='rgba(4,0,7,0.90)'; ctx.fillRect(0,0,W,H);
+    const cx=W/2;
+    const dieColor=MODE==='spaghetti'?'#ff4400':MODE==='time'?'#4499FF':'#E8447A';
+    const mName=MODE==='dark'?'DARK MATTER':MODE==='spaghetti'?'SPAGHETTIFICATION':'TIME DILATION';
+    let nextY=H*0.13;
+    ctx.textAlign='center';
+    /* YOU DIED */
+    const dSz=Math.min(96,W*0.13);
+    ctx.font=`${dSz}px "Bangers",cursive`;
+    ctx.fillStyle='#000'; ctx.fillText('YOU DIED',cx+5,nextY+5);
+    ctx.shadowColor=dieColor; ctx.shadowBlur=22; ctx.fillStyle=dieColor;
+    ctx.fillText('YOU DIED',cx,nextY); ctx.shadowBlur=0;
+    nextY+=Math.floor(dSz*0.70);
+    /* mode name */
+    ctx.font=`700 ${Math.min(12,W*0.019)}px "Space Mono",monospace`;
+    ctx.fillStyle=dieColor+'99'; ctx.fillText(mName,cx,nextY); nextY+=18;
+    /* divider */
+    ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.fillRect(cx-120,nextY,240,1); nextY+=12;
+    /* cause */
+    const mSz=Math.min(17,W*0.027);
+    ctx.font=`700 ${mSz}px "Space Mono",monospace`;
+    ctx.fillStyle='#000'; ctx.fillText(deathMsg,cx+2,nextY+2);
+    ctx.fillStyle='#F4F0E6'; ctx.fillText(deathMsg,cx,nextY); nextY+=mSz+6;
+    /* quip */
+    if (deathQuip) {
+      const qSz=Math.min(11,W*0.017);
+      ctx.font=`700 ${qSz}px "Space Mono",monospace`;
+      ctx.fillStyle=MODE==='time'?'rgba(80,160,255,0.82)':MODE==='dark'?'rgba(200,80,120,0.80)':'rgba(255,130,50,0.80)';
+      ctx.fillText(`"${deathQuip}"`,cx,nextY); nextY+=qSz+10;
+    }
+    nextY+=6;
+    /* stats block */
+    const sSz=Math.min(14,W*0.022);
+    ctx.font=`700 ${sSz}px "Space Mono",monospace`;
+    ctx.fillStyle='rgba(244,240,230,0.50)';
+    ctx.fillText(`survived  ${score.toFixed(1)}s`,cx,nextY); nextY+=sSz+5;
+    ctx.fillText(`signal  ${Math.floor(score*10)}`,cx,nextY); nextY+=sSz+4;
+    if (best>0) { ctx.fillStyle='#F2B544'; ctx.fillText(`best  ${Math.floor(best*10)}`,cx,nextY); }
+    nextY+=sSz+18;
+    /* RE-ENTER button */
+    const bW=Math.min(300,W*0.58), bH=52, bX=cx-bW/2;
+    btn={x:bX,y:nextY,w:bW,h:bH};
+    ctx.fillStyle='#000'; ctx.fillRect(bX+4,nextY+4,bW,bH);
+    ctx.fillStyle=dieColor; ctx.fillRect(bX,nextY,bW,bH);
+    ctx.strokeStyle='#000'; ctx.lineWidth=2.5; ctx.strokeRect(bX,nextY,bW,bH);
+    ctx.fillStyle='#000'; ctx.font=`${Math.min(20,W*0.032)}px "Bangers",cursive`;
+    ctx.fillText('RE-ENTER THE VOID',cx,nextY+34); nextY+=bH+10;
+    /* CHANGE DIMENSION button */
+    btn2={x:bX,y:nextY,w:bW,h:bH};
+    ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.fillRect(bX,nextY,bW,bH);
+    ctx.strokeStyle='rgba(255,255,255,0.28)'; ctx.lineWidth=2; ctx.strokeRect(bX,nextY,bW,bH);
+    ctx.fillStyle='rgba(255,255,255,0.65)'; ctx.font=`${Math.min(20,W*0.032)}px "Bangers",cursive`;
+    ctx.fillText('CHANGE DIMENSION',cx,nextY+34);
+    ctx.textAlign='left';
+  }
+}
+
+/* ─── Game loop ────────────────────────────── */
+function loop(ts) {
+  if (lastTs===null) lastTs=ts;
+  const dt=Math.min((ts-lastTs)/1000,0.08);
+  lastTs=ts; update(dt); draw();
+  requestAnimationFrame(loop);
+}
+
+/* ─── Audio ─────────────────────────────────── */
+let audioCtx=null, masterGain=null, audioReady=false, sfxMuted=false;
+let _darkDrone=null, _spagTone=null;
+let _pullCooldown=0, _tickCooldown=0;
+
+function initAudio() {
+  if (audioReady) return;
+  try {
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    masterGain=audioCtx.createGain();
+    masterGain.gain.value=0.50;
+    masterGain.connect(audioCtx.destination);
+    audioReady=true;
+    const muteBtn=document.getElementById('mute-btn');
+    if (muteBtn) muteBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      sfxMuted=!sfxMuted;
+      masterGain.gain.value=sfxMuted?0:0.50;
+      muteBtn.classList.toggle('muted', sfxMuted);
+    });
+  } catch(e) {}
+}
+['click','touchstart','keydown'].forEach(ev =>
+  window.addEventListener(ev, initAudio, {once:true, passive:true})
+);
+
+function _osc(type, freq, gain, dur, attack, freqEnd) {
+  if (!audioReady) return;
+  const t=audioCtx.currentTime;
+  const g=audioCtx.createGain(); g.connect(masterGain);
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(gain, t+(attack||0.01));
+  g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+  const o=audioCtx.createOscillator(); o.connect(g);
+  o.type=type; o.frequency.setValueAtTime(freq,t);
+  if (freqEnd) o.frequency.exponentialRampToValueAtTime(freqEnd, t+dur);
+  o.start(t); o.stop(t+dur+0.02);
+}
+function _noise(gain, dur, freq, Q, attack, ftype) {
+  if (!audioReady) return;
+  const t=audioCtx.currentTime;
+  const sr=audioCtx.sampleRate;
+  const len=Math.ceil(sr*dur);
+  const buf=audioCtx.createBuffer(1,len,sr);
+  const d=buf.getChannelData(0);
+  for (let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(Math.max(0,1-i/len),1.1);
+  const src=audioCtx.createBufferSource(); src.buffer=buf;
+  const flt=audioCtx.createBiquadFilter();
+  flt.type=ftype||'bandpass'; flt.frequency.value=freq||400; flt.Q.value=Q||1.5;
+  const g=audioCtx.createGain();
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(gain, t+(attack||0.005));
+  g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+  src.connect(flt); flt.connect(g); g.connect(masterGain);
+  src.start(t); src.stop(t+dur+0.02);
+}
+
+/* ── One-shot sounds ── */
+function sndClick() { _osc('sine',880,0.09,0.07,0.004,650); }
+
+function sndStart(m) {
+  if (m==='time') {
+    _osc('sine',200,0.30,0.7,0.01,540);
+    _osc('triangle',540,0.18,0.45,0.02,1080);
+    _noise(0.14,0.3,700,3,0.01);
+  } else if (m==='dark') {
+    _osc('sine',55,0.50,1.6,0.01,28);
+    _osc('sawtooth',110,0.28,1.0,0.005,22);
+    _noise(0.35,1.2,90,1.4,0.01,'lowpass');
+  } else {
+    _osc('sawtooth',50,0.45,2.0,0.015,20);
+    _osc('triangle',100,0.28,1.4,0.025,18);
+    _noise(0.32,1.2,160,2,0.02,'lowpass');
+  }
+}
+
+function sndHit() {
+  _noise(0.58,0.22,320,4,0.003);
+  _osc('sawtooth',140,0.40,0.16,0.002,50);
+  _noise(0.20,0.07,2200,8,0.002);
+}
+
+function sndPulse() {
+  _osc('sine',40,0.55,0.9,0.006,16);
+  _osc('sawtooth',80,0.28,0.5,0.005,20);
+  _noise(0.28,0.38,70,1.2,0.008,'lowpass');
+}
+
+function sndFusion() {
+  _osc('sine',52,0.65,2.8,0.003,14);
+  _osc('sawtooth',104,0.45,1.4,0.003,20);
+  _noise(0.65,1.2,130,2,0.003,'lowpass');
+  _noise(0.30,0.06,4500,14,0.001);
+}
+
+function sndPull(str) {
+  _osc('sine',36,0.38+str*0.28,1.0+str*0.5,0.04,18);
+  _noise(0.22+str*0.14,0.55,58,0.8,0.03,'lowpass');
+}
+
+function sndDeath() {
+  if (MODE==='time') {
+    _osc('square',1400,0.42,0.7,0.002,110);
+    _osc('sawtooth',175,0.42,1.6,0.003,14);
+    _noise(0.42,1.1,260,4,0.004);
+    _noise(0.22,0.05,5000,16,0.001);
+  } else if (MODE==='dark') {
+    _osc('sine',65,0.70,3.2,0.003,9);
+    _osc('sawtooth',130,0.50,2.0,0.003,16);
+    _noise(0.70,2.2,105,2,0.003,'lowpass');
+    _noise(0.32,0.06,5500,16,0.001);
+  } else {
+    _osc('sawtooth',85,0.60,2.8,0.003,10);
+    _osc('triangle',170,0.40,3.2,0.008,13);
+    _noise(0.65,2.2,145,2.5,0.003,'lowpass');
+    _noise(0.28,0.05,6500,20,0.001);
+  }
+}
+
+function sndTimeBend(dir) {
+  if (dir==='up') {
+    _osc('sawtooth',155,0.40,0.38,0.004,980);
+    _noise(0.20,0.14,3200,9,0.003);
+  } else if (dir==='down') {
+    _osc('sine',400,0.45,1.1,0.005,68);
+    _noise(0.25,0.7,75,0.8,0.02,'lowpass');
+  } else {
+    _osc('sine',290,0.20,0.45,0.01,290);
+  }
+}
+
+/* ── Time mode: shield sounds ── */
+function sndShieldPickup() {
+  _osc('sine',440,0.36,0.38,0.005,1380);
+  _osc('triangle',880,0.22,0.14,0.003,1760);
+  _osc('sine',2200,0.16,0.20,0.003,3520);
+  _noise(0.18,0.10,5800,11,0.002);
+}
+function sndShieldSnap() {
+  _osc('triangle',1760,0.32,0.16,0.002,880);
+  _osc('square',820,0.18,0.06,0.001,410);
+  _noise(0.28,0.09,4200,10,0.002);
+}
+
+/* ── Dark Matter: cosmic whispers ── */
+let _darkWhisperTimer=12+Math.random()*10;
+function sndWhisper() {
+  if (!audioReady) return;
+  const baseFreq=220+Math.random()*580;
+  const dur=1.2+Math.random()*1.6;
+  const atk=0.18+Math.random()*0.20;
+  _noise(0.055+Math.random()*0.038, dur, baseFreq, 5+Math.random()*7, atk);
+  if (Math.random()<0.55) {
+    _noise(0.038+Math.random()*0.028, dur*0.65, baseFreq*(1.4+Math.random()*0.6), 9+Math.random()*5, atk*0.7);
+  }
+}
+function updateDarkWhisper(dt) {
+  if (!audioReady) return;
+  _darkWhisperTimer=Math.max(0,_darkWhisperTimer-dt);
+  if (_darkWhisperTimer<=0) { sndWhisper(); _darkWhisperTimer=9+Math.random()*13; }
+}
+
+/* ── Dark Matter: surge pressure pulse ── */
+function sndSurgePulse() {
+  _osc('sine',46,0.38,1.8,0.018,18);
+  _noise(0.28,0.85,85,1.4,0.022,'lowpass');
+}
+
+/* ── Time mode: proximity tick ── */
+function updateTimeTick(minDy, H, dt) {
+  if (!audioReady) return;
+  _tickCooldown=Math.max(0,_tickCooldown-dt);
+  if (minDy>H*0.88||_tickCooldown>0) return;
+  const prox=Math.max(0,1-minDy/(H*0.88));
+  const freq=700+prox*3200;
+  _osc('square',freq,0.034+prox*0.10,0.030,0.001,freq*0.52);
+  _tickCooldown=Math.max(0.036,1.1*(1-prox*0.967));
+}
+
+/* ── Dark Matter: continuous drone ── */
+function startDarkDrone() {
+  if (!audioReady||_darkDrone) return;
+  const t=audioCtx.currentTime;
+  const o1=audioCtx.createOscillator(); o1.type='sine'; o1.frequency.value=38;
+  const o2=audioCtx.createOscillator(); o2.type='sine'; o2.frequency.value=57;
+  const o3=audioCtx.createOscillator(); o3.type='sine'; o3.frequency.value=114;
+  const lfo=audioCtx.createOscillator(); lfo.type='sine'; lfo.frequency.value=0.14;
+  const lfoG=audioCtx.createGain(); lfoG.gain.value=3;
+  lfo.connect(lfoG); lfoG.connect(o1.frequency); lfoG.connect(o2.frequency);
+  const g2=audioCtx.createGain(); g2.gain.value=0.55; o2.connect(g2);
+  const g3=audioCtx.createGain(); g3.gain.value=0.28; o3.connect(g3);
+  const flt=audioCtx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=140;
+  const g=audioCtx.createGain();
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.44,t+2.0);
+  _darkWhisperTimer=12+Math.random()*10;
+  o1.connect(flt); g2.connect(flt); g3.connect(flt);
+  flt.connect(g); g.connect(masterGain);
+  o1.start(t); o2.start(t); o3.start(t); lfo.start(t);
+  _darkDrone={o1,o2,o3,lfo,gain:g,flt};
+}
+function updateDarkDrone(nearDist, nearSing, gravMag, dt) {
+  if (!_darkDrone||!audioReady) return;
+  const t=audioCtx.currentTime;
+  const NEAR=nearSing?nearSing.r*4.5:300;
+  const prox=nearSing?Math.max(0,1-nearDist/NEAR):0;
+  _darkDrone.flt.frequency.setTargetAtTime(140+prox*920,t,0.12);
+  _darkDrone.gain.gain.setTargetAtTime(0.38+prox*0.34,t,0.12);
+  if (gravMag!==undefined&&dt!==undefined) {
+    _pullCooldown=Math.max(0,_pullCooldown-dt);
+    if (_pullCooldown<=0) {
+      const str=Math.min(1,(gravMag-110)/320);
+      if (str>0) { sndPull(str); _pullCooldown=0.6+(1-str)*1.8; }
+    }
+  }
+}
+function stopDarkDrone() {
+  if (!_darkDrone||!audioReady) return;
+  const t=audioCtx.currentTime;
+  _darkDrone.gain.gain.setTargetAtTime(0,t,0.5);
+  const {o1,o2,o3,lfo}=_darkDrone;
+  setTimeout(()=>{ try{o1.stop();o2.stop();o3.stop();lfo.stop();}catch(e){} },1800);
+  _darkDrone=null;
+}
+
+/* ── Spaghettification: tension tone ── */
+function startSpagTone() {
+  if (!audioReady||_spagTone) return;
+  const t=audioCtx.currentTime;
+  const o1=audioCtx.createOscillator(); o1.type='triangle'; o1.frequency.value=68;
+  const o2=audioCtx.createOscillator(); o2.type='sawtooth'; o2.frequency.value=67.3;
+  /* BH proximity sub-rumble */
+  const ob=audioCtx.createOscillator(); ob.type='sine'; ob.frequency.value=26;
+  const gbh=audioCtx.createGain(); gbh.gain.value=0; ob.connect(gbh);
+  /* high tension whistle — audible only at high chaos */
+  const ow=audioCtx.createOscillator(); ow.type='sine'; ow.frequency.value=1800;
+  const gw=audioCtx.createGain(); gw.gain.value=0; ow.connect(gw);
+  const flt=audioCtx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=190;
+  const g=audioCtx.createGain();
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.26,t+2.5);
+  o1.connect(flt); o2.connect(flt); gbh.connect(flt);
+  gw.connect(g);
+  flt.connect(g); g.connect(masterGain);
+  o1.start(t); o2.start(t); ob.start(t); ow.start(t);
+  _spagTone={o1,o2,ob,ow,gbh,gw,gain:g,flt};
+}
+function updateSpagTone(chaos, wallProxFrac, bhProxFrac) {
+  if (!_spagTone||!audioReady) return;
+  const t=audioCtx.currentTime;
+  const bp=bhProxFrac||0;
+  const f=68+chaos*110+wallProxFrac*55;
+  _spagTone.o1.frequency.setTargetAtTime(f,t,0.10);
+  _spagTone.o2.frequency.setTargetAtTime(f*0.989,t,0.10);
+  _spagTone.ob.frequency.setTargetAtTime(26+bp*14,t,0.08);
+  _spagTone.gbh.gain.setTargetAtTime(bp*0.70,t,0.10);
+  _spagTone.ow.frequency.setTargetAtTime(1400+chaos*900,t,0.10);
+  _spagTone.gw.gain.setTargetAtTime(Math.max(0,chaos-0.50)*0.22+wallProxFrac*0.07,t,0.10);
+  _spagTone.flt.frequency.setTargetAtTime(175+chaos*1600+wallProxFrac*700,t,0.10);
+  _spagTone.gain.gain.setTargetAtTime(0.24+chaos*0.38+wallProxFrac*0.20+bp*0.14,t,0.10);
+}
+function stopSpagTone() {
+  if (!_spagTone||!audioReady) return;
+  const t=audioCtx.currentTime;
+  _spagTone.gain.gain.setTargetAtTime(0,t,0.5);
+  const {o1,o2,ob,ow}=_spagTone;
+  setTimeout(()=>{ try{o1.stop();o2.stop();ob.stop();ow.stop();}catch(e){} },1800);
+  _spagTone=null;
+}
+function stopAllContinuousSounds() { stopDarkDrone(); stopSpagTone(); }
+
+/* ─── Initialize ────────────────────────────── */
+player.x=canvas.width/2; player.y=canvas.height/2-PH/2;
+if (MODE) startMode(MODE);
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
+
