@@ -1,8 +1,15 @@
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import clock from "@/assets/icon-clock.png";
 import darkmatter from "@/assets/icon-darkmatter.png";
 import spaghetti from "@/assets/icon-spaghetti.png";
-import { emit } from "./gameStore";
+
+const GAME_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
+
+const handleCardClick = () => {
+  toast("This is a preview. Enter the Void to play the real game.");
+  window.open(GAME_URL, "_blank", "noopener,noreferrer");
+};
 
 interface Dim {
   n: number;
@@ -93,13 +100,14 @@ const DimensionCards = () => {
             transition={{ delay: i * 0.15, duration: 0.6 }}
             whileHover={{ scale: 1.03, y: -6 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => emit("game:startDimension", d.title)}
+            onClick={handleCardClick}
             role="button"
             tabIndex={0}
+            aria-label={`${d.title} preview — opens the real game in a new tab`}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                emit("game:startDimension", d.title);
+                handleCardClick();
               }
             }}
             className={`panel-void ${d.border} relative overflow-hidden group flex flex-col h-[360px] transition-shadow duration-300 cursor-pointer focus:outline-none`}
@@ -134,9 +142,12 @@ const DimensionCards = () => {
               <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full font-graffiti text-lg ${d.numColor}`}>
                 {d.n}
               </div>
-              <h3 className="font-graffiti text-xl md:text-2xl text-foreground leading-tight">
+              <h3 className="font-graffiti text-xl md:text-2xl text-foreground leading-tight flex-1">
                 {d.title}
               </h3>
+              <span className="font-mono-x text-[10px] tracking-[0.2em] uppercase border border-current/40 rounded px-1.5 py-0.5 text-foreground/70">
+                Preview only
+              </span>
             </div>
 
             {/* Middle: description + image right */}
@@ -167,7 +178,7 @@ const DimensionCards = () => {
               className={`relative mt-2 flex items-center justify-center gap-2 font-graffiti text-sm tracking-[0.25em] ${d.quoteColor} opacity-80 group-hover:opacity-100 transition-opacity`}
             >
               <span className="h-px flex-1 bg-current opacity-40" />
-              CLICK TO ENTER
+              ENTER THE VOID
               <span className="h-px flex-1 bg-current opacity-40" />
             </div>
           </motion.article>
