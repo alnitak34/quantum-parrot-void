@@ -37,17 +37,20 @@ const actionFor = (game: string | null | undefined) => {
   return "survived the void";
 };
 
+const hasTx = (h?: string | null): h is string =>
+  typeof h === "string" && h.trim().length > 0;
+
 const MonadBadge = ({ txHash }: { txHash?: string | null }) => {
-  if (!txHash) {
+  if (!hasTx(txHash)) {
     return (
       <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-muted/20 text-muted-foreground border border-muted/30">
-        pending signal
+        PENDING SIGNAL
       </span>
     );
   }
   return (
     <a
-      href={`https://monadscan.com/tx/${txHash}`}
+      href={`https://monadscan.com/tx/${txHash.trim()}`}
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
