@@ -73,13 +73,17 @@ async function main() {
   if (DRY_RUN) console.log('  ⚠️  DRY RUN — Monad tx will be skipped');
   console.log('════════════════════════════════════════\n');
 
-  // 1. Fetch top 10 unprocessed runs ─────────────────────────────────────────
-  console.log('📡  Fetching top 10 unprocessed runs from Supabase…');
+  const VALID_GAMES = new Set(['time_dilation', 'dark_matter', 'spaghettification']);
 
-  const { data: runs, error: fetchError } = await supabase
+  // 1. Fetch eligible runs ────────────────────────────────────────────────────
+  console.log('📡  Fetching eligible runs from Supabase…');
+
+  const { data: raw, error: fetchError } = await supabase
     .from('game_runs')
     .select('id, game, score, x_handle, created_at')
     .is('tx_hash', null)
+    .gte('score', 3)
+    .in('game', [...VALID_GAMES])
     .order('score', { ascending: false })
     .limit(10);
 
@@ -88,12 +92,23 @@ async function main() {
     process.exit(1);
   }
 
-  if (!runs || runs.length === 0) {
-    console.log('✅  No unprocessed runs found. Nothing to do.');
+  // Client-side safety filter: must have id, created_at, valid game, score >= 3,
+  // and must not be a debug placeholder.
+  const runs = (raw || []).filter(r =>
+    r.id &&
+    r.created_at &&
+    VALID_GAMES.has(r.game) &&
+    typeof r.score === 'number' && r.score >= 3 &&
+    r.id !== 'debug_tx_hash'
+  );
+
+  console.log(`\nEligible runs found: ${runs.length}`);
+
+  if (runs.length === 0) {
+    console.log('No eligible runs to batch. Exiting cleanly.');
     return;
   }
 
-  console.log(`\nFound ${runs.length} run(s) to process:\n`);
   runs.forEach((r, i) => {
     const handle = r.x_handle || '—';
     console.log(`  ${String(i + 1).padStart(2)}. [${r.game.padEnd(18)}] score=${String(r.score).padStart(6)}  id=${r.id}  handle=${handle}`);
@@ -106,13 +121,24 @@ async function main() {
   runIds.forEach(id => console.log('    ', id));
 
   if (runIds.length === 0) {
-    console.error('❌  No valid IDs found in fetched runs. First run object:');
-    console.error(JSON.stringify(runs[0], null, 2));
+    console.error('❌  No valid IDs after filtering. First raw object:');
+    console.error(JSON.stringify((raw || [])[0] ?? null, null, 2));
     process.exit(1);
   }
 
   if (runIds.length !== runs.length) {
     console.warn(`⚠️   ${runs.length - runIds.length} run(s) had a missing id and were excluded.`);
+  }
+
+  // ── Pre-tx safety checks ───────────────────────────────────────────────────
+  if (runs.length === 0) {
+    console.error('❌  Safety check failed: runs array is empty before tx.');
+    process.exit(1);
+  }
+  const lowScore = runs.find(r => r.score < 3);
+  if (lowScore) {
+    console.error(`❌  Safety check failed: run ${lowScore.id} has score ${lowScore.score} (< 3).`);
+    process.exit(1);
   }
 
   // 3. Build Merkle root ──────────────────────────────────────────────────────
