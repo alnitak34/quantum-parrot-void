@@ -164,19 +164,6 @@ const Hero = () => {
               <ArrowRight className="h-7 w-7" strokeWidth={3} />
             </a>
 
-<<<<<<< HEAD
-            <div className="flex flex-col gap-1" style={{ width: "200px" }}>
-              <label className="font-mono text-xs text-foreground/60 tracking-wide">
-                Player name (optional)
-              </label>
-              <input
-                type="text"
-                value={handle}
-                onChange={(e) => setHandle(e.target.value.slice(0, 24))}
-                placeholder="your name or @yourX"
-                maxLength={24}
-                className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all"
-=======
             <div className="flex flex-col gap-1" style={{ width: "240px" }}>
               <label
                 htmlFor="qp-handle-input"
@@ -192,16 +179,11 @@ const Hero = () => {
                 placeholder="your name or @yourX"
                 maxLength={24}
                 className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all w-full"
->>>>>>> e52a4d8fe097ccf29cc739134e851dbfa774cb65
                 style={{
                   boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
                 }}
               />
-<<<<<<< HEAD
-              <p className="font-mono text-xs text-foreground/40 leading-snug">
-=======
               <p className="font-mono-x text-[10px] leading-snug text-foreground/50">
->>>>>>> e52a4d8fe097ccf29cc739134e851dbfa774cb65
                 Appears on the leaderboard. You can use any name or your X (Twitter) username. Leave empty to play as anonymous.
               </p>
             </div>
