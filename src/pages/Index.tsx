@@ -23,9 +23,11 @@ const Index = () => {
       <NftCta />
 
       <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-start">
           <SignalFeedWrap />
-          <StickyNote />
+          <div className="opacity-30 hover:opacity-90 transition-opacity duration-300 self-start">
+            <StickyNote />
+          </div>
         </div>
       </div>
 
