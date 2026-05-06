@@ -1071,8 +1071,6 @@ function ResultCard({
     return () => { cancelled = true; clearInterval(id); };
   }, [result.user, result.signal, txHash]);
 
-  const hasHandle = !result.user.toLowerCase().includes("voidwalker") &&
-    !result.user.toLowerCase().includes("parrotghost") || result.user.startsWith("@");
   const shareText = `I survived ${result.signal} in ${dim}.
 Every death becomes a signal.
 Can you beat me?
