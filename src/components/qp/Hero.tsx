@@ -12,6 +12,7 @@ import cosmic from "@/assets/cosmic-bg.jpg";
 
 const Hero = () => {
   const [handle, setHandleState] = useState("");
+  const [savedMsg, setSavedMsg] = useState(false);
 
   useEffect(() => {
     const saved = getHandle() || localStorage.getItem("playerHandle") || "";
@@ -20,11 +21,15 @@ const Hero = () => {
 
   const onHandleChange = (val: string) => {
     setHandleState(val);
-    saveHandle(val);
-    // keep legacy key in sync for any older readers
-    const trimmed = val.trim();
+  };
+
+  const onSaveName = () => {
+    const trimmed = handle.trim();
+    saveHandle(trimmed);
     if (trimmed) localStorage.setItem("playerHandle", trimmed);
     else localStorage.removeItem("playerHandle");
+    setSavedMsg(true);
+    window.setTimeout(() => setSavedMsg(false), 2200);
   };
 
   const onEnterVoid = (e: React.MouseEvent<HTMLAnchorElement>) => {
