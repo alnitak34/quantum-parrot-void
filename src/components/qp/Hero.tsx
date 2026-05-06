@@ -11,8 +11,31 @@ import bad from "@/assets/parrot-bad.png";
 import cosmic from "@/assets/cosmic-bg.jpg";
 
 const Hero = () => {
+  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    setName(getPlayer());
+  }, []);
+
+  const handleEnter = () => {
+    setLoading(true);
+  };
+
+  const onLoadingDone = () => {
+    window.open(gameUrlWithHandle(), "_blank", "noopener,noreferrer");
+    setLoading(false);
+  };
+
+  const onNameChange = (v: string) => {
+    setName(v);
+    savePlayer(v);
+  };
+
   return (
     <section className="relative overflow-hidden py-6 md:py-8">
+      <AnimatePresence>{loading && <LoadingOverlay onDone={onLoadingDone} />}</AnimatePresence>
+
       {/* Wormhole background */}
       <div
         className="pointer-events-none absolute inset-0 -z-10 opacity-70"
