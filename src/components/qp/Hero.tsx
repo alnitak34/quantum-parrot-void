@@ -160,16 +160,37 @@ const Hero = () => {
             transition={{ delay: 0.6 }}
             className="mt-10 flex items-center gap-6 flex-wrap"
           >
-            <a
-              href={gameUrlWithHandle()}
-              onClick={onEnterVoid}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
-            >
-              ENTER THE VOID
-              <ArrowRight className="h-7 w-7" strokeWidth={3} />
-            </a>
+            <div className="flex flex-col gap-2">
+              <a
+                href={gameUrlWithHandle()}
+                onClick={onEnterVoid}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
+                style={{
+                  boxShadow:
+                    "0 0 30px hsl(var(--primary) / 0.65), 0 0 60px hsl(var(--secondary) / 0.4), 0 8px 24px hsl(var(--void-deep) / 0.8)",
+                }}
+              >
+                ENTER THE VOID
+                <ArrowRight className="h-7 w-7" strokeWidth={3} />
+              </a>
+              <p className="font-mono-x text-[11px] tracking-wider uppercase text-foreground/60">
+                Play. Die. Leave a signal on Monad.
+              </p>
+              <a
+                href={(() => {
+                  const url = "https://quantum-parrot-void.lovable.app";
+                  const text = `I just recorded a signal on Monad.\nCan you survive the void?\n${url}`;
+                  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+                })()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-graffiti text-sm tracking-[0.2em] uppercase border-2 border-secondary/60 text-secondary-glow hover:bg-secondary/10 rounded-md px-4 py-2 self-start transition-colors"
+              >
+                Share your signal on X
+              </a>
+            </div>
 
             <div className="flex flex-col gap-1" style={{ width: "240px" }}>
               <label
@@ -186,10 +207,10 @@ const Hero = () => {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    onSaveName();
+                    if (handle.trim()) onSaveName();
                   }
                 }}
-                placeholder="your name or @yourX"
+                placeholder="@yourname (optional)"
                 maxLength={24}
                 className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all w-full"
                 style={{
@@ -199,16 +220,17 @@ const Hero = () => {
               <button
                 type="button"
                 onClick={onSaveName}
-                className="font-graffiti text-xs tracking-[0.2em] uppercase border-2 border-primary/60 text-primary hover:bg-primary/10 rounded-md px-3 py-2 transition-colors self-start"
+                disabled={!handle.trim()}
+                className="font-graffiti text-xs tracking-[0.2em] uppercase border-2 border-primary/60 text-primary hover:bg-primary/10 rounded-md px-3 py-2 transition-colors self-start disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Save name
+                Save
               </button>
               <p className="font-mono-x text-[10px] leading-snug text-foreground/50">
-                Optional. This name appears on the leaderboard.
+                Appears on leaderboard. Press SAVE or Enter.
               </p>
               {savedMsg && (
                 <p className="font-mono-x text-[10px] leading-snug text-primary">
-                  Name saved for leaderboard
+                  ✓ Saved as {handle.trim().startsWith("@") ? handle.trim() : `@${handle.trim()}`}
                 </p>
               )}
             </div>
