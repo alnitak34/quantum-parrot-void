@@ -1033,6 +1033,18 @@ function ResultCard({
 }) {
   const [copied, setCopied] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const initialName = (typeof window !== "undefined" ? localStorage.getItem("playerHandle") : "") || "";
+  const [nameInput, setNameInput] = useState(initialName);
+  const [savedName, setSavedName] = useState<string>(initialName.trim());
+  const onSaveName = () => {
+    const t = nameInput.trim();
+    if (!t) return;
+    try {
+      localStorage.setItem("playerHandle", t);
+      localStorage.setItem("qp_player_name", t);
+    } catch { /* ignore */ }
+    setSavedName(t);
+  };
   const classification = classify(result.signal);
   const dim = result.dimension || "UNKNOWN";
   const SARCASM_LINES = [
@@ -1072,7 +1084,6 @@ function ResultCard({
   }, [result.user, result.signal, txHash]);
 
   const shareText = `I survived ${result.signal} in ${dim}.
-Every death becomes a signal.
 Can you beat me?
 ${PROJECT_URL}`;
 
@@ -1124,6 +1135,48 @@ https://monadscan.com/tx/${txHash}`
       {theme.deathLine && (
         <p className={`mt-2 font-graffiti text-lg ${theme.accentText}`}>"{theme.deathLine}"</p>
       )}
+
+      <div className="mt-4">
+        <div
+          className="font-graffiti text-5xl md:text-6xl tabular-nums"
+          style={{ color: `hsl(${theme.glow})`, textShadow: `0 0 22px hsl(${theme.glow} / 0.8)` }}
+        >
+          {result.signal.toLocaleString()}
+        </div>
+        <p className="mt-2 font-mono-x text-sm text-foreground/80">
+          You survived <span className="font-bold">{result.signal.toLocaleString()}</span> in <span className="font-bold">{dim}</span>
+        </p>
+      </div>
+
+      {/* Save name input */}
+      <div className="mt-5 mx-auto max-w-sm flex flex-col gap-2 items-stretch">
+        <input
+          type="text"
+          value={nameInput}
+          onChange={(e) => setNameInput(e.target.value.slice(0, 24))}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onSaveName(); } }}
+          placeholder="@yourname (optional)"
+          maxLength={24}
+          className="font-graffiti text-base tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-3 py-2 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary transition-all w-full text-center"
+        />
+        <button
+          type="button"
+          onClick={onSaveName}
+          disabled={!nameInput.trim() || nameInput.trim() === savedName}
+          className="font-graffiti text-xs tracking-[0.2em] uppercase border-2 border-primary/60 text-primary hover:bg-primary/10 rounded-md px-3 py-2 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Save Score
+        </button>
+        {savedName ? (
+          <p className="font-mono-x text-[11px] text-primary">
+            ✓ Saved as {savedName.startsWith("@") ? savedName : `@${savedName}`}
+          </p>
+        ) : (
+          <p className="font-mono-x text-[10px] text-foreground/50">
+            Save your name to appear on leaderboard.
+          </p>
+        )}
+      </div>
 
       <div
         className="mt-5 rounded-xl p-5 text-left"

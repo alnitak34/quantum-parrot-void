@@ -64,7 +64,7 @@ const MonadBadge = ({ txHash, size = "md" }: { txHash?: string | null; size?: "s
       onClick={(e) => e.stopPropagation()}
       className={`inline-flex items-center ${sizeCls} rounded font-graffiti tracking-wider bg-primary/25 text-primary-foreground border border-primary/70 shadow-[0_0_14px_hsl(var(--primary)/0.55)] hover:bg-primary/40 hover:shadow-[0_0_22px_hsl(var(--primary)/0.85)] transition-all`}
     >
-      RECORDED ON MONAD
+      RECORDED ✓
       <ArrowUpRight className={size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3"} strokeWidth={3} />
     </a>
   );
