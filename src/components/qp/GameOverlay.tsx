@@ -1165,6 +1165,24 @@ https://monadscan.com/tx/${txHash}`
         <p className="mt-1 font-mono-x text-[11px] text-muted-foreground">— {burn}</p>
       </div>
 
+      {/* On-chain status badge */}
+      <div className="mt-4 flex items-center justify-center">
+        {txHash ? (
+          <a
+            href={`https://monadscan.com/tx/${txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-graffiti text-xs tracking-wider bg-primary/25 text-primary-foreground border border-primary/70 shadow-[0_0_14px_hsl(var(--primary)/0.55)] hover:bg-primary/40 transition"
+          >
+            RECORDED ON MONAD ✓
+          </a>
+        ) : (
+          <span className="font-mono-x text-[11px] tracking-wider uppercase text-muted-foreground/70">
+            Pending on-chain recording…
+          </span>
+        )}
+      </div>
+
       <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
         <button
           onClick={handleCopy}
@@ -1180,16 +1198,20 @@ https://monadscan.com/tx/${txHash}`
         </button>
         <button
           onClick={handleShare}
-          className="flex items-center gap-2 px-5 py-3 rounded-md font-graffiti tracking-wider transition"
-          style={{
-            color: `hsl(${theme.glow})`,
-            border: `1px solid hsl(${theme.glow} / 0.6)`,
-            background: `hsl(${theme.glow} / 0.08)`,
-          }}
+          className="flex items-center gap-2 px-5 py-3 rounded-md font-graffiti tracking-wider transition bg-primary/20 hover:bg-primary/30 text-primary border border-primary/60 shadow-[0_0_18px_hsl(var(--primary)/0.4)]"
         >
           <Share2 className="h-4 w-4" />
-          SHARE
+          SHARE THIS RUN ON X
         </button>
+        {txHash && (
+          <button
+            onClick={handleOnChainShare}
+            className="flex items-center gap-2 px-5 py-3 rounded-md font-graffiti tracking-wider transition bg-secondary/20 hover:bg-secondary/30 text-secondary-glow border border-secondary/60 shadow-[0_0_18px_hsl(var(--secondary)/0.4)]"
+          >
+            <Share2 className="h-4 w-4" />
+            SHARE ON-CHAIN PROOF
+          </button>
+        )}
         <button
           onClick={() => emit("game:start", undefined)}
           className="btn-void flex items-center gap-2 px-6 py-3 text-lg"
