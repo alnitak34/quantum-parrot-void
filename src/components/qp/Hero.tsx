@@ -183,6 +183,12 @@ const Hero = () => {
                 type="text"
                 value={handle}
                 onChange={(e) => onHandleChange(e.target.value.slice(0, 24))}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    onSaveName();
+                  }
+                }}
                 placeholder="your name or @yourX"
                 maxLength={24}
                 className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all w-full"
@@ -190,9 +196,21 @@ const Hero = () => {
                   boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
                 }}
               />
+              <button
+                type="button"
+                onClick={onSaveName}
+                className="font-graffiti text-xs tracking-[0.2em] uppercase border-2 border-primary/60 text-primary hover:bg-primary/10 rounded-md px-3 py-2 transition-colors self-start"
+              >
+                Save name
+              </button>
               <p className="font-mono-x text-[10px] leading-snug text-foreground/50">
-                Appears on the leaderboard. You can use any name or your X (Twitter) username. Leave empty to play as anonymous.
+                Optional. This name appears on the leaderboard.
               </p>
+              {savedMsg && (
+                <p className="font-mono-x text-[10px] leading-snug text-primary">
+                  Name saved for leaderboard
+                </p>
+              )}
             </div>
 
 
