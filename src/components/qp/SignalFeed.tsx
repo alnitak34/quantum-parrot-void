@@ -48,7 +48,7 @@ const SignalFeed = () => {
     let cancelled = false;
     const load = async () => {
       try {
-        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=score,game,created_at,x_handle&order=score.desc&limit=10`;
+        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=score,game,created_at,x_handle,tx_hash&order=score.desc&limit=10`;
         const res = await fetch(url, {
           headers: {
             apikey: SUPABASE_ANON_KEY,
@@ -61,13 +61,20 @@ const SignalFeed = () => {
           game: string | null;
           created_at: string;
           x_handle: string | null;
+          tx_hash: string | null;
         }> = await res.json();
         if (cancelled) return;
 
-        const topRows: TopRow[] = rows.map((r, i) => ({
+        // Prioritize runs with tx_hash, but keep score-desc ordering within each group
+        const withTx = rows.filter((r) => r.tx_hash);
+        const withoutTx = rows.filter((r) => !r.tx_hash);
+        const orderedTop = [...withTx, ...withoutTx];
+
+        const topRows: TopRow[] = orderedTop.map((r, i) => ({
           rank: i + 1,
           user: r.x_handle ? (r.x_handle.startsWith("@") ? r.x_handle : `@${r.x_handle}`) : "anonymous_parrot",
           score: Number(r.score) || 0,
+          txHash: r.tx_hash,
         }));
         setTop(topRows);
 
@@ -76,6 +83,7 @@ const SignalFeed = () => {
           user: r.x_handle ? (r.x_handle.startsWith("@") ? r.x_handle : `@${r.x_handle}`) : "anonymous_parrot",
           action: actionFor(r.game),
           points: Number(r.score) || 0,
+          txHash: r.tx_hash,
         }));
         setFeed(feedRows);
         setError(false);
