@@ -9,34 +9,6 @@ import bad from "@/assets/parrot-bad.png";
 import cosmic from "@/assets/cosmic-bg.jpg";
 
 const Hero = () => {
-  const [handle, setHandleState] = useState("");
-  const [savedMsg, setSavedMsg] = useState(false);
-
-  useEffect(() => {
-    const saved = getHandle() || localStorage.getItem("playerHandle") || "";
-    if (saved) setHandleState(saved);
-  }, []);
-
-  const onHandleChange = (val: string) => {
-    setHandleState(val);
-  };
-
-  const onSaveName = () => {
-    const trimmed = handle.trim();
-    saveHandle(trimmed);
-    if (trimmed) localStorage.setItem("playerHandle", trimmed);
-    else localStorage.removeItem("playerHandle");
-    setSavedMsg(true);
-    window.setTimeout(() => setSavedMsg(false), 2200);
-  };
-
-  const onEnterVoid = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    const trimmed = handle.trim();
-    saveHandle(trimmed);
-    if (trimmed) localStorage.setItem("playerHandle", trimmed);
-    e.currentTarget.href = gameUrlWithHandle();
-  };
-
   return (
     <section className="relative overflow-hidden py-6 md:py-8">
       {/* Wormhole background */}
