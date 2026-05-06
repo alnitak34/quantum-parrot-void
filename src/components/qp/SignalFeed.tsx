@@ -72,7 +72,7 @@ const SignalFeed = () => {
     let cancelled = false;
     const load = async () => {
       try {
-        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=score,game,created_at,x_handle,tx_hash&order=score.desc&limit=10`;
+        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=id,game,x_handle,score,created_at,tx_hash&order=score.desc&limit=10`;
         const res = await fetch(url, {
           headers: {
             apikey: SUPABASE_ANON_KEY,
@@ -81,6 +81,7 @@ const SignalFeed = () => {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const rows: Array<{
+          id: string;
           score: number;
           game: string | null;
           created_at: string;
@@ -90,8 +91,8 @@ const SignalFeed = () => {
         if (cancelled) return;
 
         // Prioritize runs with tx_hash, but keep score-desc ordering within each group
-        const withTx = rows.filter((r) => r.tx_hash);
-        const withoutTx = rows.filter((r) => !r.tx_hash);
+        const withTx = rows.filter((r) => hasTx(r.tx_hash));
+        const withoutTx = rows.filter((r) => !hasTx(r.tx_hash));
         const orderedTop = [...withTx, ...withoutTx];
 
         const topRows: TopRow[] = orderedTop.map((r, i) => ({
