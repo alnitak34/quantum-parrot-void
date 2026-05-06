@@ -214,6 +214,9 @@ const SignalFeed = () => {
               Top <span className="text-primary">signals</span> leave a trace on{" "}
               <span className="text-secondary-glow font-bold">Monad</span>.
             </p>
+            <p className="mt-2 font-mono-x text-xs text-muted-foreground/70 leading-snug">
+              Top runs are batched and recorded on Monad mainnet as verifiable signal roots.
+            </p>
           </div>
 
           {/* MIDDLE: Live feed */}
