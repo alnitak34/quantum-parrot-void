@@ -144,22 +144,18 @@ const Hero = () => {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="font-handwritten mt-6 text-2xl md:text-3xl text-foreground/90 max-w-xl"
           >
-            A chaotic <span className="text-primary font-bold">survival</span> experiment
-            <br />
-            across impossible dimensions.
+            A chaotic <span className="text-primary font-bold">survival</span> experiment where every death becomes a signal.
           </motion.p>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="mt-10 flex items-center gap-6 flex-wrap"
+            className="mt-10 flex items-start gap-6 flex-wrap"
           >
-            <div className="flex flex-col gap-2">
-              <a
-                href={gameUrlWithHandle()}
-                target="_blank"
-                rel="noopener noreferrer"
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleEnter}
                 className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
                 style={{
                   boxShadow:
@@ -168,18 +164,27 @@ const Hero = () => {
               >
                 ENTER THE VOID
                 <ArrowRight className="h-7 w-7" strokeWidth={3} />
-              </a>
-              <p className="font-mono-x text-[11px] tracking-wider uppercase text-foreground/60">
-                Play. Die. Leave a signal on Monad.
-              </p>
-              <a
-                href="#leaderboard"
-                className="font-mono-x text-[11px] tracking-wider uppercase text-primary/80 hover:text-primary transition-colors self-start"
-              >
-                View Leaderboard →
-              </a>
-            </div>
+              </button>
 
+              <div className="flex flex-col gap-1 max-w-xs">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => onNameChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      savePlayer(name);
+                      handleEnter();
+                    }
+                  }}
+                  placeholder="@your_x_handle"
+                  className="font-mono-x text-sm bg-background/50 border border-primary/30 rounded-md px-3 py-2 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary/70 focus:ring-1 focus:ring-primary/50 transition"
+                />
+                <p className="font-mono-x text-[11px] text-foreground/50 tracking-wide">
+                  Optional. Used on leaderboard.
+                </p>
+              </div>
+            </div>
 
             {/* Chaos Awaits stamp */}
             <motion.div
@@ -195,6 +200,7 @@ const Hero = () => {
               <X className="absolute -bottom-2 -right-2 h-5 w-5 text-primary" strokeWidth={3} />
             </motion.div>
           </motion.div>
+
         </div>
 
         {/* RIGHT: Parrot squad */}
