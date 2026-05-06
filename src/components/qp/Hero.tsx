@@ -33,7 +33,9 @@ const Hero = () => {
   };
 
   const onEnterVoid = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    saveHandle(handle);
+    const trimmed = handle.trim();
+    saveHandle(trimmed);
+    if (trimmed) localStorage.setItem("playerHandle", trimmed);
     e.currentTarget.href = gameUrlWithHandle();
   };
 
