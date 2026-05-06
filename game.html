@@ -1569,7 +1569,7 @@ function update(dt) {
     shockwaves=shockwaves.filter(sw=>sw.alpha>0&&sw.r<sw.maxR);
     if (fusionShake>0) fusionShake=Math.max(0,fusionShake-dt*3);
     if (fusionFlash>0) fusionFlash=Math.max(0,fusionFlash-dt*2.5);
-    if (deathFreezeTimer<=0) state='dead';
+    if (deathFreezeTimer<=0) { state='dead'; showDeathPanel(); }
     return;
   }
   if (state!=='playing') return;
@@ -1678,7 +1678,7 @@ function update(dt) {
       deathMsg='Time collapse caught you';
       deathQuip=DEATH_QUIPS_TIME[Math.floor(Math.random()*DEATH_QUIPS_TIME.length)];
       saveRun('time_dilation');
-      sndDeath(); state='dead'; return;
+      sndDeath(); state='dead'; showDeathPanel(); return;
     }
   }
   /* near-miss shake: clock passes within 30px of expanded hitbox */
@@ -2394,7 +2394,6 @@ function draw() {
     ctx.fillStyle='rgba(255,255,255,0.65)'; ctx.font=`${Math.min(20,W*0.032)}px "Bangers",cursive`;
     ctx.fillText('CHANGE DIMENSION',cx,nextY+34);
     ctx.textAlign='left';
-    showDeathPanel();
   }
 }
 
