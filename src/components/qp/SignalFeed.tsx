@@ -37,17 +37,20 @@ const actionFor = (game: string | null | undefined) => {
   return "survived the void";
 };
 
+const hasTx = (h?: string | null): h is string =>
+  typeof h === "string" && h.trim().length > 0;
+
 const MonadBadge = ({ txHash }: { txHash?: string | null }) => {
-  if (!txHash) {
+  if (!hasTx(txHash)) {
     return (
       <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-muted/20 text-muted-foreground border border-muted/30">
-        pending signal
+        PENDING SIGNAL
       </span>
     );
   }
   return (
     <a
-      href={`https://monadscan.com/tx/${txHash}`}
+      href={`https://monadscan.com/tx/${txHash.trim()}`}
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
@@ -69,7 +72,7 @@ const SignalFeed = () => {
     let cancelled = false;
     const load = async () => {
       try {
-        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=score,game,created_at,x_handle,tx_hash&order=score.desc&limit=10`;
+        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=id,game,x_handle,score,created_at,tx_hash&order=score.desc&limit=10`;
         const res = await fetch(url, {
           headers: {
             apikey: SUPABASE_ANON_KEY,
@@ -78,6 +81,7 @@ const SignalFeed = () => {
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const rows: Array<{
+          id: string;
           score: number;
           game: string | null;
           created_at: string;
@@ -87,8 +91,8 @@ const SignalFeed = () => {
         if (cancelled) return;
 
         // Prioritize runs with tx_hash, but keep score-desc ordering within each group
-        const withTx = rows.filter((r) => r.tx_hash);
-        const withoutTx = rows.filter((r) => !r.tx_hash);
+        const withTx = rows.filter((r) => hasTx(r.tx_hash));
+        const withoutTx = rows.filter((r) => !hasTx(r.tx_hash));
         const orderedTop = [...withTx, ...withoutTx];
 
         const topRows: TopRow[] = orderedTop.map((r, i) => ({
