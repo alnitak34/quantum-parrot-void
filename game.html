@@ -13,14 +13,6 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
     canvas { display: block; touch-action: none; }
-    #share-btn {
-      position: fixed; top: 12px; right: 12px; z-index: 10;
-      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 12px;
-      color: #fff; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.30);
-      padding: 6px 14px; cursor: pointer; letter-spacing: 0.08em;
-      transition: background 0.15s, border-color 0.15s;
-    }
-    #share-btn:hover { background: rgba(30,30,30,0.85); border-color: rgba(255,255,255,0.65); }
     #mute-btn {
       position: fixed; top: 12px; right: 96px; z-index: 10;
       font-family: 'Space Mono', monospace; font-weight: 700; font-size: 12px;
@@ -44,7 +36,7 @@
     /* ── Leaderboard overlay ── */
     #lb-overlay {
       display: none;
-      position: fixed; inset: 0; z-index: 100;
+      position: fixed; inset: 0; z-index: 200;
       background: rgba(0,0,0,0.82);
       align-items: center; justify-content: center;
     }
@@ -114,35 +106,64 @@
     /* ── Death panel ── */
     #death-panel {
       display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-      justify-content: center; padding-bottom: 20px; pointer-events: none;
+      flex-direction: column; align-items: center;
+      padding-bottom: 16px; pointer-events: none;
     }
     #death-panel.open { display: flex; pointer-events: auto; }
     #death-panel-inner {
-      width: min(300px, 92vw);
-      background: rgba(4,0,7,0.88); border: 1px solid rgba(255,255,255,0.10);
-      padding: 14px 18px 16px; display: flex; flex-direction: column;
-      align-items: stretch; gap: 7px; font-family: 'Space Mono', monospace;
+      width: min(320px, 92vw); display: flex; flex-direction: column;
+      align-items: stretch; gap: 6px; font-family: 'Space Mono', monospace;
     }
+    .dp-divider { height: 1px; background: rgba(255,255,255,0.09); margin: 4px 0; }
     #dp-input {
-      background: rgba(0,0,0,0.55); color: #fff; outline: none;
-      border: 1.5px solid rgba(255,255,255,0.22);
+      background: rgba(4,0,7,0.80); color: #fff; outline: none;
+      border: 1.5px solid rgba(255,255,255,0.20);
       font-family: 'Space Mono', monospace; font-size: 12px;
-      padding: 7px 10px; text-align: center; letter-spacing: 0.04em;
+      padding: 8px 12px; text-align: center; letter-spacing: 0.04em;
     }
-    #dp-input::placeholder { color: rgba(255,255,255,0.28); }
+    #dp-input::placeholder { color: rgba(255,255,255,0.26); }
     #dp-save {
       font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px;
       letter-spacing: 0.09em; padding: 8px 0; cursor: pointer;
-      color: #000; background: rgba(244,240,230,0.90); border: none;
+      color: #000; background: rgba(244,240,230,0.88); border: none;
     }
     #dp-save:hover { background: #fff; }
-    #dp-confirm { font-size: 10px; color: rgba(140,255,140,0.82); letter-spacing: 0.07em; min-height: 13px; text-align: center; }
-    #dp-helper { font-size: 9px; color: rgba(255,255,255,0.28); letter-spacing: 0.06em; text-align: center; }
+    #dp-confirm { font-size: 10px; color: rgba(140,255,140,0.80); letter-spacing: 0.06em; min-height: 14px; text-align: center; }
+    #dp-helper { font-size: 9px; color: rgba(255,255,255,0.24); letter-spacing: 0.05em; text-align: center; margin-bottom: 2px; }
+    #dp-share {
+      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px;
+      letter-spacing: 0.08em; padding: 8px 0; cursor: pointer;
+      color: #fff; background: rgba(0,0,0,0.60); border: 1.5px solid rgba(255,255,255,0.28);
+      transition: background 0.14s, border-color 0.14s;
+    }
+    #dp-share:hover { background: rgba(30,30,30,0.88); border-color: rgba(255,255,255,0.60); }
+    #dp-proof {
+      display: none; font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px;
+      letter-spacing: 0.08em; padding: 7px 0; cursor: pointer; text-align: center;
+      color: #c8a0ff; background: rgba(0,0,0,0.60); border: 1.5px solid rgba(160,120,255,0.42);
+      text-decoration: none; transition: background 0.14s, border-color 0.14s;
+    }
+    #dp-proof.visible { display: block; }
+    #dp-proof:hover { background: rgba(20,10,40,0.88); border-color: rgba(160,120,255,0.80); }
+    #dp-reenter {
+      font-family: 'Bangers', cursive; font-size: 21px; letter-spacing: 0.08em;
+      padding: 15px 0; cursor: pointer; border: none; color: #000;
+      background: #E8447A; /* overridden per mode in JS */
+      transition: filter 0.12s;
+    }
+    #dp-reenter:hover { filter: brightness(1.16); }
+    #dp-changedim {
+      font-family: 'Bangers', cursive; font-size: 18px; letter-spacing: 0.08em;
+      padding: 12px 0; cursor: pointer;
+      color: rgba(255,255,255,0.68); background: rgba(0,0,0,0.68);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      transition: background 0.14s, border-color 0.14s, color 0.14s;
+    }
+    #dp-changedim:hover { background: rgba(30,30,30,0.88); border-color: rgba(255,255,255,0.55); color: #fff; }
   </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<button id="share-btn" onclick="(function(){var t=encodeURIComponent('I survived the void in 10K Quantum Parrots. The universe is broken.');var u=encodeURIComponent(window.location.href);window.open('https://x.com/intent/tweet?text='+t+'&url='+u,'_blank');})()">SHARE X</button>
 <button id="mute-btn" title="Toggle sound">♪</button>
 <button id="lb-btn">LEADERBOARD</button>
 <div id="lb-overlay">
@@ -171,10 +192,16 @@
 
 <div id="death-panel">
   <div id="death-panel-inner">
-    <input id="dp-input" type="text" maxlength="30" placeholder="@yourname (optional)" autocomplete="off" spellcheck="false" />
+    <input id="dp-input" type="text" maxlength="30" placeholder="@yourname" autocomplete="off" spellcheck="false" />
     <button id="dp-save">SAVE NAME</button>
     <div id="dp-confirm"></div>
-    <div id="dp-helper">Used on leaderboard.</div>
+    <div id="dp-helper">Appears on leaderboard.</div>
+    <div class="dp-divider"></div>
+    <button id="dp-share">SHARE THIS RUN ON X</button>
+    <a id="dp-proof" target="_blank" rel="noopener noreferrer">VIEW ON MONADSCAN</a>
+    <div class="dp-divider"></div>
+    <button id="dp-reenter">RE-ENTER THE VOID</button>
+    <button id="dp-changedim">CHANGE DIMENSION</button>
   </div>
 </div>
 
@@ -2379,20 +2406,6 @@ function draw() {
     ctx.fillText(`signal  ${Math.floor(score*10)}`,cx,nextY); nextY+=sSz+4;
     if (best>0) { ctx.fillStyle='#F2B544'; ctx.fillText(`best  ${Math.floor(best*10)}`,cx,nextY); }
     nextY+=sSz+18;
-    /* RE-ENTER button */
-    const bW=Math.min(300,W*0.58), bH=52, bX=cx-bW/2;
-    btn={x:bX,y:nextY,w:bW,h:bH};
-    ctx.fillStyle='#000'; ctx.fillRect(bX+4,nextY+4,bW,bH);
-    ctx.fillStyle=dieColor; ctx.fillRect(bX,nextY,bW,bH);
-    ctx.strokeStyle='#000'; ctx.lineWidth=2.5; ctx.strokeRect(bX,nextY,bW,bH);
-    ctx.fillStyle='#000'; ctx.font=`${Math.min(20,W*0.032)}px "Bangers",cursive`;
-    ctx.fillText('RE-ENTER THE VOID',cx,nextY+34); nextY+=bH+10;
-    /* CHANGE DIMENSION button */
-    btn2={x:bX,y:nextY,w:bW,h:bH};
-    ctx.fillStyle='rgba(0,0,0,0.65)'; ctx.fillRect(bX,nextY,bW,bH);
-    ctx.strokeStyle='rgba(255,255,255,0.28)'; ctx.lineWidth=2; ctx.strokeRect(bX,nextY,bW,bH);
-    ctx.fillStyle='rgba(255,255,255,0.65)'; ctx.font=`${Math.min(20,W*0.032)}px "Bangers",cursive`;
-    ctx.fillText('CHANGE DIMENSION',cx,nextY+34);
     ctx.textAlign='left';
   }
 }
@@ -2713,7 +2726,7 @@ function saveRun(game) {
   if (!_sbClient || _runSaved) return;
 
   const _finalScore = Math.round(score);
-  if (_finalScore < 2) { console.log('Run skipped: score too low'); return; }
+  if (_finalScore < 3) { console.log('Run skipped: score too low'); return; }
 
   const _lastSaved = parseInt(localStorage.getItem('qp_last_run_saved_at') || '0', 10);
   if (Date.now() - _lastSaved < 25000) { console.log('Run skipped: cooldown'); return; }
@@ -2842,8 +2855,34 @@ let _dpShown = false;
 function showDeathPanel() {
   if (_dpShown) return;
   _dpShown = true;
+
+  // Pre-fill saved name
   const saved = localStorage.getItem('qp_player_name');
   if (saved) document.getElementById('dp-input').value = saved;
+
+  // Mode accent color on RE-ENTER button
+  const dieColor = MODE === 'spaghetti' ? '#ff4400' : MODE === 'time' ? '#4499FF' : '#E8447A';
+  document.getElementById('dp-reenter').style.background = dieColor;
+
+  // Share tweet text
+  const modeName = MODE === 'dark' ? 'Dark Matter' : MODE === 'spaghetti' ? 'Spaghettification' : 'Time Dilation';
+  const sig = Math.floor(score * 10);
+  const gameUrl = window.location.href.split('?')[0];
+  const shareText = 'I survived ' + sig + ' signal in ' + modeName + '.\nRecorded in the Quantum Void.\n' + gameUrl;
+  document.getElementById('dp-share').onclick = function () {
+    window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(shareText), '_blank');
+  };
+
+  // Monadscan proof link — only shown with a real tx_hash
+  const proof = document.getElementById('dp-proof');
+  const h = _currentTxHash;
+  if (typeof h === 'string' && h.startsWith('0x') && h.length >= 66) {
+    proof.href = 'https://monadscan.com/tx/' + h;
+    proof.classList.add('visible');
+  } else {
+    proof.classList.remove('visible');
+  }
+
   document.getElementById('death-panel').classList.add('open');
 }
 
@@ -2856,22 +2895,29 @@ function hideDeathPanel() {
   if (inp) inp.value = '';
   const conf = document.getElementById('dp-confirm');
   if (conf) conf.textContent = '';
+  const proof = document.getElementById('dp-proof');
+  if (proof) proof.classList.remove('visible');
 }
 
 document.getElementById('dp-save').addEventListener('click', savePlayerName);
 document.getElementById('dp-input').addEventListener('keydown', e => {
   if (e.key === 'Enter') savePlayerName();
 });
+document.getElementById('dp-reenter').addEventListener('click', () => { initAudio(); reset(); });
+document.getElementById('dp-changedim').addEventListener('click', () => { initAudio(); goMenu(); });
 
 function savePlayerName() {
   let name = document.getElementById('dp-input').value.trim();
   if (name === '') name = null;
   localStorage.setItem('qp_player_name', name || '');
-  document.getElementById('dp-confirm').textContent = '✓ Name saved';
+  const label = name
+    ? '✓ Saved as ' + (name.startsWith('@') ? name : '@' + name)
+    : '✓ Saved as anonymous';
+  document.getElementById('dp-confirm').textContent = label;
   if (_currentRunId && _sbClient) {
     _sbClient.from('game_runs').update({ x_handle: name }).eq('id', _currentRunId).then(({ error }) => {
       if (error) console.warn('Name update failed', error);
-      else console.log('x_handle updated for run', _currentRunId);
+      else console.log('x_handle updated', _currentRunId);
     });
   }
 }
