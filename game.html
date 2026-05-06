@@ -328,7 +328,7 @@ let shieldPickup=null, shieldActive=false, shieldTimer=0;
 let shieldSpawnTimer=0, shieldSpawnInterval=12+Math.random()*6, shieldBreakFlash=0;
 
 /* ─── Game state ───────────────────────────── */
-let state=MODE?'playing':'menu', score=0, best=0, lastTs=null, spawnT=0, targetedT=0;
+let state='menu', score=0, best=0, lastTs=null, spawnT=0, targetedT=0;
 const player = { x:0, y:0, w:PW, h:PH };
 let obstacles = [];
 function tier()          { return Math.floor(score/10); }
@@ -2924,7 +2924,6 @@ function savePlayerName() {
 
 /* ─── Initialize ────────────────────────────── */
 player.x=canvas.width/2; player.y=canvas.height/2-PH/2;
-if (MODE) startMode(MODE);
 requestAnimationFrame(loop);
 </script>
 </body>
