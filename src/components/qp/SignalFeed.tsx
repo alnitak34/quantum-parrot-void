@@ -10,12 +10,14 @@ interface Signal {
   points: number;
   pinned?: boolean;
   pinnedUntil?: number;
+  txHash?: string | null;
 }
 
 interface TopRow {
   rank: number;
   user: string;
   score: number;
+  txHash?: string | null;
 }
 
 const PIN_MS = 20000;
@@ -35,6 +37,27 @@ const actionFor = (game: string | null | undefined) => {
   return "survived the void";
 };
 
+const MonadBadge = ({ txHash }: { txHash?: string | null }) => {
+  if (!txHash) {
+    return (
+      <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-muted/20 text-muted-foreground border border-muted/30">
+        pending signal
+      </span>
+    );
+  }
+  return (
+    <a
+      href={`https://monadscan.com/tx/${txHash}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-secondary/20 text-secondary-glow border border-secondary/40 hover:bg-secondary/30 hover:shadow-[0_0_12px_hsl(var(--secondary)/0.5)] transition-all"
+    >
+      RECORDED ON MONAD
+    </a>
+  );
+};
+
 const SignalFeed = () => {
   const [feed, setFeed] = useState<Signal[]>([]);
   const [top, setTop] = useState<TopRow[]>([]);
@@ -46,7 +69,7 @@ const SignalFeed = () => {
     let cancelled = false;
     const load = async () => {
       try {
-        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=score,game,created_at,x_handle&order=score.desc&limit=10`;
+        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=score,game,created_at,x_handle,tx_hash&order=score.desc&limit=10`;
         const res = await fetch(url, {
           headers: {
             apikey: SUPABASE_ANON_KEY,
@@ -59,13 +82,20 @@ const SignalFeed = () => {
           game: string | null;
           created_at: string;
           x_handle: string | null;
+          tx_hash: string | null;
         }> = await res.json();
         if (cancelled) return;
 
-        const topRows: TopRow[] = rows.map((r, i) => ({
+        // Prioritize runs with tx_hash, but keep score-desc ordering within each group
+        const withTx = rows.filter((r) => r.tx_hash);
+        const withoutTx = rows.filter((r) => !r.tx_hash);
+        const orderedTop = [...withTx, ...withoutTx];
+
+        const topRows: TopRow[] = orderedTop.map((r, i) => ({
           rank: i + 1,
           user: r.x_handle ? (r.x_handle.startsWith("@") ? r.x_handle : `@${r.x_handle}`) : "anonymous_parrot",
           score: Number(r.score) || 0,
+          txHash: r.tx_hash,
         }));
         setTop(topRows);
 
@@ -74,6 +104,7 @@ const SignalFeed = () => {
           user: r.x_handle ? (r.x_handle.startsWith("@") ? r.x_handle : `@${r.x_handle}`) : "anonymous_parrot",
           action: actionFor(r.game),
           points: Number(r.score) || 0,
+          txHash: r.tx_hash,
         }));
         setFeed(feedRows);
         setError(false);
@@ -183,6 +214,9 @@ const SignalFeed = () => {
               Top <span className="text-primary">signals</span> leave a trace on{" "}
               <span className="text-secondary-glow font-bold">Monad</span>.
             </p>
+            <p className="mt-2 font-mono-x text-xs text-muted-foreground/70 leading-snug">
+              Top runs are batched and recorded on Monad mainnet as verifiable signal roots.
+            </p>
           </div>
 
           {/* MIDDLE: Live feed */}
@@ -215,6 +249,7 @@ const SignalFeed = () => {
                         </span>
                       )}
                       <span className="text-foreground/70">{s.action}</span>
+                      <MonadBadge txHash={s.txHash} />
                       <span className="ml-auto flex items-center gap-1 text-foreground/70">
                         <Skull className="h-3.5 w-3.5" /> +{s.points}
                         <BarChart3 className="h-3.5 w-3.5 text-signal" />
@@ -247,6 +282,7 @@ const SignalFeed = () => {
                     <li key={`${t.rank}-${t.user}`} className={`flex items-center gap-3 ${s.row}`}>
                       <span className="text-muted-foreground/70 w-6 text-right tabular-nums">{t.rank}.</span>
                       <span className={`flex-1 truncate ${s.user}`}>{t.user}</span>
+                      <MonadBadge txHash={t.txHash} />
                       <span className={`ml-auto w-20 text-right ${s.score}`}>{t.score.toLocaleString()}</span>
                       <BarChart3 className={s.bar} />
                     </li>
