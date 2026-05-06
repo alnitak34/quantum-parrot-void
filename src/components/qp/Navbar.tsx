@@ -117,15 +117,16 @@ const Navbar = () => {
 
   const links: { label: string; onClick: () => void }[] = [
     {
-      label: "GAME",
+      label: "PLAY",
       onClick: () => handleNav(() => window.open(gameUrlWithHandle(), "_blank", "noopener,noreferrer")),
     },
     {
-      label: "NFTS",
-      onClick: () => handleNav(() => window.open(OPENSEA_URL, "_blank", "noopener,noreferrer")),
+      label: "SIGNALS",
+      onClick: () => handleNav(() => {
+        const el = document.getElementById("leaderboard");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }),
     },
-    { label: "LEADERBOARD", onClick: () => handleNav(() => setModal("leaderboard")) },
-    { label: "ABOUT", onClick: () => handleNav(() => setModal("about")) },
   ];
 
   return (
