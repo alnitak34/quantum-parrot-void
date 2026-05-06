@@ -225,6 +225,7 @@ const SignalFeed = () => {
                         </span>
                       )}
                       <span className="text-foreground/70">{s.action}</span>
+                      <MonadBadge txHash={s.txHash} />
                       <span className="ml-auto flex items-center gap-1 text-foreground/70">
                         <Skull className="h-3.5 w-3.5" /> +{s.points}
                         <BarChart3 className="h-3.5 w-3.5 text-signal" />
