@@ -287,7 +287,8 @@ const SignalFeed = () => {
                         <BarChart3 className="h-3.5 w-3.5 text-signal/70" />
                       </span>
                     </motion.li>
-                  ))}
+                    );
+                  })}
                 </AnimatePresence>
                 {loaded && feed.length === 0 && (
                   <li className="text-muted-foreground/70">Awaiting signals from the void…</li>
