@@ -37,14 +37,17 @@ const actionFor = (game: string | null | undefined) => {
   return "survived the void";
 };
 
-const hasTx = (h?: string | null): h is string =>
-  typeof h === "string" && h.trim().length > 0;
+const hasTx = (h?: string | null): h is string => {
+  if (typeof h !== "string") return false;
+  const v = h.trim();
+  return v.length > 0 && v !== "debug_tx_hash" && v.toLowerCase().startsWith("0x");
+};
 
 const MonadBadge = ({ txHash }: { txHash?: string | null }) => {
   if (!hasTx(txHash)) {
     return (
       <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-muted/20 text-muted-foreground border border-muted/30">
-        PENDING SIGNAL
+        PENDING
       </span>
     );
   }
