@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Skull, Zap, Crown, BarChart3, ArrowRight } from "lucide-react";
+import { Skull, Zap, Crown, BarChart3, ArrowRight, ArrowUpRight } from "lucide-react";
 import { on } from "./gameStore";
 
 interface Signal {
@@ -43,23 +43,28 @@ const hasTx = (h?: string | null): h is string => {
   return v.length > 0 && v !== "debug_tx_hash" && v.toLowerCase().startsWith("0x");
 };
 
-const MonadBadge = ({ txHash }: { txHash?: string | null }) => {
+const MonadBadge = ({ txHash, size = "md" }: { txHash?: string | null; size?: "sm" | "md" }) => {
   if (!hasTx(txHash)) {
     return (
-      <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-muted/20 text-muted-foreground border border-muted/30">
-        PENDING
+      <span className="text-[9px] font-mono-x tracking-wider uppercase text-muted-foreground/60">
+        pending
       </span>
     );
   }
+  const sizeCls =
+    size === "sm"
+      ? "px-1.5 py-0.5 text-[10px] gap-1"
+      : "px-2.5 py-1 text-[11px] gap-1.5";
   return (
     <a
       href={`https://monadscan.com/tx/${txHash.trim()}`}
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
-      className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-secondary/20 text-secondary-glow border border-secondary/40 hover:bg-secondary/30 hover:shadow-[0_0_12px_hsl(var(--secondary)/0.5)] transition-all"
+      className={`inline-flex items-center ${sizeCls} rounded font-graffiti tracking-wider bg-primary/25 text-primary-foreground border border-primary/70 shadow-[0_0_14px_hsl(var(--primary)/0.55)] hover:bg-primary/40 hover:shadow-[0_0_22px_hsl(var(--primary)/0.85)] transition-all`}
     >
       RECORDED ON MONAD
+      <ArrowUpRight className={size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3"} strokeWidth={3} />
     </a>
   );
 };
@@ -98,7 +103,7 @@ const SignalFeed = () => {
         const withoutTx = rows.filter((r) => !hasTx(r.tx_hash));
         const orderedTop = [...withTx, ...withoutTx];
 
-        const topRows: TopRow[] = orderedTop.map((r, i) => ({
+        const topRows: TopRow[] = orderedTop.slice(0, 5).map((r, i) => ({
           rank: i + 1,
           user: r.x_handle ? (r.x_handle.startsWith("@") ? r.x_handle : `@${r.x_handle}`) : "anonymous_parrot",
           score: Number(r.score) || 0,
@@ -106,7 +111,7 @@ const SignalFeed = () => {
         }));
         setTop(topRows);
 
-        const feedRows: Signal[] = rows.slice(0, 6).map((r) => ({
+        const feedRows: Signal[] = rows.slice(0, 5).map((r) => ({
           time: stamp(new Date(r.created_at)),
           user: r.x_handle ? (r.x_handle.startsWith("@") ? r.x_handle : `@${r.x_handle}`) : "anonymous_parrot",
           action: actionFor(r.game),
@@ -143,7 +148,7 @@ const SignalFeed = () => {
       };
       setFeed((prev) => {
         const others = prev.filter((p) => !p.pinned);
-        return [item, ...others].slice(0, 6);
+        return [item, ...others].slice(0, 5);
       });
     });
     const expireTick = setInterval(() => {
@@ -161,33 +166,38 @@ const SignalFeed = () => {
     };
   }, []);
 
-  const rankStyles: Record<number, { row: string; user: string; score: string; bar: string }> = {
+  const rankStyles: Record<number, { row: string; rank: string; user: string; score: string; bar: string }> = {
     1: {
-      row: "text-lg py-1.5",
+      row: "text-lg py-2",
+      rank: "text-2xl text-primary font-bold drop-shadow-[0_0_8px_hsl(var(--primary)/0.7)]",
       user: "text-primary font-bold drop-shadow-[0_0_10px_hsl(var(--primary)/0.8)]",
       score: "text-primary font-bold tabular-nums",
       bar: "h-4 w-4 text-primary",
     },
     2: {
-      row: "text-base",
+      row: "text-base py-2",
+      rank: "text-xl text-foreground/90 font-bold",
       user: "text-foreground font-semibold",
       score: "text-foreground/90 tabular-nums",
       bar: "h-3.5 w-3.5 text-signal",
     },
     3: {
-      row: "text-sm",
+      row: "text-sm py-2",
+      rank: "text-lg text-foreground/80 font-bold",
       user: "text-foreground/90",
       score: "text-foreground/80 tabular-nums",
       bar: "h-3.5 w-3.5 text-signal",
     },
     4: {
-      row: "text-sm opacity-60",
+      row: "text-sm py-2 opacity-70",
+      rank: "text-base text-foreground/60 font-bold",
       user: "text-foreground/70",
       score: "text-foreground/60 tabular-nums",
       bar: "h-3 w-3 text-signal/70",
     },
     5: {
-      row: "text-sm opacity-50",
+      row: "text-sm py-2 opacity-60",
+      rank: "text-base text-foreground/50 font-bold",
       user: "text-foreground/60",
       score: "text-foreground/50 tabular-nums",
       bar: "h-3 w-3 text-signal/60",
@@ -237,29 +247,29 @@ const SignalFeed = () => {
                 Signal feed temporarily unavailable.
               </p>
             ) : (
-              <ul className="font-mono-x text-sm space-y-1.5 min-h-[120px]">
+              <ul className="font-mono-x text-sm space-y-1.5 min-h-[120px] opacity-80">
                 <AnimatePresence initial={false}>
                   {feed.map((s, i) => (
                     <motion.li
                       key={`${s.time}-${s.user}-${i}`}
                       initial={{ opacity: 0, x: -10, height: 0 }}
-                      animate={{ opacity: 1 - i * 0.12, x: 0, height: "auto" }}
+                      animate={{ opacity: 0.85 - i * 0.1, x: 0, height: "auto" }}
                       exit={{ opacity: 0, x: 10 }}
                       transition={{ duration: 0.4 }}
                       className={`flex items-center gap-2 flex-wrap px-2 py-1 -mx-2 rounded-md transition-all duration-200 hover:bg-secondary/10 hover:shadow-[0_0_18px_hsl(var(--secondary)/0.35)] ${i === 0 && s.pinned ? "animate-pulse-soft" : ""}`}
                     >
-                      <span className="text-muted-foreground/70">[{s.time}]</span>
-                      <span className="signal-line font-bold">{s.user}</span>
+                      <span className="text-muted-foreground/60">[{s.time}]</span>
+                      <span className="signal-line/80 text-signal/80">{s.user}</span>
                       {s.pinned && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-primary/20 text-primary border border-primary/40">
                           YOUR RUN
                         </span>
                       )}
-                      <span className="text-foreground/70">{s.action}</span>
-                      <MonadBadge txHash={s.txHash} />
-                      <span className="ml-auto flex items-center gap-1 text-foreground/70">
+                      <span className="text-foreground/60">{s.action}</span>
+                      <MonadBadge txHash={s.txHash} size="sm" />
+                      <span className="ml-auto flex items-center gap-1 text-foreground/60">
                         <Skull className="h-3.5 w-3.5" /> +{s.points}
-                        <BarChart3 className="h-3.5 w-3.5 text-signal" />
+                        <BarChart3 className="h-3.5 w-3.5 text-signal/70" />
                       </span>
                     </motion.li>
                   ))}
@@ -282,12 +292,12 @@ const SignalFeed = () => {
                 Signal feed temporarily unavailable.
               </p>
             ) : (
-              <ol className="font-mono-x space-y-1.5">
+              <ol className="font-mono-x space-y-3">
                 {top.map((t) => {
                   const s = rankStyles[Math.min(t.rank, 5)];
                   return (
                     <li key={`${t.rank}-${t.user}`} className={`flex items-center gap-3 ${s.row}`}>
-                      <span className="text-muted-foreground/70 w-6 text-right tabular-nums">{t.rank}.</span>
+                      <span className={`w-8 text-right tabular-nums ${s.rank}`}>#{t.rank}</span>
                       <span className={`flex-1 truncate ${s.user}`}>{t.user}</span>
                       <MonadBadge txHash={t.txHash} />
                       <span className={`ml-auto w-20 text-right ${s.score}`}>{t.score.toLocaleString()}</span>
