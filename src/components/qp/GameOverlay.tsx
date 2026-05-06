@@ -1084,7 +1084,6 @@ function ResultCard({
   }, [result.user, result.signal, txHash]);
 
   const shareText = `I survived ${result.signal} in ${dim}.
-Every death becomes a signal.
 Can you beat me?
 ${PROJECT_URL}`;
 
