@@ -1032,6 +1032,7 @@ function ResultCard({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
   const classification = classify(result.signal);
   const dim = result.dimension || "UNKNOWN";
   const SARCASM_LINES = [
@@ -1044,17 +1045,54 @@ function ResultCard({
   const sarcasm = DIM_LINES[dim] || "The void doesn't care.";
   const burn = SARCASM_LINES[Math.floor(Math.random() * SARCASM_LINES.length)];
 
-  const shareText = `I survived ${result.survived.toFixed(1)}s in QUANTUM PARROTS.
-Dimension: ${dim}
-Signal: ${result.signal}
-Classified as: ${classification}
+  // Poll Supabase to detect when this run is recorded on Monad (tx_hash appears)
+  useEffect(() => {
+    if (txHash) return;
+    const SUPABASE_URL = "https://fdjdwfdmqqyzkvqwkelk.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_cwmeuLKWxTcDon9vofJ0xQ_hu67qQvc";
+    const handleClean = result.user.startsWith("@") ? result.user.slice(1) : result.user;
+    let cancelled = false;
+    const tryFetch = async () => {
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=tx_hash,score,x_handle&x_handle=eq.${encodeURIComponent(handleClean)}&score=eq.${result.signal}&order=created_at.desc&limit=1`;
+        const res = await fetch(url, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+        });
+        if (!res.ok) return;
+        const rows: Array<{ tx_hash: string | null }> = await res.json();
+        const tx = rows[0]?.tx_hash?.trim();
+        if (!cancelled && tx && tx.toLowerCase().startsWith("0x") && tx !== "debug_tx_hash") {
+          setTxHash(tx);
+        }
+      } catch { /* ignore */ }
+    };
+    tryFetch();
+    const id = setInterval(tryFetch, 5000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [result.user, result.signal, txHash]);
 
-Top signals leave a trace on Monad.
-
+  const hasHandle = !result.user.toLowerCase().includes("voidwalker") &&
+    !result.user.toLowerCase().includes("parrotghost") || result.user.startsWith("@");
+  const shareText = `I survived ${result.signal} in ${dim}.
+Every death becomes a signal.
+Can you beat me?
 ${PROJECT_URL}`;
+
+  const onChainShareText = txHash
+    ? `My run is now recorded on Monad.
+Score: ${result.signal}
+Mode: ${dim}
+https://monadscan.com/tx/${txHash}`
+    : "";
 
   const handleShare = () => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleOnChainShare = () => {
+    if (!txHash) return;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(onChainShareText)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
