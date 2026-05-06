@@ -110,6 +110,34 @@
       font-size: 11px; color: rgba(255,255,255,0.35);
       text-align: center; padding: 18px 0 4px;
     }
+
+    /* ── Death panel ── */
+    #death-panel {
+      display: none; position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+      justify-content: center; padding-bottom: 20px; pointer-events: none;
+    }
+    #death-panel.open { display: flex; pointer-events: auto; }
+    #death-panel-inner {
+      width: min(300px, 92vw);
+      background: rgba(4,0,7,0.88); border: 1px solid rgba(255,255,255,0.10);
+      padding: 14px 18px 16px; display: flex; flex-direction: column;
+      align-items: stretch; gap: 7px; font-family: 'Space Mono', monospace;
+    }
+    #dp-input {
+      background: rgba(0,0,0,0.55); color: #fff; outline: none;
+      border: 1.5px solid rgba(255,255,255,0.22);
+      font-family: 'Space Mono', monospace; font-size: 12px;
+      padding: 7px 10px; text-align: center; letter-spacing: 0.04em;
+    }
+    #dp-input::placeholder { color: rgba(255,255,255,0.28); }
+    #dp-save {
+      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px;
+      letter-spacing: 0.09em; padding: 8px 0; cursor: pointer;
+      color: #000; background: rgba(244,240,230,0.90); border: none;
+    }
+    #dp-save:hover { background: #fff; }
+    #dp-confirm { font-size: 10px; color: rgba(140,255,140,0.82); letter-spacing: 0.07em; min-height: 13px; text-align: center; }
+    #dp-helper { font-size: 9px; color: rgba(255,255,255,0.28); letter-spacing: 0.06em; text-align: center; }
   </style>
 </head>
 <body>
@@ -140,6 +168,16 @@
     </div>
   </div>
 </div>
+
+<div id="death-panel">
+  <div id="death-panel-inner">
+    <input id="dp-input" type="text" maxlength="30" placeholder="@yourname (optional)" autocomplete="off" spellcheck="false" />
+    <button id="dp-save">SAVE NAME</button>
+    <div id="dp-confirm"></div>
+    <div id="dp-helper">Used on leaderboard.</div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -370,6 +408,7 @@ canvas.addEventListener('click', e => {
 /* ─── Mode management ──────────────────────── */
 function startMode(mode) {
   stopAllContinuousSounds();
+  hideDeathPanel();
   _runSaved=false;
   MODE=mode; state='playing'; score=0; lastTs=null;
   player.x=canvas.width/2; deathQuip=''; btn=null; btn2=null;
@@ -402,6 +441,7 @@ function startMode(mode) {
 }
 function goMenu() {
   stopAllContinuousSounds();
+  hideDeathPanel();
   state='menu'; MODE=null; score=0; lastTs=null; btn=null; btn2=null;
 }
 function reset() { startMode(MODE); }
@@ -2354,6 +2394,7 @@ function draw() {
     ctx.fillStyle='rgba(255,255,255,0.65)'; ctx.font=`${Math.min(20,W*0.032)}px "Bangers",cursive`;
     ctx.fillText('CHANGE DIMENSION',cx,nextY+34);
     ctx.textAlign='left';
+    showDeathPanel();
   }
 }
 
@@ -2635,8 +2676,9 @@ function stopSpagTone() {
 function stopAllContinuousSounds() { stopDarkDrone(); stopSpagTone(); }
 
 /* ─── Supabase ───────────────────────────────── */
-let _sbClient = null;
-let _runSaved  = false;
+let _sbClient    = null;
+let _runSaved    = false;
+let _currentRunId = null;
 
 const _sessionId = (() => {
   const KEY = 'qp_session_id';
@@ -2648,16 +2690,16 @@ const _sessionId = (() => {
   return id;
 })();
 
-const _xHandle = (() => {
+const _urlPlayer = (() => {
   const params = new URLSearchParams(window.location.search);
-  let playerName = params.get("player") || params.get("handle") || null;
-  if (playerName) {
-    playerName = decodeURIComponent(playerName).trim();
-    if (playerName === "") playerName = null;
-  }
-  console.log("Player detected:", playerName);
-  return playerName;
+  let n = params.get("player") || params.get("handle") || null;
+  if (n) { n = decodeURIComponent(n).trim(); if (!n) n = null; }
+  return n;
 })();
+
+function _resolvePlayer() {
+  return _urlPlayer || localStorage.getItem('qp_player_name') || null;
+}
 
 if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
   try {
@@ -2670,18 +2712,27 @@ if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
 
 function saveRun(game) {
   if (!_sbClient || _runSaved) return;
+
+  const _finalScore = Math.round(score);
+  if (_finalScore < 2) { console.log('Run skipped: score too low'); return; }
+
+  const _lastSaved = parseInt(localStorage.getItem('qp_last_run_saved_at') || '0', 10);
+  if (Date.now() - _lastSaved < 25000) { console.log('Run skipped: cooldown'); return; }
+
   _runSaved = true;
   const row = {
     game,
-    score:         Math.round(score),
-    survival_time: Math.round(score),
+    score:         _finalScore,
+    survival_time: _finalScore,
     session_id:    _sessionId,
     device:        canvas.width < 768 ? 'mobile' : 'desktop',
-    x_handle:      _xHandle,
+    x_handle:      _resolvePlayer(),
   };
-  _sbClient.from('game_runs').insert(row).then(({ error }) => {
-    if (error) console.warn('Run save failed', error);
-    else       console.log('Run saved');
+  _sbClient.from('game_runs').insert(row).select('id').then(({ data, error }) => {
+    if (error) { console.warn('Run save failed', error); return; }
+    localStorage.setItem('qp_last_run_saved_at', String(Date.now()));
+    _currentRunId = data && data[0] ? data[0].id : null;
+    console.log('Run saved', _currentRunId);
   });
 }
 
@@ -2724,8 +2775,10 @@ function saveRun(game) {
       const player = rawHandle
         ? (rawHandle.startsWith('@') ? rawHandle : '@' + rawHandle)
         : 'anonymous_parrot';
-      const proof = row.tx_hash
-        ? '<a class="lb-proof" href="https://monadscan.com/tx/' + encodeURIComponent(row.tx_hash) + '" target="_blank" rel="noopener noreferrer">RECORDED</a>'
+      const h = row.tx_hash;
+      const validHash = typeof h === 'string' && h.startsWith('0x') && h.length >= 66;
+      const proof = validHash
+        ? '<a class="lb-proof" href="https://monadscan.com/tx/' + h + '" target="_blank" rel="noopener noreferrer">RECORDED</a>'
         : '<span class="lb-proof pending">PENDING</span>';
       tr.innerHTML =
         '<td>' + (i+1) + '</td>' +
@@ -2783,6 +2836,46 @@ function saveRun(game) {
     });
   });
 })();
+
+/* ─── Death panel ────────────────────────────── */
+let _dpShown = false;
+
+function showDeathPanel() {
+  if (_dpShown) return;
+  _dpShown = true;
+  const saved = localStorage.getItem('qp_player_name');
+  if (saved) document.getElementById('dp-input').value = saved;
+  document.getElementById('death-panel').classList.add('open');
+}
+
+function hideDeathPanel() {
+  _dpShown = false;
+  _currentRunId = null;
+  const panel = document.getElementById('death-panel');
+  if (panel) panel.classList.remove('open');
+  const inp = document.getElementById('dp-input');
+  if (inp) inp.value = '';
+  const conf = document.getElementById('dp-confirm');
+  if (conf) conf.textContent = '';
+}
+
+document.getElementById('dp-save').addEventListener('click', savePlayerName);
+document.getElementById('dp-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') savePlayerName();
+});
+
+function savePlayerName() {
+  let name = document.getElementById('dp-input').value.trim();
+  if (name === '') name = null;
+  localStorage.setItem('qp_player_name', name || '');
+  document.getElementById('dp-confirm').textContent = '✓ Name saved';
+  if (_currentRunId && _sbClient) {
+    _sbClient.from('game_runs').update({ x_handle: name }).eq('id', _currentRunId).then(({ error }) => {
+      if (error) console.warn('Name update failed', error);
+      else console.log('x_handle updated for run', _currentRunId);
+    });
+  }
+}
 
 /* ─── Initialize ────────────────────────────── */
 player.x=canvas.width/2; player.y=canvas.height/2-PH/2;
