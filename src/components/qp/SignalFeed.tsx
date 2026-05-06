@@ -258,6 +258,7 @@ const SignalFeed = () => {
                     <li key={`${t.rank}-${t.user}`} className={`flex items-center gap-3 ${s.row}`}>
                       <span className="text-muted-foreground/70 w-6 text-right tabular-nums">{t.rank}.</span>
                       <span className={`flex-1 truncate ${s.user}`}>{t.user}</span>
+                      <MonadBadge txHash={t.txHash} />
                       <span className={`ml-auto w-20 text-right ${s.score}`}>{t.score.toLocaleString()}</span>
                       <BarChart3 className={s.bar} />
                     </li>
