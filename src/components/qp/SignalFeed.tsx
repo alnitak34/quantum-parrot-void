@@ -47,7 +47,7 @@ const MonadBadge = ({ txHash }: { txHash?: string | null }) => {
   if (!hasTx(txHash)) {
     return (
       <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-muted/20 text-muted-foreground border border-muted/30">
-        PENDING SIGNAL
+        PENDING
       </span>
     );
   }
