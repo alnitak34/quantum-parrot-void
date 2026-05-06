@@ -178,18 +178,15 @@ const Hero = () => {
               <p className="font-mono-x text-[11px] tracking-wider uppercase text-foreground/60">
                 Play. Die. Leave a signal on Monad.
               </p>
-              <a
-                href={(() => {
-                  const url = "https://quantum-parrot-void.lovable.app";
-                  const text = `I just recorded a signal on Monad.\nCan you survive the void?\n${url}`;
-                  return `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-                })()}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-graffiti text-sm tracking-[0.2em] uppercase border-2 border-secondary/60 text-secondary-glow hover:bg-secondary/10 rounded-md px-4 py-2 self-start transition-colors"
+              <button
+                type="button"
+                disabled
+                aria-disabled="true"
+                title="Play first to generate a signal"
+                className="font-graffiti text-sm tracking-[0.2em] uppercase border-2 border-foreground/20 text-foreground/40 rounded-md px-4 py-2 self-start cursor-not-allowed select-none"
               >
-                Share your signal on X
-              </a>
+                Play first to generate a signal
+              </button>
             </div>
 
             <div className="flex flex-col gap-1" style={{ width: "240px" }}>

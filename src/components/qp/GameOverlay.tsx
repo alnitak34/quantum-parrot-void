@@ -1032,6 +1032,7 @@ function ResultCard({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
   const classification = classify(result.signal);
   const dim = result.dimension || "UNKNOWN";
   const SARCASM_LINES = [
@@ -1044,17 +1045,52 @@ function ResultCard({
   const sarcasm = DIM_LINES[dim] || "The void doesn't care.";
   const burn = SARCASM_LINES[Math.floor(Math.random() * SARCASM_LINES.length)];
 
-  const shareText = `I survived ${result.survived.toFixed(1)}s in QUANTUM PARROTS.
-Dimension: ${dim}
-Signal: ${result.signal}
-Classified as: ${classification}
+  // Poll Supabase to detect when this run is recorded on Monad (tx_hash appears)
+  useEffect(() => {
+    if (txHash) return;
+    const SUPABASE_URL = "https://fdjdwfdmqqyzkvqwkelk.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_cwmeuLKWxTcDon9vofJ0xQ_hu67qQvc";
+    const handleClean = result.user.startsWith("@") ? result.user.slice(1) : result.user;
+    let cancelled = false;
+    const tryFetch = async () => {
+      try {
+        const url = `${SUPABASE_URL}/rest/v1/game_runs?select=tx_hash,score,x_handle&x_handle=eq.${encodeURIComponent(handleClean)}&score=eq.${result.signal}&order=created_at.desc&limit=1`;
+        const res = await fetch(url, {
+          headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
+        });
+        if (!res.ok) return;
+        const rows: Array<{ tx_hash: string | null }> = await res.json();
+        const tx = rows[0]?.tx_hash?.trim();
+        if (!cancelled && tx && tx.toLowerCase().startsWith("0x") && tx !== "debug_tx_hash") {
+          setTxHash(tx);
+        }
+      } catch { /* ignore */ }
+    };
+    tryFetch();
+    const id = setInterval(tryFetch, 5000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [result.user, result.signal, txHash]);
 
-Top signals leave a trace on Monad.
-
+  const shareText = `I survived ${result.signal} in ${dim}.
+Every death becomes a signal.
+Can you beat me?
 ${PROJECT_URL}`;
+
+  const onChainShareText = txHash
+    ? `My run is now recorded on Monad.
+Score: ${result.signal}
+Mode: ${dim}
+https://monadscan.com/tx/${txHash}`
+    : "";
 
   const handleShare = () => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleOnChainShare = () => {
+    if (!txHash) return;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(onChainShareText)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
@@ -1127,6 +1163,24 @@ ${PROJECT_URL}`;
         <p className="mt-1 font-mono-x text-[11px] text-muted-foreground">— {burn}</p>
       </div>
 
+      {/* On-chain status badge */}
+      <div className="mt-4 flex items-center justify-center">
+        {txHash ? (
+          <a
+            href={`https://monadscan.com/tx/${txHash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded font-graffiti text-xs tracking-wider bg-primary/25 text-primary-foreground border border-primary/70 shadow-[0_0_14px_hsl(var(--primary)/0.55)] hover:bg-primary/40 transition"
+          >
+            RECORDED ON MONAD ✓
+          </a>
+        ) : (
+          <span className="font-mono-x text-[11px] tracking-wider uppercase text-muted-foreground/70">
+            Pending on-chain recording…
+          </span>
+        )}
+      </div>
+
       <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
         <button
           onClick={handleCopy}
@@ -1142,16 +1196,20 @@ ${PROJECT_URL}`;
         </button>
         <button
           onClick={handleShare}
-          className="flex items-center gap-2 px-5 py-3 rounded-md font-graffiti tracking-wider transition"
-          style={{
-            color: `hsl(${theme.glow})`,
-            border: `1px solid hsl(${theme.glow} / 0.6)`,
-            background: `hsl(${theme.glow} / 0.08)`,
-          }}
+          className="flex items-center gap-2 px-5 py-3 rounded-md font-graffiti tracking-wider transition bg-primary/20 hover:bg-primary/30 text-primary border border-primary/60 shadow-[0_0_18px_hsl(var(--primary)/0.4)]"
         >
           <Share2 className="h-4 w-4" />
-          SHARE
+          SHARE THIS RUN ON X
         </button>
+        {txHash && (
+          <button
+            onClick={handleOnChainShare}
+            className="flex items-center gap-2 px-5 py-3 rounded-md font-graffiti tracking-wider transition bg-secondary/20 hover:bg-secondary/30 text-secondary-glow border border-secondary/60 shadow-[0_0_18px_hsl(var(--secondary)/0.4)]"
+          >
+            <Share2 className="h-4 w-4" />
+            SHARE ON-CHAIN PROOF
+          </button>
+        )}
         <button
           onClick={() => emit("game:start", undefined)}
           className="btn-void flex items-center gap-2 px-6 py-3 text-lg"

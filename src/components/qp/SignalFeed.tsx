@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Skull, Zap, Crown, BarChart3, ArrowRight, ArrowUpRight } from "lucide-react";
+import { Skull, Zap, Crown, BarChart3, ArrowRight, ArrowUpRight, Share2 } from "lucide-react";
 import { on } from "./gameStore";
 import { getPlayer } from "./handle";
 
@@ -311,11 +311,31 @@ const SignalFeed = () => {
               <ol className="font-mono-x space-y-3">
                 {top.map((t) => {
                   const s = rankStyles[Math.min(t.rank, 5)];
+                  const tx = hasTx(t.txHash) ? t.txHash!.trim() : null;
+                  const mode = "the void";
+                  const shareUrl = tx
+                    ? `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                        `Signal recorded on Monad.\nScore: ${t.score}\nMode: ${mode}\nhttps://monadscan.com/tx/${tx}`
+                      )}`
+                    : null;
                   return (
                     <li key={`${t.rank}-${t.user}`} className={`flex items-center gap-3 px-2 -mx-2 rounded-md ${s.row} ${isMe(t.user) ? "bg-primary/10 ring-1 ring-primary/40 shadow-[0_0_18px_hsl(var(--primary)/0.35)]" : ""}`}>
                       <span className={`w-8 text-right tabular-nums ${s.rank}`}>#{t.rank}</span>
                       <span className={`flex-1 truncate ${s.user}`}>{t.user}</span>
                       <MonadBadge txHash={t.txHash} />
+                      {shareUrl && (
+                        <a
+                          href={shareUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label="Share on X"
+                          title="Share on X"
+                          className="text-secondary-glow/80 hover:text-secondary-glow transition"
+                        >
+                          <Share2 className="h-3.5 w-3.5" />
+                        </a>
+                      )}
                       <span className={`ml-auto w-20 text-right ${s.score}`}>{t.score.toLocaleString()}</span>
                       <BarChart3 className={s.bar} />
                     </li>
