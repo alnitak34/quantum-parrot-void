@@ -178,7 +178,7 @@ const DimensionCards = () => {
               className={`relative mt-2 flex items-center justify-center gap-2 font-graffiti text-sm tracking-[0.25em] ${d.quoteColor} opacity-80 group-hover:opacity-100 transition-opacity`}
             >
               <span className="h-px flex-1 bg-current opacity-40" />
-              ENTER THE VOID
+              PREVIEW
               <span className="h-px flex-1 bg-current opacity-40" />
             </div>
           </motion.article>
