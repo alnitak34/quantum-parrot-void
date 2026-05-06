@@ -262,18 +262,20 @@ const SignalFeed = () => {
             ) : (
               <ul className="font-mono-x text-sm space-y-1.5 min-h-[120px] opacity-80">
                 <AnimatePresence initial={false}>
-                  {feed.map((s, i) => (
+                  {feed.map((s, i) => {
+                    const mine = isMe(s.user);
+                    return (
                     <motion.li
                       key={`${s.time}-${s.user}-${i}`}
                       initial={{ opacity: 0, x: -10, height: 0 }}
-                      animate={{ opacity: 0.85 - i * 0.1, x: 0, height: "auto" }}
+                      animate={{ opacity: mine ? 1 : 0.85 - i * 0.1, x: 0, height: "auto" }}
                       exit={{ opacity: 0, x: 10 }}
                       transition={{ duration: 0.4 }}
-                      className={`flex items-center gap-2 flex-wrap px-2 py-1 -mx-2 rounded-md transition-all duration-200 hover:bg-secondary/10 hover:shadow-[0_0_18px_hsl(var(--secondary)/0.35)] ${i === 0 && s.pinned ? "animate-pulse-soft" : ""}`}
+                      className={`flex items-center gap-2 flex-wrap px-2 py-1 -mx-2 rounded-md transition-all duration-200 hover:bg-secondary/10 hover:shadow-[0_0_18px_hsl(var(--secondary)/0.35)] ${i === 0 && s.pinned ? "animate-pulse-soft" : ""} ${mine ? "bg-primary/10 ring-1 ring-primary/40 shadow-[0_0_18px_hsl(var(--primary)/0.35)]" : ""}`}
                     >
                       <span className="text-muted-foreground/60">[{s.time}]</span>
-                      <span className="signal-line/80 text-signal/80">{s.user}</span>
-                      {s.pinned && (
+                      <span className={mine ? "text-primary font-bold" : "signal-line/80 text-signal/80"}>{s.user}</span>
+                      {(s.pinned || mine) && (
                         <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-primary/20 text-primary border border-primary/40">
                           YOUR RUN
                         </span>
