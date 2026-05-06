@@ -1,6 +1,8 @@
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, X } from "lucide-react";
-import { gameUrlWithHandle } from "./handle";
+import { useEffect, useState } from "react";
+import { gameUrlWithHandle, getPlayer, savePlayer } from "./handle";
+import LoadingOverlay from "./LoadingOverlay";
 import wizard from "@/assets/parrot-wizard.png";
 import hearts from "@/assets/parrot-hearts.png";
 import redeye from "@/assets/parrot-control.png";
