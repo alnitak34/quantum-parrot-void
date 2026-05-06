@@ -312,7 +312,7 @@ const SignalFeed = () => {
                 {top.map((t) => {
                   const s = rankStyles[Math.min(t.rank, 5)];
                   return (
-                    <li key={`${t.rank}-${t.user}`} className={`flex items-center gap-3 ${s.row}`}>
+                    <li key={`${t.rank}-${t.user}`} className={`flex items-center gap-3 px-2 -mx-2 rounded-md ${s.row} ${isMe(t.user) ? "bg-primary/10 ring-1 ring-primary/40 shadow-[0_0_18px_hsl(var(--primary)/0.35)]" : ""}`}>
                       <span className={`w-8 text-right tabular-nums ${s.rank}`}>#{t.rank}</span>
                       <span className={`flex-1 truncate ${s.user}`}>{t.user}</span>
                       <MonadBadge txHash={t.txHash} />
