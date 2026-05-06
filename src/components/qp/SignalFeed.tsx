@@ -37,6 +37,27 @@ const actionFor = (game: string | null | undefined) => {
   return "survived the void";
 };
 
+const MonadBadge = ({ txHash }: { txHash?: string | null }) => {
+  if (!txHash) {
+    return (
+      <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-muted/20 text-muted-foreground border border-muted/30">
+        pending signal
+      </span>
+    );
+  }
+  return (
+    <a
+      href={`https://monadscan.com/tx/${txHash}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-secondary/20 text-secondary-glow border border-secondary/40 hover:bg-secondary/30 hover:shadow-[0_0_12px_hsl(var(--secondary)/0.5)] transition-all"
+    >
+      RECORDED ON MONAD
+    </a>
+  );
+};
+
 const SignalFeed = () => {
   const [feed, setFeed] = useState<Signal[]>([]);
   const [top, setTop] = useState<TopRow[]>([]);
