@@ -1033,6 +1033,18 @@ function ResultCard({
 }) {
   const [copied, setCopied] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
+  const initialName = (typeof window !== "undefined" ? localStorage.getItem("playerHandle") : "") || "";
+  const [nameInput, setNameInput] = useState(initialName);
+  const [savedName, setSavedName] = useState<string>(initialName.trim());
+  const onSaveName = () => {
+    const t = nameInput.trim();
+    if (!t) return;
+    try {
+      localStorage.setItem("playerHandle", t);
+      localStorage.setItem("qp_player_name", t);
+    } catch { /* ignore */ }
+    setSavedName(t);
+  };
   const classification = classify(result.signal);
   const dim = result.dimension || "UNKNOWN";
   const SARCASM_LINES = [
