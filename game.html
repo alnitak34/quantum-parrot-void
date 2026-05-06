@@ -2709,6 +2709,10 @@ function saveRun(game) {
     return (d.getMonth()+1) + '/' + d.getDate() + '/' + String(d.getFullYear()).slice(2);
   }
 
+  function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
   function renderRows(rows) {
     tbody.innerHTML = '';
     rows.forEach((row, i) => {
@@ -2716,11 +2720,20 @@ function saveRun(game) {
       if (i === 0) tr.className = 'lb-rank-1';
       else if (i === 1) tr.className = 'lb-rank-2';
       else if (i === 2) tr.className = 'lb-rank-3';
+      const rawHandle = row.x_handle && String(row.x_handle).trim();
+      const player = rawHandle
+        ? (rawHandle.startsWith('@') ? rawHandle : '@' + rawHandle)
+        : 'anonymous_parrot';
+      const proof = row.tx_hash
+        ? '<a class="lb-proof" href="https://monadscan.com/tx/' + encodeURIComponent(row.tx_hash) + '" target="_blank" rel="noopener noreferrer">RECORDED</a>'
+        : '<span class="lb-proof pending">PENDING</span>';
       tr.innerHTML =
         '<td>' + (i+1) + '</td>' +
-        '<td>' + (GAME_LABELS[row.game] || row.game) + '</td>' +
+        '<td class="lb-player" title="' + escHtml(player) + '">' + escHtml(player) + '</td>' +
+        '<td>' + (GAME_LABELS[row.game] || escHtml(row.game || '—')) + '</td>' +
         '<td>' + (row.score ?? '—') + '</td>' +
-        '<td>' + fmtDate(row.created_at) + '</td>';
+        '<td>' + fmtDate(row.created_at) + '</td>' +
+        '<td>' + proof + '</td>';
       tbody.appendChild(tr);
     });
     status.style.display  = 'none';
@@ -2736,7 +2749,7 @@ function saveRun(game) {
   function loadLeaderboard() {
     if (!_sbClient) { showStatus('Leaderboard unavailable.'); return; }
     showStatus('Loading…');
-    let q = _sbClient.from('game_runs').select('game,score,created_at').order('score', { ascending: false }).limit(10);
+    let q = _sbClient.from('game_runs').select('game,score,created_at,x_handle,tx_hash').order('score', { ascending: false }).limit(10);
     if (activeGame !== 'all') q = q.eq('game', activeGame);
     q.then(({ data, error }) => {
       if (error) {
