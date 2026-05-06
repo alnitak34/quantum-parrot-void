@@ -133,7 +133,6 @@ const Hero = () => {
             <div className="flex flex-col gap-2">
               <a
                 href={gameUrlWithHandle()}
-                onClick={onEnterVoid}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn-void flex items-center gap-3 px-8 py-4 text-2xl md:text-3xl"
@@ -148,58 +147,12 @@ const Hero = () => {
               <p className="font-mono-x text-[11px] tracking-wider uppercase text-foreground/60">
                 Play. Die. Leave a signal on Monad.
               </p>
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                title="Play first to generate a signal"
-                className="font-graffiti text-sm tracking-[0.2em] uppercase border-2 border-foreground/20 text-foreground/40 rounded-md px-4 py-2 self-start cursor-not-allowed select-none"
+              <a
+                href="#leaderboard"
+                className="font-mono-x text-[11px] tracking-wider uppercase text-primary/80 hover:text-primary transition-colors self-start"
               >
-                Play first to generate a signal
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-1" style={{ width: "240px" }}>
-              <label
-                htmlFor="qp-handle-input"
-                className="font-mono-x text-[10px] uppercase tracking-[0.2em] text-foreground/60"
-              >
-                Player name (optional)
-              </label>
-              <input
-                id="qp-handle-input"
-                type="text"
-                value={handle}
-                onChange={(e) => onHandleChange(e.target.value.slice(0, 24))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    if (handle.trim()) onSaveName();
-                  }
-                }}
-                placeholder="@yourname (optional)"
-                maxLength={24}
-                className="font-graffiti text-lg tracking-wide bg-background/40 border-2 border-primary/50 rounded-md px-4 py-3 text-foreground placeholder:text-foreground/40 focus:outline-none focus:border-primary focus:bg-background/60 transition-all w-full"
-                style={{
-                  boxShadow: "0 0 16px hsl(var(--primary) / 0.25), inset 0 0 12px hsl(var(--void-deep) / 0.6)",
-                }}
-              />
-              <button
-                type="button"
-                onClick={onSaveName}
-                disabled={!handle.trim()}
-                className="font-graffiti text-xs tracking-[0.2em] uppercase border-2 border-primary/60 text-primary hover:bg-primary/10 rounded-md px-3 py-2 transition-colors self-start disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Save
-              </button>
-              <p className="font-mono-x text-[10px] leading-snug text-foreground/50">
-                Appears on leaderboard. Press SAVE or Enter.
-              </p>
-              {savedMsg && (
-                <p className="font-mono-x text-[10px] leading-snug text-primary">
-                  ✓ Saved as {handle.trim().startsWith("@") ? handle.trim() : `@${handle.trim()}`}
-                </p>
-              )}
+                View Leaderboard →
+              </a>
             </div>
 
 
