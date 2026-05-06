@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Skull, Zap, Crown, BarChart3, ArrowRight, ArrowUpRight } from "lucide-react";
 import { on } from "./gameStore";
+import { getPlayer } from "./handle";
 
 interface Signal {
   time: string;
