@@ -10,12 +10,14 @@ interface Signal {
   points: number;
   pinned?: boolean;
   pinnedUntil?: number;
+  txHash?: string | null;
 }
 
 interface TopRow {
   rank: number;
   user: string;
   score: number;
+  txHash?: string | null;
 }
 
 const PIN_MS = 20000;
