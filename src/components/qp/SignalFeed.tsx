@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Skull, Zap, Crown, BarChart3, ArrowRight } from "lucide-react";
+import { Skull, Zap, Crown, BarChart3, ArrowRight, ArrowUpRight } from "lucide-react";
 import { on } from "./gameStore";
 
 interface Signal {
@@ -43,23 +43,28 @@ const hasTx = (h?: string | null): h is string => {
   return v.length > 0 && v !== "debug_tx_hash" && v.toLowerCase().startsWith("0x");
 };
 
-const MonadBadge = ({ txHash }: { txHash?: string | null }) => {
+const MonadBadge = ({ txHash, size = "md" }: { txHash?: string | null; size?: "sm" | "md" }) => {
   if (!hasTx(txHash)) {
     return (
-      <span className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-muted/20 text-muted-foreground border border-muted/30">
-        PENDING
+      <span className="text-[9px] font-mono-x tracking-wider uppercase text-muted-foreground/60">
+        pending
       </span>
     );
   }
+  const sizeCls =
+    size === "sm"
+      ? "px-1.5 py-0.5 text-[10px] gap-1"
+      : "px-2.5 py-1 text-[11px] gap-1.5";
   return (
     <a
       href={`https://monadscan.com/tx/${txHash.trim()}`}
       target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
-      className="px-1.5 py-0.5 rounded text-[10px] font-graffiti tracking-wider bg-secondary/20 text-secondary-glow border border-secondary/40 hover:bg-secondary/30 hover:shadow-[0_0_12px_hsl(var(--secondary)/0.5)] transition-all"
+      className={`inline-flex items-center ${sizeCls} rounded font-graffiti tracking-wider bg-primary/25 text-primary-foreground border border-primary/70 shadow-[0_0_14px_hsl(var(--primary)/0.55)] hover:bg-primary/40 hover:shadow-[0_0_22px_hsl(var(--primary)/0.85)] transition-all`}
     >
       RECORDED ON MONAD
+      <ArrowUpRight className={size === "sm" ? "h-2.5 w-2.5" : "h-3 w-3"} strokeWidth={3} />
     </a>
   );
 };
