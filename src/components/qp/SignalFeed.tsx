@@ -75,6 +75,18 @@ const SignalFeed = () => {
   const [top, setTop] = useState<TopRow[]>([]);
   const [error, setError] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [me, setMe] = useState<string>("");
+
+  useEffect(() => {
+    const p = getPlayer();
+    if (p) setMe(p.startsWith("@") ? p.slice(1).toLowerCase() : p.toLowerCase());
+  }, []);
+
+  const isMe = (user: string) => {
+    if (!me) return false;
+    const u = user.startsWith("@") ? user.slice(1).toLowerCase() : user.toLowerCase();
+    return u === me;
+  };
 
   // Fetch leaderboard from Supabase
   useEffect(() => {
