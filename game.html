@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -24,7 +24,7 @@
     #mute-btn:hover { background: rgba(30,30,30,0.85); border-color: rgba(255,255,255,0.65); }
     #mute-btn.muted { opacity: 0.38; }
 
-    /* ── Start menu overlay ── */
+    /* â”€â”€ Start menu overlay â”€â”€ */
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
       50%       { transform: translateY(-14px); }
@@ -103,7 +103,7 @@
       border-radius: 4px; flex-shrink: 0;
       transition: transform 0.22s ease, box-shadow 0.22s ease;
     }
-    /* ── card idle glow pulse ── */
+    /* â”€â”€ card idle glow pulse â”€â”€ */
     @keyframes glowPulseTime {
       0%, 100% { box-shadow: 0 0 0 1.5px rgba(68,153,255,0.65), 0 0 14px rgba(68,153,255,0.28), 0 0 36px rgba(68,153,255,0.10); }
       50%       { box-shadow: 0 0 0 2px   rgba(68,153,255,0.90), 0 0 24px rgba(68,153,255,0.52), 0 0 52px rgba(68,153,255,0.20); }
@@ -120,7 +120,7 @@
     .sm-card:nth-child(1) { animation: cardFloat0 6.2s ease-in-out infinite, glowPulseTime 4.0s ease-in-out infinite; }
     .sm-card:nth-child(2) { animation: cardFloat1 7.1s ease-in-out infinite, glowPulseDark 4.8s ease-in-out 1.4s infinite; }
     .sm-card:nth-child(3) { animation: cardFloat2 5.8s ease-in-out infinite, glowPulseSpag 3.6s ease-in-out 0.8s infinite; }
-    /* inner glow via overlay inset — color matches mode accent */
+    /* inner glow via overlay inset â€” color matches mode accent */
     .sm-card[data-mode="time"]      .sm-card-overlay { box-shadow: inset 0 0 28px rgba(68,153,255,0.14); }
     .sm-card[data-mode="dark"]      .sm-card-overlay { box-shadow: inset 0 0 28px rgba(232,68,122,0.14); }
     .sm-card[data-mode="spaghetti"] .sm-card-overlay { box-shadow: inset 0 0 28px rgba(255,85,0,0.14); }
@@ -182,7 +182,7 @@
     }
     #sm-share-btn.visible, #sm-lb-btn.visible { display: block; }
 
-    /* ── Loading overlay ── */
+    /* â”€â”€ Loading overlay â”€â”€ */
     @keyframes ldots {
       0%   { content: '.'; }
       33%  { content: '..'; }
@@ -216,7 +216,7 @@
     }
     #lo-fill { height: 100%; width: 0%; border-radius: 2px; transition: width 1.1s linear; }
 
-    /* ── Leaderboard panel ── */
+    /* â”€â”€ Leaderboard panel â”€â”€ */
     #lb-panel {
       position: fixed; inset: 0; z-index: 200;
       display: none; align-items: center; justify-content: center;
@@ -269,7 +269,7 @@
     .lb-proof-link:hover { color: #4499FF; }
     .lb-pending { font-size: 9px; color: rgba(255,255,255,0.18); letter-spacing: 0.06em; }
 
-    /* ── Death panel ── */
+    /* â”€â”€ Death panel â”€â”€ */
     #death-panel {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
       display: none; justify-content: center;
@@ -335,10 +335,10 @@
 </head>
 <body>
 <canvas id="c"></canvas>
-<button id="mute-btn" title="Toggle sound">♪</button>
+<button id="mute-btn" title="Toggle sound">â™ª</button>
 
 <!-- Menu corner buttons (shown only when menu is open) -->
-<button id="sm-share-btn">↑ SHARE SIGNAL</button>
+<button id="sm-share-btn">â†‘ SHARE SIGNAL</button>
 <button id="sm-lb-btn" onclick="openLeaderboard()">LEADERBOARD<span id="sm-lb-btn-sub">LIVE SIGNALS</span></button>
 
 <!-- Start menu overlay -->
@@ -380,10 +380,10 @@
   <div id="lb-inner">
     <div id="lb-header">
       <span id="lb-title">TOP SIGNALS</span>
-      <button id="lb-close" onclick="document.getElementById('lb-panel').classList.remove('open')">✕</button>
+      <button id="lb-close" onclick="document.getElementById('lb-panel').classList.remove('open')">âœ•</button>
     </div>
     <p id="lb-subtitle">LIVE LEADERBOARD</p>
-    <div id="lb-body"><p id="lb-status">Loading…</p></div>
+    <div id="lb-body"><p id="lb-status">Loadingâ€¦</p></div>
   </div>
 </div>
 
@@ -414,11 +414,11 @@
 <script>
 'use strict';
 
-/* ─── Mode routing ─────────────────────────── */
+/* â”€â”€â”€ Mode routing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const _m = new URLSearchParams(location.search).get('mode');
 let MODE = _m==='dark'?'dark':_m==='spaghetti'?'spaghetti':_m==='time'?'time':null;
 
-/* ─── Canvas setup ─────────────────────────── */
+/* â”€â”€â”€ Canvas setup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
 
@@ -443,11 +443,11 @@ window.addEventListener('resize', () => {
   }
 });
 
-/* ─── Parrot image ─────────────────────────── */
+/* â”€â”€â”€ Parrot image â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const img = new Image();
 img.src = 'hero-parrot.jpg';
 
-/* ─── Stars ────────────────────────────────── */
+/* â”€â”€â”€ Stars â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let stars = [];
 function buildStars() {
   stars = Array.from({ length: 240 }, () => ({
@@ -461,7 +461,7 @@ function buildStars() {
 }
 buildStars();
 
-/* ─── Time Dilation — void orbs ────────────── */
+/* â”€â”€â”€ Time Dilation â€” void orbs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const ORB_PALETTE = [
   [232,68,122],[200,30,80],[155,89,182],[255,50,120],[110,0,160],
 ];
@@ -477,7 +477,7 @@ function buildVoidOrbs() {
 }
 if (MODE==='time') buildVoidOrbs();
 
-/* ─── Time Dilation — warp lines ───────────── */
+/* â”€â”€â”€ Time Dilation â€” warp lines â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let warpLines = [];
 function buildWarpLines() {
   warpLines = Array.from({ length:55 }, ()=>({
@@ -488,7 +488,7 @@ function buildWarpLines() {
 }
 if (MODE==='time') buildWarpLines();
 
-/* ─── Death messages ───────────────────────── */
+/* â”€â”€â”€ Death messages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const DEATH_QUIPS_TIME = [
   "time moved, you didn't",
   "you were late in every timeline",
@@ -518,22 +518,22 @@ const DEATH_QUIPS_SPAG = [
   'gravity always wins. always.',
 ];
 
-/* ─── Constants ────────────────────────────── */
+/* â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const PW = 80, PH = 80, SHRINK = 12, KB_SPEED = 480, FLOOR_PAD = 28;
 const OB_COLORS = ['#9B59B6','#E8447A','#8E6BFF','#F2B544','#F06A57'];
 const TRAIL_LEN = 10;
 
-/* ─── Time Dilation state ──────────────────── */
+/* â”€â”€â”€ Time Dilation state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let timeScale=1.0, timeScaleTimer=0, timeScaleInterval=3+Math.random()*2;
 let screenFlash=0, timeSlowFlash=0;
 let timeTransitionLabel='', timeTransitionAlpha=0, timeShake=0;
 let timePosTracker = { x:0, y:0, timer:0 };
 
-/* ─── Shield state ─────────────────────────── */
+/* â”€â”€â”€ Shield state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let shieldPickup=null, shieldActive=false, shieldTimer=0;
 let shieldSpawnTimer=0, shieldSpawnInterval=12+Math.random()*6, shieldBreakFlash=0;
 
-/* ─── Overlay / run state ──────────────────── */
+/* â”€â”€â”€ Overlay / run state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let _currentRunId  = null;
 let _dpShown       = false;
 let _currentTxHash = null;
@@ -543,7 +543,7 @@ function _resolvePlayer() {
   return localStorage.getItem('qp_player_name') || null;
 }
 
-/* ─── Game state ───────────────────────────── */
+/* â”€â”€â”€ Game state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let state='menu', score=0, best=0, lastTs=null, spawnT=0, targetedT=0;
 const player = { x:0, y:0, w:PW, h:PH };
 let obstacles = [];
@@ -551,7 +551,7 @@ function tier()          { return Math.floor(score/10); }
 function fallingSpeed()  { return 165+tier()*65+(score%10)*4; }
 function spawnInterval() { return Math.max(0.30,1.52-tier()*0.16); }
 
-/* ─── Dark Matter state ─────────────────────── */
+/* â”€â”€â”€ Dark Matter state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let singularities  = [];
 let singSpawnTimer = 0;
 let shadowEntities = [];
@@ -573,7 +573,7 @@ let fusionSlow     = 0;
 let safeTimer      = 0;
 let shockwaves     = [];
 
-/* ─── Spaghetti state ────────────────────────── */
+/* â”€â”€â”€ Spaghetti state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let bhX=0, bhY=0;
 const BH_R=60;
 let spagChaos=0, spagStretch=0;
@@ -607,7 +607,7 @@ function singSpawnInt() {
   return Math.max(3.0, base - getDespair() * 0.75);
 }
 
-/* ─── Input ────────────────────────────────── */
+/* â”€â”€â”€ Input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const keys = {};
 window.addEventListener('keydown', e => {
   keys[e.code] = true;
@@ -631,7 +631,7 @@ canvas.addEventListener('touchend', e => {
   touchX=null; touchY=null;
 }, { passive:false });
 
-/* ─── Button state ─────────────────────────── */
+/* â”€â”€â”€ Button state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let btn=null, btn2=null, menuBtns=[];
 function hitR(r,bx,by) { return r&&bx>=r.x&&bx<=r.x+r.w&&by>=r.y&&by<=r.y+r.h; }
 function handleClick(cx,cy) {
@@ -648,7 +648,7 @@ canvas.addEventListener('click', e => {
   const r=canvas.getBoundingClientRect(); handleClick(e.clientX-r.left,e.clientY-r.top);
 });
 
-/* ─── Mode management ──────────────────────── */
+/* â”€â”€â”€ Mode management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function startMode(mode) {
   stopAllContinuousSounds();
   hideMenuOverlay(); hideDeathPanel();
@@ -690,7 +690,7 @@ function goMenu() {
 }
 function reset() { startMode(MODE); }
 
-/* ─── Time mode: spawn obstacle ────────────── */
+/* â”€â”€â”€ Time mode: spawn obstacle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function spawnObstacle(targeted) {
   const W=canvas.width, w=72+Math.random()*52, h=64+Math.random()*34;
   let ox;
@@ -710,7 +710,7 @@ function spawnShield() {
   shieldPickup={ x:Math.random()*(canvas.width-w), y:-h-10, w,h, speed:78+Math.random()*28 };
 }
 
-/* ─── Dark Matter: factory / init ───────────── */
+/* â”€â”€â”€ Dark Matter: factory / init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function createSingularity(x, y, r, mass) {
   const nP = Math.min(36, Math.floor(12 + mass * 10));
   const parts = Array.from({ length:nP }, () => {
@@ -820,7 +820,7 @@ function initGravParticles() {
   }));
 }
 
-/* ─── Spaghetti: init ───────────────────────── */
+/* â”€â”€â”€ Spaghetti: init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function initSpaghetti() {
   bhX=canvas.width/2; bhY=canvas.height*0.20;
   spagChaos=0; spagStretch=0; spagFailTimer=0;
@@ -844,7 +844,7 @@ function getTunnelCX(y) {
 }
 
 
-/* ─── Spaghetti: update ─────────────────────── */
+/* â”€â”€â”€ Spaghetti: update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function updateSpaghetti(dt) {
   warpTime+=dt*1.5;
   const W=canvas.width, H=canvas.height;
@@ -872,7 +872,7 @@ function updateSpaghetti(dt) {
     player.y+=(Math.random()-0.5)*spagChaos*55*dt;
   }
 
-  /* gravity — upward pull toward BH */
+  /* gravity â€” upward pull toward BH */
   const graceFactor=inGrace?0.18:1.0;
   const baseGrav=Math.max(55,95/(1+gd*0.0005));
   let nearGrav=0;
@@ -885,7 +885,7 @@ function updateSpaghetti(dt) {
   player.x=Math.max(PW/2,Math.min(W-PW/2,player.x));
   player.y=Math.max(0,Math.min(H-PH,player.y));
 
-  /* tunnel — narrow over time, shift periodically */
+  /* tunnel â€” narrow over time, shift periodically */
   const tunnelMinHW=mob?60:48;
   const tunnelStartHW=Math.min(W*0.26,mob?170:145);
   tunnelHalfW=Math.max(tunnelMinHW, tunnelStartHW-score*1.6);
@@ -900,7 +900,7 @@ function updateSpaghetti(dt) {
     tunnelBendTarget=(Math.random()-0.5)*(70+Math.min(score,45)*2.2);
   }
 
-  /* corner anti-camping — tunnel shifts away, chaos ticks up */
+  /* corner anti-camping â€” tunnel shifts away, chaos ticks up */
   const inCorner=player.x<PW*3||player.x>W-PW*3||player.y>H*0.80;
   if (inCorner&&!inGrace) {
     tunnelCornerTimer+=dt;
@@ -913,7 +913,7 @@ function updateSpaghetti(dt) {
     }
   } else { tunnelCornerTimer=Math.max(0,tunnelCornerTimer-dt*2); }
 
-  /* tunnel containment check — chaos rises outside walls */
+  /* tunnel containment check â€” chaos rises outside walls */
   const playerTCX=getTunnelCX(player.y+PH/2);
   const wallDist=Math.abs(player.x-playerTCX)-(tunnelHalfW-PW*0.4);
   if (!inGrace) {
@@ -947,7 +947,7 @@ function updateSpaghetti(dt) {
   spagTrail.unshift({x:player.x,y:player.y+PH/2,stretch:spagStretch,angle:Math.atan2(gny,gnx)});
   if (spagTrail.length>16) spagTrail.pop();
 
-  /* gravity pulses — periodic tidal surge */
+  /* gravity pulses â€” periodic tidal surge */
   gravPulseTimer-=dt;
   if (gravPulseTimer<=0) {
     gravPulseTimer=3+Math.random()*3*(1-spagChaos*0.4);
@@ -1014,11 +1014,11 @@ function updateSpaghetti(dt) {
   }
 }
 
-/* ─── Spaghetti: draw black hole ────────────── */
+/* â”€â”€â”€ Spaghetti: draw black hole â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawBlackHole() {
   const t=Date.now()*0.001;
   const pb=bhPulseBoost;
-  /* deep outer corona — large dark-red glow */
+  /* deep outer corona â€” large dark-red glow */
   for (let i=5;i>=1;i--) {
     const hR=BH_R*(3.2+i*2.0)+Math.sin(t*1.4+i)*10;
     const a=(0.40-i*0.06)*(0.55+spagChaos*0.55)+pb*0.12;
@@ -1046,7 +1046,7 @@ function drawBlackHole() {
     ctx.globalAlpha=1;
   }
   ctx.shadowBlur=0; ctx.restore();
-  /* distortion rings — bright and thick */
+  /* distortion rings â€” bright and thick */
   for (let i=1;i<=6;i++) {
     const dR=BH_R*(2.0+i*0.90)+Math.sin(t*2.6+i*1.1)*11*(1+spagChaos*0.9);
     const al=Math.max(0,(0.48-i*0.05)*(0.5+spagChaos*0.65)+(i<=2?pb*0.25:0));
@@ -1056,7 +1056,7 @@ function drawBlackHole() {
     ctx.beginPath(); ctx.arc(bhX,bhY,dR,0,Math.PI*2); ctx.stroke();
     ctx.restore();
   }
-  /* event horizon ring — bright orange-white marker */
+  /* event horizon ring â€” bright orange-white marker */
   {
     const ehR=BH_R+5+Math.sin(t*3.5)*3.5*(1+pb);
     ctx.save();
@@ -1082,13 +1082,13 @@ function drawBlackHole() {
   ctx.fillStyle=eg; ctx.beginPath(); ctx.arc(bhX,bhY,BH_R,0,Math.PI*2); ctx.fill();
 }
 
-/* ─── Spaghetti: tunnel channel (background) ── */
+/* â”€â”€â”€ Spaghetti: tunnel channel (background) â”€â”€ */
 function drawWarpLines() {
   const W=canvas.width, H=canvas.height;
   const steps=60;
   ctx.save();
 
-  /* outside-tunnel danger tint — full screen reddish, then dark inside covers it */
+  /* outside-tunnel danger tint â€” full screen reddish, then dark inside covers it */
   ctx.fillStyle='rgba(38,4,4,0.38)';
   ctx.fillRect(0,0,W,H);
 
@@ -1110,7 +1110,7 @@ function drawWarpLines() {
   grd.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=grd; ctx.fill();
 
-  /* center guide — thin pale violet line */
+  /* center guide â€” thin pale violet line */
   ctx.beginPath();
   for (let i=0;i<=steps;i++) {
     const t=i/steps; const y=bhY+(H-bhY)*t;
@@ -1124,11 +1124,11 @@ function drawWarpLines() {
   ctx.restore();
 }
 
-/* ─── Spaghetti: suction particles ─────────── */
+/* â”€â”€â”€ Spaghetti: suction particles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawSpagParticles() {
   ctx.save();
   for (const p of spagParticles) {
-    /* all particles are dim background dust — no glow, no streaks */
+    /* all particles are dim background dust â€” no glow, no streaks */
     ctx.globalAlpha=Math.min(0.38,p.alpha*0.55);
     ctx.fillStyle='#884422';
     ctx.beginPath(); ctx.arc(p.x,p.y,Math.min(p.size,2.5),0,Math.PI*2); ctx.fill();
@@ -1136,7 +1136,7 @@ function drawSpagParticles() {
   ctx.restore();
 }
 
-/* ─── Spaghetti: tunnel stress walls ───────── */
+/* â”€â”€â”€ Spaghetti: tunnel stress walls â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawWorms() {
   const W=canvas.width, H=canvas.height;
   const steps=60;
@@ -1144,7 +1144,7 @@ function drawWorms() {
   const mob=W<768;
   const chaos=spagChaos;
 
-  /* player proximity to nearest wall — 0=center, 1=at wall */
+  /* player proximity to nearest wall â€” 0=center, 1=at wall */
   const playerTCX=getTunnelCX(player.y+PH/2);
   const wallProx=Math.min(1,Math.abs(player.x-playerTCX)/Math.max(1,tunnelHalfW));
   const closeToWall=Math.max(0,wallProx-0.5)/0.5; // 0 in inner 50%, 1 at wall
@@ -1181,7 +1181,7 @@ function drawWorms() {
   ctx.restore();
 }
 
-/* ─── Spaghetti: red trail ──────────────────── */
+/* â”€â”€â”€ Spaghetti: red trail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawSpagTrail() {
   if (!img.complete||!img.naturalWidth) return;
   for (let i=spagTrail.length-1;i>=0;i--) {
@@ -1201,7 +1201,7 @@ function drawSpagTrail() {
   }
 }
 
-/* ─── Spaghetti: gravity pulses ─────────────── */
+/* â”€â”€â”€ Spaghetti: gravity pulses â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawGravPulses() {
   for (const p of gravPulses) {
     if (p.alpha<=0) continue;
@@ -1217,7 +1217,7 @@ function drawGravPulses() {
   }
 }
 
-/* ─── Time mode: draw melting clock ─────────── */
+/* â”€â”€â”€ Time mode: draw melting clock â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawMeltingClock(ob) {
   const {x,y,w,h,color,hourA,minA,d1dx,d1len,d2dx,d2len}=ob;
   const cx=x+w/2, cy=y+h*0.41, rx=w/2, ry=h*0.41;
@@ -1268,7 +1268,7 @@ function drawMeltingClock(ob) {
   ctx.restore();
 }
 
-/* ─── Dark Matter: draw one singularity ─────── */
+/* â”€â”€â”€ Dark Matter: draw one singularity â”€â”€â”€â”€â”€â”€â”€ */
 function drawSingularity(sing) {
   const {x:cx,y:cy,r,mass,phase,pulseFreq,particles}=sing;
   const t=Date.now()*0.001;
@@ -1295,7 +1295,7 @@ function drawSingularity(sing) {
   ctx.fillStyle=halo;
   ctx.beginPath(); ctx.arc(dx,dy,haloR,0,Math.PI*2); ctx.fill();
 
-  /* rotating orbital arc lanes — clearly visible */
+  /* rotating orbital arc lanes â€” clearly visible */
   for (let i=1;i<=4;i++) {
     const arcR=r*(1.8+i*1.0+mass*0.30);
     const rot=t*1.4*(i%2===0?1:-1)*(sing.pulseFreq*0.9+0.4);
@@ -1366,7 +1366,7 @@ function drawSingularity(sing) {
   ctx.beginPath(); ctx.arc(dx,dy,r,0,Math.PI*2); ctx.fill();
 }
 
-/* ─── Dark Matter: fusion tendril ───────────── */
+/* â”€â”€â”€ Dark Matter: fusion tendril â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawFusionTendrils() {
   const now=Date.now()*0.001;
   for (let i=0;i<singularities.length-1;i++) {
@@ -1425,7 +1425,7 @@ function drawFusionTendrils() {
   }
 }
 
-/* ─── Dark Matter: shadow entities ─────────── */
+/* â”€â”€â”€ Dark Matter: shadow entities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawShadowEntities() {
   const now=Date.now()*0.001;
   for (const s of shadowEntities) {
@@ -1459,7 +1459,7 @@ function drawShadowEntities() {
   }
 }
 
-/* ─── Dark Matter: gravity particles ────────── */
+/* â”€â”€â”€ Dark Matter: gravity particles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawGravParticles() {
   ctx.save();
   for (const p of gravParticles) {
@@ -1482,7 +1482,7 @@ function drawGravParticles() {
   ctx.restore();
 }
 
-/* ─── Dark Matter: space distortion field ──── */
+/* â”€â”€â”€ Dark Matter: space distortion field â”€â”€â”€â”€ */
 function drawDistortionField() {
   if (!singularities.length) return;
   const W=canvas.width, H=canvas.height;
@@ -1516,7 +1516,7 @@ function drawDistortionField() {
   ctx.restore();
 }
 
-/* ─── Dark Matter: fusion shockwave rings ─── */
+/* â”€â”€â”€ Dark Matter: fusion shockwave rings â”€â”€â”€ */
 function drawShockwaves() {
   for (const sw of shockwaves) {
     if (sw.alpha<=0) continue;
@@ -1533,7 +1533,7 @@ function drawShockwaves() {
   }
 }
 
-/* ─── Shield path helper ───────────────────── */
+/* â”€â”€â”€ Shield path helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function traceShieldPath(cx,cy,r) {
   ctx.beginPath();
   ctx.moveTo(cx,cy-r); ctx.lineTo(cx+r,cy-r*0.30); ctx.lineTo(cx+r,cy+r*0.28);
@@ -1573,7 +1573,7 @@ function drawShieldRing() {
   ctx.textBaseline='alphabetic'; ctx.textAlign='left'; ctx.restore();
 }
 
-/* ─── Dark Matter: update ────────────────────── */
+/* â”€â”€â”€ Dark Matter: update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function updateDark(dt) {
   const now=Date.now()*0.001;
   const dl=getDespair();
@@ -1595,13 +1595,13 @@ function updateDark(dt) {
   if (surgeTimer<=0) { surgeTimer=6+Math.random()*2; if (score >= 15) { surgeActive=2.2; sndSurgePulse(); } }
   if (surgeActive>0) surgeActive=Math.max(0,surgeActive-dt);
 
-  /* drift singularities — real mutual gravity + weak player chase */
+  /* drift singularities â€” real mutual gravity + weak player chase */
   for (const sing of singularities) {
     for (const o of singularities) {
       if (o===sing) continue;
       const ddx=o.x-sing.x, ddy=o.y-sing.y;
       const d=Math.max(Math.sqrt(ddx*ddx+ddy*ddy),1);
-      /* actual gravitational attraction — strong enough to force merges */
+      /* actual gravitational attraction â€” strong enough to force merges */
       const f=Math.min(160, sing.mass*o.mass*2200/(d*d+100));
       sing.vx+=(ddx/d)*f*dt; sing.vy+=(ddy/d)*f*dt;
     }
@@ -1678,18 +1678,18 @@ function updateDark(dt) {
   player.x=Math.max(PW/2,Math.min(canvas.width-PW/2,player.x));
   player.y=Math.max(0,Math.min(canvas.height-PH,player.y));
 
-  /* gravity pull — global far-field + strong near-field */
+  /* gravity pull â€” global far-field + strong near-field */
   const NEAR_RANGE=Math.min(canvas.width*0.68,400);
   let netGravX=0, netGravY=0;
   for (const sing of singularities) {
     const gdx=sing.x-player.x, gdy=sing.y-(player.y+PH/2);
     const gd=Math.max(Math.sqrt(gdx*gdx+gdy*gdy),sing.r*1.3);
     const nx=gdx/gd, ny=gdy/gd;
-    /* far-field: whole-screen constant drift — always felt */
+    /* far-field: whole-screen constant drift â€” always felt */
     const farForce=60*sing.mass*gravMult()/(1+gd*0.0007);
     player.x+=nx*farForce*effectiveDt; player.y+=ny*farForce*effectiveDt;
     netGravX+=nx*farForce; netGravY+=ny*farForce;
-    /* near-field: danger ramp — multiplies on top */
+    /* near-field: danger ramp â€” multiplies on top */
     if (gd<NEAR_RANGE) {
       const tt=Math.pow(Math.max(0,1-gd/NEAR_RANGE),1.5);
       const nearForce=320*sing.mass*gravMult()*tt*tt;
@@ -1704,14 +1704,14 @@ function updateDark(dt) {
   const targetTilt=Math.tanh(netGravX/280)*0.22;
   parrotTilt+=(targetTilt-parrotTilt)*Math.min(1,dt*5.5);
 
-  /* parrot stretch + shake — nearest singularity */
+  /* parrot stretch + shake â€” nearest singularity */
   let nearDist=Infinity, nearSing=null;
   for (const sing of singularities) {
     const d=Math.hypot(sing.x-player.x,sing.y-(player.y+PH/2));
     if (d<nearDist) { nearDist=d; nearSing=sing; }
   }
   parrotSX=parrotSY=1; parrotShakeX=parrotShakeY=0;
-  /* stretch based on total gravity magnitude — visible everywhere */
+  /* stretch based on total gravity magnitude â€” visible everywhere */
   const gravMag=Math.hypot(netGravX,netGravY);
   const stretchT=Math.min(1.0,gravMag/380);
   if (stretchT>0.02) {
@@ -1801,7 +1801,7 @@ function updateDark(dt) {
   }
 }
 
-/* ─── Update ───────────────────────────────── */
+/* â”€â”€â”€ Update â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function update(dt) {
   if (state==='menu') {
     for (const s of stars) { s.a+=s.da; if(s.a<=0.08||s.a>=1) s.da*=-1; s.a=Math.max(0.08,Math.min(1,s.a)); }
@@ -1824,7 +1824,7 @@ function update(dt) {
   if (MODE==='dark') { updateDark(dt); return; }
   if (MODE==='spaghetti') { updateSpaghetti(dt); return; }
 
-  /* ── Time mode ── */
+  /* â”€â”€ Time mode â”€â”€ */
   spawnT+=dt; targetedT+=dt;
   timeScaleTimer+=dt;
   if (timeScaleTimer>=timeScaleInterval) {
@@ -1934,7 +1934,7 @@ function update(dt) {
   }
 }
 
-/* ─── Menu screen ──────────────────────────── */
+/* â”€â”€â”€ Menu screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function drawMenuScreen(W, H, now) {
   ctx.fillStyle='#050008'; ctx.fillRect(0,0,W,H);
   ctx.save();
@@ -1946,7 +1946,7 @@ function drawMenuScreen(W, H, now) {
   menuBtns=[];
 }
 
-/* ─── Draw ─────────────────────────────────── */
+/* â”€â”€â”€ Draw â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function draw() {
   const W=canvas.width, H=canvas.height, now=Date.now()*0.001;
   if (state==='menu') { drawMenuScreen(W,H,now); return; }
@@ -1987,10 +1987,10 @@ function draw() {
     }
   }
 
-  /* shadow entities (dark mode — drawn before stars for depth) */
+  /* shadow entities (dark mode â€” drawn before stars for depth) */
   if (MODE==='dark') drawShadowEntities();
 
-  /* spaghetti — warp lines drawn under stars */
+  /* spaghetti â€” warp lines drawn under stars */
   if (MODE==='spaghetti') drawWarpLines();
 
   /* stars */
@@ -2083,7 +2083,7 @@ function draw() {
       ctx.restore();
     }
 
-    /* medium-zone warning — orange tint when getting close */
+    /* medium-zone warning â€” orange tint when getting close */
     if (singularities.length > 0) {
       const nearestD=Math.min(...singularities.map(s=>Math.hypot(s.x-player.x,s.y-(player.y+PH/2))));
       const nearestS=singularities.reduce((a,b)=>Math.hypot(b.x-player.x,b.y-(player.y+PH/2))<Math.hypot(a.x-player.x,a.y-(player.y+PH/2))?b:a);
@@ -2099,7 +2099,7 @@ function draw() {
       }
     }
 
-    /* global pulsing vignette — always present, scales with despair + total mass */
+    /* global pulsing vignette â€” always present, scales with despair + total mass */
     {
       const now2=Date.now()*0.001;
       const totalMass=singularities.reduce((s,x)=>s+x.mass,0);
@@ -2142,14 +2142,14 @@ function draw() {
     }
   }
 
-  /* ── Spaghetti mode rendering ── */
+  /* â”€â”€ Spaghetti mode rendering â”€â”€ */
   if (MODE==='spaghetti') {
     drawGravPulses();
     drawSpagParticles();
     drawWorms();
     drawBlackHole();
 
-    /* wall proximity pre-danger — edge glow on near side */
+    /* wall proximity pre-danger â€” edge glow on near side */
     if (spagGrace<=0) {
       const _ptcx=getTunnelCX(player.y+PH/2);
       const _wdelta=player.x-_ptcx;
@@ -2378,7 +2378,7 @@ function draw() {
     }
   }
 
-  /* parrot — with spaghettification deform in spag mode */
+  /* parrot â€” with spaghettification deform in spag mode */
   {
     const pcx=player.x+parrotShakeX, pcy=player.y+PH/2+parrotShakeY;
     ctx.save();
@@ -2402,7 +2402,7 @@ function draw() {
     } else {
       ctx.globalCompositeOperation='source-over'; ctx.fillStyle='#E8447A';
       ctx.beginPath(); ctx.arc(0,0,PW/2,0,Math.PI*2); ctx.fill();
-      ctx.font='36px serif'; ctx.textAlign='center'; ctx.fillText('🦜',0,12); ctx.textAlign='left';
+      ctx.font='36px serif'; ctx.textAlign='center'; ctx.fillText('ðŸ¦œ',0,12); ctx.textAlign='left';
     }
     ctx.restore();
   }
@@ -2459,7 +2459,7 @@ function draw() {
   ctx.fillStyle='#F4F0E6'; ctx.font='700 19px "Space Mono",monospace';
   ctx.fillText(`SIGNAL  ${Math.floor(score*10)}`,18,48);
   if (MODE==='time') {
-    const tsLabel=timeScale===0.35?'SLOW  0.35×':timeScale===2.2?'FAST  2.2×':'1×';
+    const tsLabel=timeScale===0.35?'SLOW  0.35Ã—':timeScale===2.2?'FAST  2.2Ã—':'1Ã—';
     const tsColor=timeScale===0.35?'#4488FF':timeScale===2.2?'#FF8800':'#8E6BFF';
     ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(10,72,244,26);
     ctx.fillStyle=tsColor; ctx.font='700 13px "Space Mono",monospace'; ctx.fillText(tsLabel,18,89);
@@ -2501,7 +2501,7 @@ function draw() {
       ctx.fillStyle='#FF8800'; ctx.fillText('STRESS WALL!',W/2,H*0.55);
       ctx.shadowBlur=0; ctx.textAlign='left'; ctx.restore();
     }
-    /* structural failure — countdown warning */
+    /* structural failure â€” countdown warning */
     if (spagFailTimer>0) {
       const warnFrac=Math.max(0,1-spagFailTimer/1.8);
       const pulse=0.5+Math.sin(Date.now()*0.016)*0.5;
@@ -2564,7 +2564,7 @@ function draw() {
   }
 }
 
-/* ─── Game loop ────────────────────────────── */
+/* â”€â”€â”€ Game loop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function loop(ts) {
   if (lastTs===null) lastTs=ts;
   const dt=Math.min((ts-lastTs)/1000,0.08);
@@ -2572,7 +2572,7 @@ function loop(ts) {
   requestAnimationFrame(loop);
 }
 
-/* ─── Audio ─────────────────────────────────── */
+/* â”€â”€â”€ Audio â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let audioCtx=null, masterGain=null, audioReady=false, sfxMuted=false;
 let _darkDrone=null, _spagTone=null;
 let _pullCooldown=0, _tickCooldown=0;
@@ -2629,7 +2629,7 @@ function _noise(gain, dur, freq, Q, attack, ftype) {
   src.start(t); src.stop(t+dur+0.02);
 }
 
-/* ── One-shot sounds ── */
+/* â”€â”€ One-shot sounds â”€â”€ */
 function sndClick() { _osc('sine',880,0.09,0.07,0.004,650); }
 
 function sndStart(m) {
@@ -2703,7 +2703,7 @@ function sndTimeBend(dir) {
   }
 }
 
-/* ── Time mode: shield sounds ── */
+/* â”€â”€ Time mode: shield sounds â”€â”€ */
 function sndShieldPickup() {
   _osc('sine',440,0.36,0.38,0.005,1380);
   _osc('triangle',880,0.22,0.14,0.003,1760);
@@ -2716,7 +2716,7 @@ function sndShieldSnap() {
   _noise(0.28,0.09,4200,10,0.002);
 }
 
-/* ── Dark Matter: cosmic whispers ── */
+/* â”€â”€ Dark Matter: cosmic whispers â”€â”€ */
 let _darkWhisperTimer=12+Math.random()*10;
 function sndWhisper() {
   if (!audioReady) return;
@@ -2734,13 +2734,13 @@ function updateDarkWhisper(dt) {
   if (_darkWhisperTimer<=0) { sndWhisper(); _darkWhisperTimer=9+Math.random()*13; }
 }
 
-/* ── Dark Matter: surge pressure pulse ── */
+/* â”€â”€ Dark Matter: surge pressure pulse â”€â”€ */
 function sndSurgePulse() {
   _osc('sine',46,0.38,1.8,0.018,18);
   _noise(0.28,0.85,85,1.4,0.022,'lowpass');
 }
 
-/* ── Time mode: proximity tick ── */
+/* â”€â”€ Time mode: proximity tick â”€â”€ */
 function updateTimeTick(minDy, H, dt) {
   if (!audioReady) return;
   _tickCooldown=Math.max(0,_tickCooldown-dt);
@@ -2751,7 +2751,7 @@ function updateTimeTick(minDy, H, dt) {
   _tickCooldown=Math.max(0.036,1.1*(1-prox*0.967));
 }
 
-/* ── Dark Matter: continuous drone ── */
+/* â”€â”€ Dark Matter: continuous drone â”€â”€ */
 function startDarkDrone() {
   if (!audioReady||_darkDrone) return;
   const t=audioCtx.currentTime;
@@ -2796,7 +2796,7 @@ function stopDarkDrone() {
   _darkDrone=null;
 }
 
-/* ── Spaghettification: tension tone ── */
+/* â”€â”€ Spaghettification: tension tone â”€â”€ */
 function startSpagTone() {
   if (!audioReady||_spagTone) return;
   const t=audioCtx.currentTime;
@@ -2805,7 +2805,7 @@ function startSpagTone() {
   /* BH proximity sub-rumble */
   const ob=audioCtx.createOscillator(); ob.type='sine'; ob.frequency.value=26;
   const gbh=audioCtx.createGain(); gbh.gain.value=0; ob.connect(gbh);
-  /* high tension whistle — audible only at high chaos */
+  /* high tension whistle â€” audible only at high chaos */
   const ow=audioCtx.createOscillator(); ow.type='sine'; ow.frequency.value=1800;
   const gw=audioCtx.createGain(); gw.gain.value=0; ow.connect(gw);
   const flt=audioCtx.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=190;
@@ -2841,7 +2841,7 @@ function stopSpagTone() {
 }
 function stopAllContinuousSounds() { stopDarkDrone(); stopSpagTone(); }
 
-/* ─── Start menu overlay ─────────────────────── */
+/* â”€â”€â”€ Start menu overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const _MODE_LOAD_CFG = {
   time:       { label: 'TIME DILATION',      msg: 'SYNCING TEMPORAL FIELD',   color: '#4499FF' },
   dark:       { label: 'DARK MATTER',         msg: 'ENTERING SINGULARITY',     color: '#E8447A' },
@@ -2898,7 +2898,7 @@ document.querySelectorAll('.sm-card').forEach(card => {
 
 // Share button
 document.getElementById('sm-share-btn').addEventListener('click', () => {
-  const t = encodeURIComponent('10K Quantum Parrots — the void is calling.\n' + window.location.href.split('?')[0]);
+  const t = encodeURIComponent('10K Quantum Parrots â€” the void is calling.\n' + window.location.href.split('?')[0]);
   window.open('https://x.com/intent/tweet?text=' + t, '_blank');
 });
 
@@ -2906,7 +2906,7 @@ document.getElementById('sm-share-btn').addEventListener('click', () => {
 function loadLeaderboard() {
   const body = document.getElementById('lb-body');
   if (!_sbClient) { body.innerHTML = '<p id="lb-status">Supabase not connected.</p>'; return; }
-  body.innerHTML = '<p id="lb-status">Loading…</p>';
+  body.innerHTML = '<p id="lb-status">Loadingâ€¦</p>';
   console.log('Loading leaderboard...');
   _sbClient.from('game_runs')
     .select('id, game, score, x_handle, created_at, tx_hash')
@@ -2953,7 +2953,7 @@ document.getElementById('lb-panel').addEventListener('click', e => {
   if (e.target === document.getElementById('lb-panel')) document.getElementById('lb-panel').classList.remove('open');
 });
 
-/* ─── Death panel ────────────────────────────── */
+/* â”€â”€â”€ Death panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 function showDeathPanel() {
   if (_dpShown) return;
   _dpShown = true;
@@ -2963,7 +2963,7 @@ function showDeathPanel() {
   document.getElementById('dp-reenter').style.background = dieColor;
   const modeName = MODE === 'dark' ? 'Dark Matter' : MODE === 'spaghetti' ? 'Spaghettification' : 'Time Dilation';
   const sig = Math.floor(score * 10);
-  document.getElementById('dp-score').textContent = 'signal ' + sig + ' · ' + modeName;
+  document.getElementById('dp-score').textContent = 'signal ' + sig + ' Â· ' + modeName;
   const gameUrl = window.location.href.split('?')[0];
   const shareText = 'I survived ' + sig + ' signal in ' + modeName + '.\nRecorded in the Quantum Void.\n' + gameUrl;
   document.getElementById('dp-share').onclick = function () {
@@ -2988,8 +2988,8 @@ function savePlayerName() {
   if (name === '') name = null;
   localStorage.setItem('qp_player_name', name || '');
   const label = name
-    ? '✓ Saved as ' + (name.startsWith('@') ? name : '@' + name)
-    : '✓ Saved as anonymous';
+    ? 'âœ“ Saved as ' + (name.startsWith('@') ? name : '@' + name)
+    : 'âœ“ Saved as anonymous';
   document.getElementById('dp-confirm').textContent = label;
   if (_currentRunId && _sbClient) {
     _sbClient.from('game_runs').update({ x_handle: name }).eq('id', _currentRunId).then(({ error }) => {
@@ -2998,7 +2998,7 @@ function savePlayerName() {
   }
 }
 
-/* ─── Supabase ───────────────────────────────── */
+/* â”€â”€â”€ Supabase â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 let _sbClient = null;
 let _runSaved  = false;
 
@@ -3041,14 +3041,39 @@ function saveRun(game) {
     localStorage.setItem('qp_last_run_saved_at', String(Date.now()));
     _currentRunId = data && data[0] ? data[0].id : null;
     console.log('Run saved', _currentRunId);
+    if (_currentRunId) {
+      let attempts = 0;
+      const poll = setInterval(() => {
+        attempts++;
+        if (attempts > 24) { clearInterval(poll); return; }
+        _sbClient.from('game_runs')
+          .select('tx_hash')
+          .eq('id', _currentRunId)
+          .single()
+          .then(({ data: d }) => {
+            if (d && typeof d.tx_hash === 'string' && d.tx_hash.startsWith('0x') && d.tx_hash.length >= 66) {
+              clearInterval(poll);
+              _currentTxHash = d.tx_hash;
+              const proof = document.getElementById('dp-proof');
+              if (proof) {
+                proof.href = 'https://monadscan.com/tx/' + d.tx_hash;
+                proof.classList.add('visible');
+              }
+              console.log('tx_hash found:', d.tx_hash);
+            }
+          });
+      }, 5000);
+    }
   });
 }
 
-/* ─── Initialize ────────────────────────────── */
+/* â”€â”€â”€ Initialize â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 player.x=canvas.width/2; player.y=canvas.height/2-PH/2;
 showMenuOverlay();
 requestAnimationFrame(loop);
 </script>
 </body>
 </html>
+
+
 
