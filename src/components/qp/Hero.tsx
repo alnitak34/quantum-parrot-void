@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gameUrlWithHandle, getPlayer, savePlayer } from "./handle";
 import LoadingOverlay from "./LoadingOverlay";
@@ -112,9 +112,9 @@ const Hero = () => {
         />
       </div>
 
-      <div className="container relative mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-8 px-4">
+      <div className="container relative mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-4 md:gap-8 px-4">
         {/* LEFT: Text */}
-        <div className="relative z-10">
+        <div className="relative z-10 order-2 lg:order-1">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -191,7 +191,7 @@ const Hero = () => {
         </div>
 
         {/* RIGHT: Parrot squad */}
-        <div className="relative h-[420px] sm:h-[500px] lg:h-[600px]">
+        <div className="relative h-[260px] sm:h-[400px] lg:h-[600px] order-1 lg:order-2">
           {/* Ambient scene glow tying characters to background */}
           <div
             className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -222,7 +222,7 @@ const Hero = () => {
               src={wizard}
               alt="Quantum Parrot wizard"
               loading="eager"
-              className="w-[260px] sm:w-[320px] lg:w-[400px]"
+              className="w-[200px] sm:w-[300px] lg:w-[400px]"
               style={{
                 filter:
                   "drop-shadow(0 14px 26px hsl(var(--void-deep) / 0.85)) drop-shadow(0 0 30px hsl(var(--primary) / 0.55)) drop-shadow(0 0 60px hsl(var(--secondary) / 0.35))",
