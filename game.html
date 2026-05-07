@@ -253,7 +253,7 @@
     #lb-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
     #lb-status { font-size: 11px; color: rgba(255,255,255,0.30); text-align: center; padding: 16px 0; }
     .lb-row {
-      display: grid; grid-template-columns: 28px 1fr auto auto; align-items: center; gap: 10px;
+      display: grid; grid-template-columns: 28px 1fr auto auto auto; align-items: center; gap: 10px;
       padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
       font-size: 11px;
     }
@@ -264,8 +264,10 @@
     .lb-name { color: #E8447A; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .lb-game { font-size: 9px; color: rgba(255,255,255,0.25); letter-spacing: 0.06em; text-align: right; }
     .lb-score { color: rgba(255,255,255,0.80); font-size: 12px; text-align: right; min-width: 32px; }
+    .lb-proof-col { text-align: right; }
     .lb-proof-link { font-size: 9px; color: rgba(68,153,255,0.55); text-decoration: none; letter-spacing: 0.06em; }
     .lb-proof-link:hover { color: #4499FF; }
+    .lb-pending { font-size: 9px; color: rgba(255,255,255,0.18); letter-spacing: 0.06em; }
 
     /* ── Death panel ── */
     #death-panel {
@@ -2905,13 +2907,21 @@ function loadLeaderboard() {
   const body = document.getElementById('lb-body');
   if (!_sbClient) { body.innerHTML = '<p id="lb-status">Supabase not connected.</p>'; return; }
   body.innerHTML = '<p id="lb-status">Loading…</p>';
+  console.log('Loading leaderboard...');
   _sbClient.from('game_runs')
-    .select('x_handle, game, score, tx_hash')
+    .select('id, game, score, x_handle, created_at, tx_hash')
     .order('score', { ascending: false })
     .limit(10)
     .then(({ data, error }) => {
-      if (error || !data || data.length === 0) {
-        body.innerHTML = '<p id="lb-status">No runs yet.</p>'; return;
+      if (error) {
+        console.error('Leaderboard error:', error);
+        body.innerHTML = '<p id="lb-status">Leaderboard unavailable</p>';
+        return;
+      }
+      console.log('Leaderboard rows returned:', data ? data.length : 0);
+      if (!data || data.length === 0) {
+        body.innerHTML = '<p id="lb-status">No runs yet.</p>';
+        return;
       }
       const GAME_LABEL = { time_dilation: 'TIME', dark_matter: 'DARK', spaghettification: 'SPAG' };
       const RANK_CLASS = ['gold', 'silver', 'bronze'];
@@ -2921,13 +2931,14 @@ function loadLeaderboard() {
         const rank  = RANK_CLASS[i] || '';
         const h = r.tx_hash;
         const proof = (typeof h === 'string' && h.startsWith('0x') && h.length >= 66)
-          ? `<a class="lb-proof-link" href="https://monadscan.com/tx/${h}" target="_blank" rel="noopener">ONCHAIN</a>`
-          : '';
+          ? `<a class="lb-proof-link" href="https://monadscan.com/tx/${h}" target="_blank" rel="noopener">RECORDED</a>`
+          : '<span class="lb-pending">PENDING</span>';
         return `<div class="lb-row">
           <span class="lb-rank ${rank}">${String(i + 1).padStart(2, '0')}</span>
           <span class="lb-name">@${name}</span>
           <span class="lb-game">${label}</span>
-          <span class="lb-score">${r.score}${proof}</span>
+          <span class="lb-score">${r.score}</span>
+          <span class="lb-proof-col">${proof}</span>
         </div>`;
       }).join('');
     });
