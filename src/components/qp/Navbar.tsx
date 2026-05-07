@@ -171,16 +171,6 @@ const Navbar = () => {
               <span className="hidden sm:inline">{sound.enabled ? "SOUND ON" : "SOUND OFF"}</span>
             </button>
 
-            {/* Sound toggle */}
-            <button
-              onClick={sound.toggle}
-              aria-label={sound.enabled ? "Turn sound off" : "Turn sound on"}
-              className="font-graffiti text-xs md:text-sm text-foreground/80 hover:text-primary transition-colors flex items-center gap-1.5 border border-primary/40 rounded-md px-2.5 py-1.5"
-            >
-              {sound.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-              <span className="hidden sm:inline">{sound.enabled ? "SOUND ON" : "SOUND OFF"}</span>
-            </button>
-          </div>
         </nav>
       </header>
 
