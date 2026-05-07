@@ -2,6 +2,7 @@ import Stars from "@/components/qp/Stars";
 import Navbar from "@/components/qp/Navbar";
 import Hero from "@/components/qp/Hero";
 import HowItWorks from "@/components/qp/HowItWorks";
+import About from "@/components/qp/About";
 import NftCta from "@/components/qp/NftCta";
 import SignalFeed from "@/components/qp/SignalFeed";
 import StickyNote from "@/components/qp/StickyNote";
@@ -20,6 +21,7 @@ const Index = () => {
       <Navbar />
       <Hero />
       <HowItWorks />
+      <About />
 
       <div className="container mx-auto px-4 py-10" id="signals">
         <div className="text-center mb-6">

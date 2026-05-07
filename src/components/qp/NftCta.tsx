@@ -25,7 +25,7 @@ const NftCta = () => {
             rel="noopener noreferrer"
             className="btn-void inline-flex items-center gap-2 px-6 py-4 text-xl md:text-2xl whitespace-nowrap"
           >
-            BUY ON OPENSEA
+            VIEW COLLECTION
           </a>
           <div className="flex items-center gap-3 font-mono-x text-xs text-foreground/70">
             <a

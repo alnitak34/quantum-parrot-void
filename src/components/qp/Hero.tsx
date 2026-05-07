@@ -3,9 +3,7 @@ import { ArrowRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gameUrlWithHandle, getPlayer, savePlayer } from "./handle";
 import LoadingOverlay from "./LoadingOverlay";
-import wizard from "@/assets/parrot-king.png";
-import hearts from "@/assets/parrot-hearts.png";
-import redeye from "@/assets/parrot-control.png";
+import wizard from "@/assets/parrot-10k-squad.png";
 import bat from "@/assets/parrot-bat.png";
 import bad from "@/assets/parrot-bad.png";
 import cosmic from "@/assets/cosmic-bg.jpg";
@@ -238,7 +236,7 @@ const Hero = () => {
               src={wizard}
               alt="Quantum Parrot wizard"
               loading="eager"
-              className="w-[280px] sm:w-[340px] lg:w-[420px]"
+              className="w-[260px] sm:w-[320px] lg:w-[400px]"
               style={{
                 filter:
                   "drop-shadow(0 14px 26px hsl(var(--void-deep) / 0.85)) drop-shadow(0 0 30px hsl(var(--primary) / 0.55)) drop-shadow(0 0 60px hsl(var(--secondary) / 0.35))",
@@ -253,115 +251,6 @@ const Hero = () => {
                 filter: "blur(8px)",
               }}
             />
-          </motion.div>
-
-          {/* Hearts parrot - left */}
-          <motion.div
-            className="absolute left-0 top-[35%] z-10"
-            animate={{ y: [0, -10, 0] }}
-            transition={{ duration: 4, repeat: Infinity, delay: 0.5 }}
-          >
-            <div
-              className="pointer-events-none absolute inset-0 -z-10 rounded-full"
-              aria-hidden="true"
-              style={{
-                background:
-                  "radial-gradient(circle, hsl(var(--primary) / 0.4) 0%, transparent 65%)",
-                filter: "blur(25px)",
-                transform: "scale(1.2)",
-              }}
-            />
-            <img
-              src={hearts}
-              alt=""
-              loading="lazy"
-              className="w-[110px] sm:w-[130px] lg:w-[160px]"
-              style={{
-                filter:
-                  "drop-shadow(0 8px 16px hsl(var(--void-deep) / 0.8)) drop-shadow(0 0 18px hsl(var(--primary) / 0.45))",
-              }}
-            />
-          </motion.div>
-
-          {/* Red-eye on branch - top right (dark sticker) */}
-          <motion.div
-            className="absolute right-0 top-0 z-10"
-            animate={{ y: [0, -8, 0], rotate: [0, 2, 0] }}
-            transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-          >
-            {/* Outer pink/purple aura behind sticker */}
-            <div
-              className="pointer-events-none absolute inset-0 -z-10 rounded-full"
-              aria-hidden="true"
-              style={{
-                background:
-                  "radial-gradient(circle, hsl(var(--secondary) / 0.6) 0%, hsl(var(--primary) / 0.4) 40%, transparent 72%)",
-                filter: "blur(38px)",
-                transform: "scale(1.45)",
-              }}
-            />
-
-            {/* Sticker — borderless, floating, soft-edged */}
-            <div
-              className="relative overflow-hidden rounded-full w-[112px] h-[112px] sm:w-[136px] sm:h-[136px] lg:w-[160px] lg:h-[160px]"
-              style={{
-                background:
-                  "radial-gradient(circle at 50% 45%, hsl(280 60% 20%) 0%, hsl(270 70% 10%) 50%, hsl(260 80% 4%) 100%)",
-                boxShadow:
-                  "0 0 34px hsl(var(--secondary) / 0.6), 0 0 80px hsl(var(--secondary) / 0.3), 0 8px 22px hsl(var(--void-deep) / 0.7)",
-                filter: "blur(0.4px)",
-                maskImage:
-                  "radial-gradient(circle at center, black 58%, rgba(0,0,0,0.85) 78%, transparent 100%)",
-                WebkitMaskImage:
-                  "radial-gradient(circle at center, black 58%, rgba(0,0,0,0.85) 78%, transparent 100%)",
-              }}
-            >
-              {/* Inner glow behind parrot */}
-              <div
-                className="pointer-events-none absolute inset-0"
-                aria-hidden="true"
-                style={{
-                  background:
-                    "radial-gradient(circle at 50% 55%, hsl(var(--secondary) / 0.55) 0%, hsl(var(--primary) / 0.3) 35%, transparent 70%)",
-                  filter: "blur(14px)",
-                }}
-              />
-
-              {/* Parrot — tightly cropped, scaled to hide edges */}
-              <img
-                src={redeye}
-                alt=""
-                loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{
-                  transform: "scale(1.35)",
-                  mixBlendMode: "screen",
-                  filter:
-                    "drop-shadow(0 6px 14px hsl(var(--void-deep) / 0.8)) drop-shadow(0 0 18px hsl(var(--secondary) / 0.6))",
-                }}
-              />
-
-              {/* Grain / noise overlay to blend edges */}
-              <div
-                className="pointer-events-none absolute inset-0 opacity-[0.18] mix-blend-overlay"
-                aria-hidden="true"
-                style={{
-                  backgroundImage:
-                    "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-                  backgroundSize: "160px 160px",
-                }}
-              />
-
-              {/* Very soft inner feather (no hard ring) */}
-              <div
-                className="pointer-events-none absolute inset-0 rounded-full"
-                aria-hidden="true"
-                style={{
-                  boxShadow:
-                    "inset 0 0 22px 6px hsl(260 80% 5% / 0.55)",
-                }}
-              />
-            </div>
           </motion.div>
 
           {/* Bat parrot - right bottom */}
