@@ -17,93 +17,17 @@ const OPENSEA_URL = "https://opensea.io/collection/the-10k-squad-350905768";
 
 type ModalKind = null | "about" | "leaderboard";
 
-// Lightweight sound manager using WebAudio (no assets)
 function useSound() {
-  const [enabled, setEnabled] = useState(false);
-  const ctxRef = useRef<AudioContext | null>(null);
-  const ambientRef = useRef<{ stop: () => void } | null>(null);
-
-  const ensureCtx = () => {
-    if (!ctxRef.current) {
-      const AC = (window.AudioContext || (window as any).webkitAudioContext) as typeof AudioContext;
-      ctxRef.current = new AC();
-    }
-    return ctxRef.current!;
+  const [muted, setMuted] = useState(isVoidAudioMuted());
+  useEffect(() => {
+    const unsub = subscribeVoidAudio((m) => setMuted(m));
+    return () => { unsub(); };
+  }, []);
+  return {
+    enabled: !muted,
+    toggle: () => setVoidAudioMuted(!isVoidAudioMuted()),
+    click: () => {},
   };
-
-  const startAmbient = () => {
-    const ctx = ensureCtx();
-    if (ambientRef.current) return;
-    const master = ctx.createGain();
-    master.gain.value = 0.0001;
-    // gentle fade-in to target volume (audible but low)
-    master.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 4);
-    // gentle low-pass to keep it dark and muffled
-    const lp = ctx.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 420;
-    lp.Q.value = 0.3;
-    master.connect(lp).connect(ctx.destination);
-
-    // Two very deep sine drones, slightly detuned for slow beating
-    const freqs = [38, 41.2];
-    const oscs = freqs.map((f, i) => {
-      const o = ctx.createOscillator();
-      o.type = "sine";
-      o.frequency.value = f;
-      const g = ctx.createGain();
-      g.gain.value = 0.0001;
-      // very slow fade-in
-      g.gain.exponentialRampToValueAtTime(0.5 / (i + 1), ctx.currentTime + 6);
-      // ultra-slow LFO for subtle drift
-      const lfo = ctx.createOscillator();
-      lfo.frequency.value = 0.02 + i * 0.013;
-      const lfoGain = ctx.createGain();
-      lfoGain.gain.value = 0.15;
-      lfo.connect(lfoGain).connect(o.frequency);
-      o.connect(g).connect(master);
-      o.start();
-      lfo.start();
-      return { o, lfo };
-    });
-
-    ambientRef.current = {
-      stop: () => {
-        oscs.forEach(({ o, lfo }) => {
-          try { o.stop(); } catch {}
-          try { lfo.stop(); } catch {}
-        });
-        try { master.disconnect(); } catch {}
-      },
-    };
-  };
-
-  const stopAmbient = () => {
-    ambientRef.current?.stop();
-    ambientRef.current = null;
-  };
-
-  const click = () => {
-    // Intentionally silent — no button click / glitch / shimmer sounds.
-  };
-
-  const toggle = () => {
-    setEnabled((prev) => {
-      const next = !prev;
-      if (next) {
-        const ctx = ensureCtx();
-        if (ctx.state === "suspended") ctx.resume();
-        startAmbient();
-      } else {
-        stopAmbient();
-      }
-      return next;
-    });
-  };
-
-  useEffect(() => () => stopAmbient(), []);
-
-  return { enabled, toggle, click };
 }
 
 const Navbar = () => {
