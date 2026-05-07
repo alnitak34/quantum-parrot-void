@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import logo from "@/assets/10k-squad-logo.jpeg";
+import { isVoidAudioMuted, setVoidAudioMuted, subscribeVoidAudio } from "./voidAudio";
 import { Volume2, VolumeX } from "lucide-react";
 import {
   Dialog,
