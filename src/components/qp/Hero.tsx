@@ -3,7 +3,7 @@ import { ArrowRight, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gameUrlWithHandle, getPlayer, savePlayer } from "./handle";
 import LoadingOverlay from "./LoadingOverlay";
-import wizard from "@/assets/parrot-wizard.png";
+import wizard from "@/assets/parrot-king.png";
 import hearts from "@/assets/parrot-hearts.png";
 import redeye from "@/assets/parrot-control.png";
 import bat from "@/assets/parrot-bat.png";
