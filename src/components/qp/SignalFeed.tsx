@@ -280,7 +280,7 @@ const SignalFeed = () => {
           </div>
 
           {/* RIGHT: Top signals */}
-          <div className="lg:col-span-4 lg:pl-5 lg:border-l border-border/50">
+          <div className="lg:pl-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="font-graffiti text-lg text-foreground tracking-wide">TOP SIGNALS</span>
               <Crown className="h-5 w-5 text-primary fill-primary/40" />
