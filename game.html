@@ -271,8 +271,8 @@
 
     /* ── Death panel ── */
     #death-panel {
-      position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 50;
-      display: none; justify-content: flex-end; align-items: center; overflow: hidden;
+      position: fixed; left: 0; right: 0; bottom: 0; top: 0; z-index: 50;
+      display: none; align-items: flex-end; justify-content: center;
       pointer-events: none;
     }
     #death-panel.open { display: flex; pointer-events: auto; }
@@ -311,13 +311,13 @@
     }
     #dp-share:hover { background: rgba(29,161,242,0.32); }
     #dp-proof {
-      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 10px;
-      color: rgba(255,255,255,0.35); text-decoration: none; letter-spacing: 0.10em;
-      padding: 4px 0; display: none; text-align: center;
+      font-family: 'Space Mono', monospace; font-size: 11px;
+      color: #4499FF; text-decoration: none; letter-spacing: 0.10em;
+      padding: 8px 0; display: none; text-align: center;
       transition: color 0.15s;
     }
     #dp-proof.visible { display: block; }
-    #dp-proof:hover { color: rgba(255,255,255,0.7); }
+    #dp-proof:hover { color: rgba(68,153,255,0.75); }
     #dp-reenter {
       font-family: 'Bangers', cursive; font-size: 22px;
       color: #000; border: none; padding: 14px 20px; cursor: pointer; width: 100%;
@@ -2981,6 +2981,7 @@ function showDeathPanel() {
   const h = _currentTxHash;
   if (typeof h === 'string' && h.startsWith('0x') && h.length >= 66) {
     proof.href = 'https://monadscan.com/tx/' + h;
+    proof.textContent = h.slice(0, 6) + '...' + h.slice(-4) + ' ↗';
     proof.classList.add('visible');
   } else {
     proof.classList.remove('visible');
@@ -3043,6 +3044,7 @@ function _pollTxHash(runId, attemptsLeft) {
         const proof = document.getElementById('dp-proof');
         if (proof) {
           proof.href = 'https://monadscan.com/tx/' + h;
+          proof.textContent = h.slice(0, 6) + '...' + h.slice(-4) + ' ↗';
           proof.classList.add('visible');
         }
       } else {
