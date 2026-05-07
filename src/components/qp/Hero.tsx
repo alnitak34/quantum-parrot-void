@@ -31,7 +31,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative overflow-hidden py-6 md:py-8">
+    <section className="relative overflow-hidden py-4 md:py-8">
       <AnimatePresence>{loading && <LoadingOverlay onDone={onLoadingDone} />}</AnimatePresence>
 
       {/* Wormhole background */}
@@ -119,7 +119,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="graffiti-title text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[1.1]"
+            className="graffiti-title text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[1.1]"
           >
             <span className="text-primary text-[0.7em] align-middle">10K</span>{" "}
             <span
@@ -140,7 +140,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="font-handwritten mt-6 text-2xl md:text-3xl text-foreground/90 max-w-xl"
+            className="font-handwritten mt-4 md:mt-6 text-xl sm:text-2xl md:text-3xl text-foreground/90 max-w-xl"
           >
             A chaotic <span className="text-primary font-bold">survival</span> experiment. Every death leaves a trace on Monad mainnet.
           </motion.p>
@@ -149,7 +149,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="mt-10 flex items-start gap-6 flex-wrap"
+            className="mt-6 md:mt-10 flex items-start gap-6 flex-wrap"
           >
             <div className="flex flex-col gap-3">
               <button
@@ -186,20 +186,6 @@ const Hero = () => {
                 </p>
               </div>
             </div>
-
-            {/* Chaos Awaits stamp */}
-            <motion.div
-              animate={{ rotate: [-8, -12, -8] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="chaos-stamp flex h-28 w-28 md:h-32 md:w-32 items-center justify-center text-center relative"
-            >
-              <span className="font-graffiti text-primary text-base md:text-lg leading-tight">
-                CHAOS
-                <br />
-                AWAITS
-              </span>
-              <X className="absolute -bottom-2 -right-2 h-5 w-5 text-primary" strokeWidth={3} />
-            </motion.div>
           </motion.div>
 
         </div>
