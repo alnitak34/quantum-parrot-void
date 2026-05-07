@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import logo from "@/assets/10k-squad-logo.jpeg";
 import { Volume2, VolumeX } from "lucide-react";
 import {
   Dialog,
