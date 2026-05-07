@@ -216,6 +216,57 @@
     }
     #lo-fill { height: 100%; width: 0%; border-radius: 2px; transition: width 1.1s linear; }
 
+    /* ── Leaderboard panel ── */
+    #lb-panel {
+      position: fixed; inset: 0; z-index: 200;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(2,0,8,0.88); pointer-events: none;
+    }
+    #lb-panel.open { display: flex; pointer-events: auto; }
+    #lb-inner {
+      background: rgba(4,0,10,0.97); border: 1.5px solid rgba(255,255,255,0.13);
+      padding: 24px 28px; width: min(500px, 94vw); max-height: 80vh;
+      display: flex; flex-direction: column; gap: 14px;
+      font-family: 'Space Mono', monospace; overflow: hidden;
+    }
+    #lb-header {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    #lb-title {
+      font-family: 'Bangers', cursive; font-size: 26px;
+      color: #E8447A; text-shadow: 0 0 16px rgba(232,68,122,0.55);
+      letter-spacing: 0.08em;
+    }
+    #lb-close {
+      font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700;
+      color: rgba(255,255,255,0.45); background: none; border: none;
+      cursor: pointer; padding: 4px 8px; transition: color 0.15s;
+    }
+    #lb-close:hover { color: #fff; }
+    #lb-subtitle {
+      font-size: 10px; color: rgba(255,255,255,0.22); letter-spacing: 0.18em;
+      margin-top: -8px;
+    }
+    #lb-body { overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+    #lb-body::-webkit-scrollbar { width: 4px; }
+    #lb-body::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+    #lb-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 2px; }
+    #lb-status { font-size: 11px; color: rgba(255,255,255,0.30); text-align: center; padding: 16px 0; }
+    .lb-row {
+      display: grid; grid-template-columns: 28px 1fr auto auto; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 11px;
+    }
+    .lb-rank { color: rgba(255,255,255,0.28); font-size: 10px; }
+    .lb-rank.gold   { color: #F2B544; text-shadow: 0 0 8px rgba(242,181,68,0.6); }
+    .lb-rank.silver { color: rgba(200,200,220,0.7); }
+    .lb-rank.bronze { color: rgba(200,130,80,0.7); }
+    .lb-name { color: #E8447A; letter-spacing: 0.04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lb-game { font-size: 9px; color: rgba(255,255,255,0.25); letter-spacing: 0.06em; text-align: right; }
+    .lb-score { color: rgba(255,255,255,0.80); font-size: 12px; text-align: right; min-width: 32px; }
+    .lb-proof-link { font-size: 9px; color: rgba(68,153,255,0.55); text-decoration: none; letter-spacing: 0.06em; }
+    .lb-proof-link:hover { color: #4499FF; }
+
     /* ── Death panel ── */
     #death-panel {
       position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
@@ -320,6 +371,18 @@
     </div>
   </div>
   <p id="sm-hint">CLICK A DIMENSION TO ENTER THE VOID</p>
+</div>
+
+<!-- Leaderboard panel -->
+<div id="lb-panel">
+  <div id="lb-inner">
+    <div id="lb-header">
+      <span id="lb-title">TOP SIGNALS</span>
+      <button id="lb-close" onclick="document.getElementById('lb-panel').classList.remove('open')">✕</button>
+    </div>
+    <p id="lb-subtitle">LIVE LEADERBOARD</p>
+    <div id="lb-body"><p id="lb-status">Loading…</p></div>
+  </div>
 </div>
 
 <!-- Loading overlay -->
@@ -2837,13 +2900,45 @@ document.getElementById('sm-share-btn').addEventListener('click', () => {
   window.open('https://x.com/intent/tweet?text=' + t, '_blank');
 });
 
-// Leaderboard button — reuse existing leaderboard open logic if present, else show lb panel
-document.getElementById('sm-lb-btn').addEventListener('click', () => {
-  const btn = document.getElementById('lb-btn');
-  if (btn) { btn.click(); } else {
-    const panel = document.getElementById('lb-panel');
-    if (panel) panel.classList.add('open');
-  }
+// Leaderboard
+function loadLeaderboard() {
+  const body = document.getElementById('lb-body');
+  if (!_sbClient) { body.innerHTML = '<p id="lb-status">Supabase not connected.</p>'; return; }
+  body.innerHTML = '<p id="lb-status">Loading…</p>';
+  _sbClient.from('game_runs')
+    .select('x_handle, game, score, tx_hash')
+    .order('score', { ascending: false })
+    .limit(10)
+    .then(({ data, error }) => {
+      if (error || !data || data.length === 0) {
+        body.innerHTML = '<p id="lb-status">No runs yet.</p>'; return;
+      }
+      const GAME_LABEL = { time_dilation: 'TIME', dark_matter: 'DARK', spaghettification: 'SPAG' };
+      const RANK_CLASS = ['gold', 'silver', 'bronze'];
+      body.innerHTML = data.map((r, i) => {
+        const name  = (r.x_handle || 'anon').replace(/^@/, '');
+        const label = GAME_LABEL[r.game] || r.game;
+        const rank  = RANK_CLASS[i] || '';
+        const h = r.tx_hash;
+        const proof = (typeof h === 'string' && h.startsWith('0x') && h.length >= 66)
+          ? `<a class="lb-proof-link" href="https://monadscan.com/tx/${h}" target="_blank" rel="noopener">ONCHAIN</a>`
+          : '';
+        return `<div class="lb-row">
+          <span class="lb-rank ${rank}">${String(i + 1).padStart(2, '0')}</span>
+          <span class="lb-name">@${name}</span>
+          <span class="lb-game">${label}</span>
+          <span class="lb-score">${r.score}${proof}</span>
+        </div>`;
+      }).join('');
+    });
+}
+function openLeaderboard() {
+  document.getElementById('lb-panel').classList.add('open');
+  loadLeaderboard();
+}
+document.getElementById('sm-lb-btn').addEventListener('click', openLeaderboard);
+document.getElementById('lb-panel').addEventListener('click', e => {
+  if (e.target === document.getElementById('lb-panel')) document.getElementById('lb-panel').classList.remove('open');
 });
 
 /* ─── Death panel ────────────────────────────── */
