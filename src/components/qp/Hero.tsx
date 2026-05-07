@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gameUrlWithHandle, getPlayer, savePlayer } from "./handle";
+import { startVoidAudio } from "./voidAudio";
 import LoadingOverlay from "./LoadingOverlay";
 import wizard from "@/assets/parrot-10k-squad.png";
 import bat from "@/assets/parrot-bat.png";
@@ -17,6 +18,7 @@ const Hero = () => {
   }, []);
 
   const handleEnter = () => {
+    startVoidAudio();
     setLoading(true);
   };
 
@@ -180,9 +182,6 @@ const Hero = () => {
                 />
                 <p className="font-mono-x text-[11px] text-foreground/50 tracking-wide">
                   Optional. Used on leaderboard.
-                </p>
-                <p className="font-mono-x text-[11px] text-foreground/60 tracking-wide mt-2">
-                  Built by <a href="https://x.com/Alnitak34" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@Alnitak34</a> · 10k Squad OG holder since testnet
                 </p>
               </div>
             </div>
