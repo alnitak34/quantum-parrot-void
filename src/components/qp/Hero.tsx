@@ -183,6 +183,9 @@ const Hero = () => {
                 <p className="font-mono-x text-[11px] text-foreground/50 tracking-wide">
                   Optional. Used on leaderboard.
                 </p>
+                <p className="font-mono-x text-[11px] text-foreground/60 tracking-wide mt-2">
+                  Built by <a href="https://x.com/Alnitak34" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@Alnitak34</a> · 10k Squad #765 holder since testnet
+                </p>
               </div>
             </div>
 
