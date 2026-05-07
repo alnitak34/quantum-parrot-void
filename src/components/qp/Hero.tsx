@@ -144,7 +144,7 @@ const Hero = () => {
             transition={{ delay: 0.4, duration: 0.6 }}
             className="font-handwritten mt-6 text-2xl md:text-3xl text-foreground/90 max-w-xl"
           >
-            A chaotic <span className="text-primary font-bold">survival</span> experiment where every death becomes a signal.
+            A chaotic <span className="text-primary font-bold">survival</span> experiment. Every death leaves a trace on Monad mainnet.
           </motion.p>
 
           <motion.div
@@ -182,6 +182,9 @@ const Hero = () => {
                 />
                 <p className="font-mono-x text-[11px] text-foreground/50 tracking-wide">
                   Optional. Used on leaderboard.
+                </p>
+                <p className="font-mono-x text-[11px] text-foreground/60 tracking-wide mt-2">
+                  Built by <a href="https://x.com/Alnitak34" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@Alnitak34</a> · 10k Squad #765 holder since testnet
                 </p>
               </div>
             </div>

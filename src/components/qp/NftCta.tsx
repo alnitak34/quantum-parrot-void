@@ -18,14 +18,44 @@ const NftCta = () => {
             Own one of the 10K Squad parrots and enter the quantum void.
           </p>
         </div>
-        <a
-          href={OPENSEA_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-void inline-flex items-center gap-2 px-6 py-4 text-xl md:text-2xl whitespace-nowrap"
-        >
-          BUY ON OPENSEA
-        </a>
+        <div className="flex flex-col items-center md:items-end gap-3">
+          <a
+            href={OPENSEA_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-void inline-flex items-center gap-2 px-6 py-4 text-xl md:text-2xl whitespace-nowrap"
+          >
+            BUY ON OPENSEA
+          </a>
+          <div className="flex items-center gap-3 font-mono-x text-xs text-foreground/70">
+            <a
+              href="https://x.com/the10kSquad"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary transition"
+            >
+              @the10kSquad on X
+            </a>
+            <span className="text-foreground/30">·</span>
+            <a
+              href="https://discord.gg/the10ksquad"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary transition"
+            >
+              Discord
+            </a>
+            <span className="text-foreground/30">·</span>
+            <a
+              href={OPENSEA_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-primary transition"
+            >
+              Collection on OpenSea
+            </a>
+          </div>
+        </div>
       </div>
     </section>
   );
