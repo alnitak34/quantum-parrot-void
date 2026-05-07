@@ -62,7 +62,6 @@
       border-radius: 4px; flex-shrink: 0;
       transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
-    .sm-card:hover { transform: scale(1.06); }
     .sm-card[data-mode="time"]      { box-shadow: 0 0 0 2px #4499FF, 0 0 18px rgba(68,153,255,0.35); }
     .sm-card[data-mode="dark"]      { box-shadow: 0 0 0 2px #E8447A, 0 0 18px rgba(232,68,122,0.35); }
     .sm-card[data-mode="spaghetti"] { box-shadow: 0 0 0 2px #FF5500, 0 0 18px rgba(255,85,0,0.35); }
@@ -71,7 +70,7 @@
     .sm-card:hover[data-mode="spaghetti"] { box-shadow: 0 0 0 2.5px #FF5500, 0 0 32px rgba(255,85,0,0.65); }
     .sm-card img {
       position: absolute; inset: 0; width: 100%; height: 100%;
-      object-fit: cover; display: block; z-index: 0;
+      object-fit: cover; display: block; z-index: 0; transition: transform 0.35s ease;
     }
     .sm-card-overlay {
       position: absolute; inset: 0; z-index: 1;
@@ -95,23 +94,77 @@
       font-family: 'Space Mono', monospace; font-weight: 700;
       font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.08em;
     }
+    #sm-signal-id {
+      font-family: 'Space Mono', monospace; font-weight: 700;
+      font-size: clamp(9px, 1.4vw, 11px); letter-spacing: 0.18em;
+      color: rgba(255,255,255,0.28); text-align: center;
+    }
+    #sm-signal-id span {
+      color: #E8447A; text-shadow: 0 0 8px rgba(232,68,122,0.6);
+    }
+
+    /* card image zoom on hover */
+    .sm-card:hover img { transform: scale(1.08); }
+    .sm-card:hover { transform: scale(1.03); }
+
+    /* menu corner buttons */
+    #sm-share-btn, #sm-lb-btn {
+      position: fixed; top: 12px; z-index: 110;
+      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px;
+      color: #fff; background: rgba(0,0,0,0.55); border: 1.5px solid rgba(255,255,255,0.22);
+      padding: 7px 14px; cursor: pointer; letter-spacing: 0.10em;
+      transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+      display: none;
+    }
+    #sm-share-btn { right: 56px; }
+    #sm-lb-btn    { left: 12px; }
+    #sm-share-btn:hover {
+      background: rgba(232,68,122,0.18); border-color: #E8447A;
+      box-shadow: 0 0 12px rgba(232,68,122,0.45);
+    }
+    #sm-lb-btn:hover {
+      background: rgba(68,153,255,0.18); border-color: #4499FF;
+      box-shadow: 0 0 12px rgba(68,153,255,0.45);
+    }
+    #sm-lb-btn-sub {
+      display: block; font-size: 8px; color: rgba(255,255,255,0.38);
+      letter-spacing: 0.12em; margin-top: 2px;
+    }
+    #sm-share-btn.visible, #sm-lb-btn.visible { display: block; }
 
     /* ── Loading overlay ── */
+    @keyframes ldots {
+      0%   { content: '.'; }
+      33%  { content: '..'; }
+      66%  { content: '...'; }
+      100% { content: ''; }
+    }
     #loading-overlay {
       position: fixed; inset: 0; z-index: 30;
       display: none; flex-direction: column; align-items: center; justify-content: center;
-      gap: 20px; background: rgba(2,0,8,0.96);
+      gap: 22px; background: rgba(2,0,8,0.97);
+      opacity: 0; transition: opacity 0.25s ease;
     }
     #loading-overlay.open { display: flex; }
+    #loading-overlay.visible { opacity: 1; }
+    #lo-mode-label {
+      font-family: 'Bangers', cursive; font-size: clamp(18px, 4vw, 32px);
+      letter-spacing: 0.10em; color: rgba(255,255,255,0.18);
+    }
     #lo-msg {
-      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 14px;
-      color: rgba(255,255,255,0.60); letter-spacing: 0.14em;
+      font-family: 'Space Mono', monospace; font-weight: 700;
+      font-size: clamp(11px, 2vw, 15px);
+      color: rgba(255,255,255,0.72); letter-spacing: 0.14em; text-align: center;
+    }
+    #lo-dots::after {
+      content: '';
+      animation: ldots 0.9s steps(1) infinite;
     }
     #lo-bar {
-      width: min(280px, 60vw); height: 3px;
+      width: min(280px, 60vw); height: 2px;
       background: rgba(255,255,255,0.10); border-radius: 2px; overflow: hidden;
     }
-    #lo-fill { height: 100%; width: 0%; background: #E8447A; border-radius: 2px; }
+    #lo-fill { height: 100%; width: 0%; border-radius: 2px; transition: width 1.1s linear; }
 
     /* ── Death panel ── */
     #death-panel {
@@ -181,12 +234,17 @@
 <canvas id="c"></canvas>
 <button id="mute-btn" title="Toggle sound">♪</button>
 
+<!-- Menu corner buttons (shown only when menu is open) -->
+<button id="sm-share-btn">↑ SHARE SIGNAL</button>
+<button id="sm-lb-btn">LEADERBOARD<span id="sm-lb-btn-sub">LIVE SIGNALS</span></button>
+
 <!-- Start menu overlay -->
 <div id="start-menu-overlay" class="hidden">
   <div id="sm-hero">
     <img id="sm-hero-img" src="assets/hero-parrot.jpg" alt="" />
     <h1 id="sm-title">10K QUANTUM PARROTS</h1>
     <p id="sm-subtitle">SELECT YOUR DIMENSION</p>
+    <p id="sm-signal-id">SIGNAL ID: <span id="sm-player-name">anonymous_parrot</span></p>
   </div>
   <div id="sm-cards">
     <div class="sm-card" data-mode="time">
@@ -216,7 +274,8 @@
 
 <!-- Loading overlay -->
 <div id="loading-overlay">
-  <div id="lo-msg"></div>
+  <div id="lo-mode-label"></div>
+  <div id="lo-msg"><span id="lo-text"></span><span id="lo-dots"></span></div>
   <div id="lo-bar"><div id="lo-fill"></div></div>
 </div>
 
@@ -2668,38 +2727,68 @@ function stopSpagTone() {
 function stopAllContinuousSounds() { stopDarkDrone(); stopSpagTone(); }
 
 /* ─── Start menu overlay ─────────────────────── */
+const _MODE_LOAD_CFG = {
+  time:       { label: 'TIME DILATION',      msg: 'SYNCING TEMPORAL FIELD',   color: '#4499FF' },
+  dark:       { label: 'DARK MATTER',         msg: 'ENTERING SINGULARITY',     color: '#E8447A' },
+  spaghetti:  { label: 'SPAGHETTIFICATION',  msg: 'GRAVITY IS COLLAPSING',    color: '#FF5500' },
+};
+
 function showMenuOverlay() {
+  const name = localStorage.getItem('qp_player_name') || '';
+  document.getElementById('sm-player-name').textContent = name.trim() || 'anonymous_parrot';
   document.getElementById('start-menu-overlay').classList.remove('hidden');
+  document.getElementById('sm-share-btn').classList.add('visible');
+  document.getElementById('sm-lb-btn').classList.add('visible');
 }
 function hideMenuOverlay() {
   document.getElementById('start-menu-overlay').classList.add('hidden');
+  document.getElementById('sm-share-btn').classList.remove('visible');
+  document.getElementById('sm-lb-btn').classList.remove('visible');
 }
 
-const _LOADING_MSGS = [
-  'ENTERING THE VOID…',
-  'WARPING SPACETIME…',
-  'CALIBRATING SINGULARITY…',
-  'BENDING LIGHT…',
-  'QUANTUM TUNNELING…',
-];
 function startModeWithLoading(mode) {
   hideMenuOverlay();
   initAudio();
+  const cfg  = _MODE_LOAD_CFG[mode] || { label: mode.toUpperCase(), msg: 'LOADING', color: '#E8447A' };
   const lo   = document.getElementById('loading-overlay');
-  const msg  = document.getElementById('lo-msg');
   const fill = document.getElementById('lo-fill');
-  msg.textContent = _LOADING_MSGS[Math.floor(Math.random() * _LOADING_MSGS.length)];
-  fill.style.transition = 'none';
-  fill.style.width = '0%';
+  document.getElementById('lo-mode-label').textContent = cfg.label;
+  document.getElementById('lo-mode-label').style.color = cfg.color;
+  document.getElementById('lo-text').textContent = cfg.msg;
+  fill.style.background  = cfg.color;
+  fill.style.transition  = 'none';
+  fill.style.width       = '0%';
   lo.classList.add('open');
-  setTimeout(() => { fill.style.transition = 'width 1.3s linear'; fill.style.width = '100%'; }, 30);
-  setTimeout(() => { lo.classList.remove('open'); startMode(mode); }, 1500);
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    lo.classList.add('visible');
+    fill.style.transition = 'width 1.1s linear';
+    fill.style.width      = '100%';
+  }));
+  setTimeout(() => {
+    lo.classList.remove('visible');
+    setTimeout(() => { lo.classList.remove('open'); startMode(mode); }, 260);
+  }, 1200);
 }
 
 // Wire card click handlers after DOM is ready
 document.querySelectorAll('.sm-card').forEach(card => {
   card.addEventListener('click', () => startModeWithLoading(card.dataset.mode));
   card.addEventListener('touchend', e => { e.preventDefault(); startModeWithLoading(card.dataset.mode); });
+});
+
+// Share button
+document.getElementById('sm-share-btn').addEventListener('click', () => {
+  const t = encodeURIComponent('10K Quantum Parrots — the void is calling.\n' + window.location.href.split('?')[0]);
+  window.open('https://x.com/intent/tweet?text=' + t, '_blank');
+});
+
+// Leaderboard button — reuse existing leaderboard open logic if present, else show lb panel
+document.getElementById('sm-lb-btn').addEventListener('click', () => {
+  const btn = document.getElementById('lb-btn');
+  if (btn) { btn.click(); } else {
+    const panel = document.getElementById('lb-panel');
+    if (panel) panel.classList.add('open');
+  }
 });
 
 /* ─── Death panel ────────────────────────────── */
