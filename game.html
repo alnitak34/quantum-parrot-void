@@ -27,16 +27,48 @@
     /* ── Start menu overlay ── */
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-14px); }
+      50%       { transform: translateY(-14px); }
+    }
+    @keyframes cardFloat0 {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-6px); }
+    }
+    @keyframes cardFloat1 {
+      0%, 100% { transform: translateY(-4px); }
+      50%       { transform: translateY(4px); }
+    }
+    @keyframes cardFloat2 {
+      0%, 100% { transform: translateY(-2px); }
+      50%       { transform: translateY(6px); }
+    }
+    @keyframes smFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     #start-menu-overlay {
       position: fixed; inset: 0; z-index: 20;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 28px; padding: 24px 16px;
       background: linear-gradient(180deg, rgba(2,0,8,0.72) 0%, rgba(2,0,8,0.55) 100%);
+      opacity: 0; transition: opacity 0.45s ease;
     }
-    #start-menu-overlay.hidden { display: none; }
-    #sm-hero { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    #start-menu-overlay.hidden { display: none; opacity: 0; }
+    #start-menu-overlay.visible { opacity: 1; }
+    #sm-hero {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      position: relative;
+    }
+    /* particle glow behind title */
+    #sm-hero::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(340px, 80vw); height: min(120px, 22vw);
+      background: radial-gradient(ellipse at center,
+        rgba(232,68,122,0.18) 0%, rgba(232,68,122,0.06) 50%, transparent 75%);
+      border-radius: 50%; pointer-events: none; z-index: -1;
+      animation: float 5s ease-in-out infinite;
+    }
     #sm-hero-img {
       width: min(140px, 22vw); height: min(140px, 22vw);
       border-radius: 50%; object-fit: cover;
@@ -53,6 +85,15 @@
       font-size: clamp(9px, 1.5vw, 13px); color: rgba(255,255,255,0.35);
       letter-spacing: 0.18em; text-align: center;
     }
+    #sm-signal-id {
+      font-family: 'Space Mono', monospace; font-weight: 700;
+      font-size: clamp(9px, 1.4vw, 11px); letter-spacing: 0.20em;
+      color: rgba(255,255,255,0.22); text-align: center;
+    }
+    #sm-signal-id span {
+      color: #E8447A; text-shadow: 0 0 8px rgba(232,68,122,0.6);
+      letter-spacing: 0.04em;
+    }
     #sm-cards {
       display: flex; gap: clamp(8px, 2vw, 18px); align-items: stretch; flex-wrap: nowrap;
     }
@@ -60,52 +101,61 @@
       position: relative; overflow: hidden; cursor: pointer;
       width: clamp(90px, 26vw, 200px); height: clamp(110px, 30vw, 220px);
       border-radius: 4px; flex-shrink: 0;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
     }
-    .sm-card[data-mode="time"]      { box-shadow: 0 0 0 2px #4499FF, 0 0 18px rgba(68,153,255,0.35); }
-    .sm-card[data-mode="dark"]      { box-shadow: 0 0 0 2px #E8447A, 0 0 18px rgba(232,68,122,0.35); }
-    .sm-card[data-mode="spaghetti"] { box-shadow: 0 0 0 2px #FF5500, 0 0 18px rgba(255,85,0,0.35); }
-    .sm-card:hover[data-mode="time"]      { box-shadow: 0 0 0 2.5px #4499FF, 0 0 32px rgba(68,153,255,0.65); }
-    .sm-card:hover[data-mode="dark"]      { box-shadow: 0 0 0 2.5px #E8447A, 0 0 32px rgba(232,68,122,0.65); }
-    .sm-card:hover[data-mode="spaghetti"] { box-shadow: 0 0 0 2.5px #FF5500, 0 0 32px rgba(255,85,0,0.65); }
+    /* ── card idle glow pulse ── */
+    @keyframes glowPulseTime {
+      0%, 100% { box-shadow: 0 0 0 1.5px rgba(68,153,255,0.65), 0 0 14px rgba(68,153,255,0.28), 0 0 36px rgba(68,153,255,0.10); }
+      50%       { box-shadow: 0 0 0 2px   rgba(68,153,255,0.90), 0 0 24px rgba(68,153,255,0.52), 0 0 52px rgba(68,153,255,0.20); }
+    }
+    @keyframes glowPulseDark {
+      0%, 100% { box-shadow: 0 0 0 1.5px rgba(232,68,122,0.65), 0 0 14px rgba(232,68,122,0.28), 0 0 36px rgba(232,68,122,0.10); }
+      50%       { box-shadow: 0 0 0 2px   rgba(232,68,122,0.90), 0 0 24px rgba(232,68,122,0.52), 0 0 52px rgba(232,68,122,0.20); }
+    }
+    @keyframes glowPulseSpag {
+      0%, 100% { box-shadow: 0 0 0 1.5px rgba(255,85,0,0.65),   0 0 14px rgba(255,85,0,0.28),   0 0 36px rgba(255,85,0,0.10); }
+      50%       { box-shadow: 0 0 0 2px   rgba(255,85,0,0.90),   0 0 24px rgba(255,85,0,0.52),   0 0 52px rgba(255,85,0,0.20); }
+    }
+    /* staggered float + per-mode glow pulse, offset phases so they don't sync */
+    .sm-card:nth-child(1) { animation: cardFloat0 6.2s ease-in-out infinite, glowPulseTime 4.0s ease-in-out infinite; }
+    .sm-card:nth-child(2) { animation: cardFloat1 7.1s ease-in-out infinite, glowPulseDark 4.8s ease-in-out 1.4s infinite; }
+    .sm-card:nth-child(3) { animation: cardFloat2 5.8s ease-in-out infinite, glowPulseSpag 3.6s ease-in-out 0.8s infinite; }
+    /* inner glow via overlay inset — color matches mode accent */
+    .sm-card[data-mode="time"]      .sm-card-overlay { box-shadow: inset 0 0 28px rgba(68,153,255,0.14); }
+    .sm-card[data-mode="dark"]      .sm-card-overlay { box-shadow: inset 0 0 28px rgba(232,68,122,0.14); }
+    .sm-card[data-mode="spaghetti"] .sm-card-overlay { box-shadow: inset 0 0 28px rgba(255,85,0,0.14); }
     .sm-card img {
       position: absolute; inset: 0; width: 100%; height: 100%;
-      object-fit: cover; display: block; z-index: 0; transition: transform 0.35s ease;
+      object-fit: cover; display: block; z-index: 0; transition: transform 0.38s ease;
     }
     .sm-card-overlay {
       position: absolute; inset: 0; z-index: 1;
-      background: linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.78) 100%);
+      background: linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.82) 100%);
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-      padding: 10px 8px; gap: 4px;
+      padding: 10px 8px; gap: 5px;
     }
     .sm-card-name {
       font-family: 'Bangers', cursive; font-size: clamp(13px, 3vw, 22px);
       letter-spacing: 0.06em; text-align: center; line-height: 1.1; position: relative; z-index: 2;
     }
-    .sm-card[data-mode="time"]      .sm-card-name { color: #4499FF; text-shadow: 0 0 10px rgba(68,153,255,0.7); }
-    .sm-card[data-mode="dark"]      .sm-card-name { color: #E8447A; text-shadow: 0 0 10px rgba(232,68,122,0.7); }
-    .sm-card[data-mode="spaghetti"] .sm-card-name { color: #FF5500; text-shadow: 0 0 10px rgba(255,85,0,0.7); }
+    .sm-card[data-mode="time"]      .sm-card-name { color: #4499FF; text-shadow: 0 0 12px rgba(68,153,255,0.8); }
+    .sm-card[data-mode="dark"]      .sm-card-name { color: #E8447A; text-shadow: 0 0 12px rgba(232,68,122,0.8); }
+    .sm-card[data-mode="spaghetti"] .sm-card-name { color: #FF5500; text-shadow: 0 0 12px rgba(255,85,0,0.8); }
     .sm-card-line {
       font-family: 'Space Mono', monospace; font-weight: 700;
-      font-size: clamp(7px, 1.2vw, 10px); color: rgba(255,255,255,0.42);
+      font-size: clamp(8px, 1.4vw, 11px); color: rgba(255,255,255,0.60);
       text-align: center; letter-spacing: 0.05em;
     }
     #sm-hint {
       font-family: 'Space Mono', monospace; font-weight: 700;
-      font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.08em;
+      font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.14em;
     }
-    #sm-signal-id {
-      font-family: 'Space Mono', monospace; font-weight: 700;
-      font-size: clamp(9px, 1.4vw, 11px); letter-spacing: 0.18em;
-      color: rgba(255,255,255,0.28); text-align: center;
-    }
-    #sm-signal-id span {
-      color: #E8447A; text-shadow: 0 0 8px rgba(232,68,122,0.6);
-    }
-
-    /* card image zoom on hover */
-    .sm-card:hover img { transform: scale(1.08); }
-    .sm-card:hover { transform: scale(1.03); }
+    /* hover: kill animations so box-shadow is freely overrideable */
+    .sm-card:hover { animation: none; transform: scale(1.035) translateY(-6px); }
+    .sm-card:hover[data-mode="time"]      { box-shadow: 0 0 0 2px #4499FF, 0 0 28px rgba(68,153,255,0.80), 0 0 60px rgba(68,153,255,0.35), 0 0 90px rgba(68,153,255,0.12); }
+    .sm-card:hover[data-mode="dark"]      { box-shadow: 0 0 0 2px #E8447A, 0 0 28px rgba(232,68,122,0.80), 0 0 60px rgba(232,68,122,0.35), 0 0 90px rgba(232,68,122,0.12); }
+    .sm-card:hover[data-mode="spaghetti"] { box-shadow: 0 0 0 2px #FF5500, 0 0 28px rgba(255,85,0,0.80),   0 0 60px rgba(255,85,0,0.35),   0 0 90px rgba(255,85,0,0.12); }
+    .sm-card:hover img { transform: scale(1.06); }
 
     /* menu corner buttons */
     #sm-share-btn, #sm-lb-btn {
@@ -243,8 +293,8 @@
   <div id="sm-hero">
     <img id="sm-hero-img" src="assets/hero-parrot.jpg" alt="" />
     <h1 id="sm-title">10K QUANTUM PARROTS</h1>
-    <p id="sm-subtitle">SELECT YOUR DIMENSION</p>
-    <p id="sm-signal-id">SIGNAL ID: <span id="sm-player-name">anonymous_parrot</span></p>
+    <p id="sm-subtitle">CHOOSE YOUR DIMENSION</p>
+    <p id="sm-signal-id">SIGNAL ID &bull; <span id="sm-player-name">anonymous_parrot</span></p>
   </div>
   <div id="sm-cards">
     <div class="sm-card" data-mode="time">
@@ -269,7 +319,7 @@
       </div>
     </div>
   </div>
-  <p id="sm-hint">click or tap a card to enter</p>
+  <p id="sm-hint">CLICK A DIMENSION TO ENTER THE VOID</p>
 </div>
 
 <!-- Loading overlay -->
@@ -2736,12 +2786,16 @@ const _MODE_LOAD_CFG = {
 function showMenuOverlay() {
   const name = localStorage.getItem('qp_player_name') || '';
   document.getElementById('sm-player-name').textContent = name.trim() || 'anonymous_parrot';
-  document.getElementById('start-menu-overlay').classList.remove('hidden');
+  const ov = document.getElementById('start-menu-overlay');
+  ov.classList.remove('hidden');
+  requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('visible')));
   document.getElementById('sm-share-btn').classList.add('visible');
   document.getElementById('sm-lb-btn').classList.add('visible');
 }
 function hideMenuOverlay() {
-  document.getElementById('start-menu-overlay').classList.add('hidden');
+  const ov = document.getElementById('start-menu-overlay');
+  ov.classList.remove('visible');
+  setTimeout(() => ov.classList.add('hidden'), 460);
   document.getElementById('sm-share-btn').classList.remove('visible');
   document.getElementById('sm-lb-btn').classList.remove('visible');
 }
@@ -2774,6 +2828,7 @@ function startModeWithLoading(mode) {
 document.querySelectorAll('.sm-card').forEach(card => {
   card.addEventListener('click', () => startModeWithLoading(card.dataset.mode));
   card.addEventListener('touchend', e => { e.preventDefault(); startModeWithLoading(card.dataset.mode); });
+  card.addEventListener('mouseenter', () => { if (audioReady) _osc('sine', 660, 0.04, 0.06, 0.005, 900); });
 });
 
 // Share button
