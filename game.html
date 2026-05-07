@@ -331,14 +331,21 @@
       letter-spacing: 0.06em; transition: background 0.15s, color 0.15s;
     }
     #dp-changedim:hover { background: rgba(30,30,30,0.85); color: rgba(255,255,255,0.9); }
+    #dp-exit {
+      font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px;
+      color: rgba(255,255,255,0.28); background: none; border: none;
+      cursor: pointer; padding: 6px 0; width: 100%; letter-spacing: 0.12em;
+      transition: color 0.15s;
+    }
+    #dp-exit:hover { color: rgba(255,255,255,0.65); }
   </style>
 </head>
 <body>
 <canvas id="c"></canvas>
-<button id="mute-btn" title="Toggle sound">♪</button>
+<button id="mute-btn" title="Toggle sound">&#9836;</button>
 
 <!-- Menu corner buttons (shown only when menu is open) -->
-<button id="sm-share-btn">↑ SHARE SIGNAL</button>
+<button id="sm-share-btn">&#8593; SHARE SIGNAL</button>
 <button id="sm-lb-btn" onclick="openLeaderboard()">LEADERBOARD<span id="sm-lb-btn-sub">LIVE SIGNALS</span></button>
 
 <!-- Start menu overlay -->
@@ -408,6 +415,7 @@
     <div class="dp-divider"></div>
     <button id="dp-reenter" onclick="reset()">RE-ENTER THE VOID</button>
     <button id="dp-changedim" onclick="goMenu()">CHANGE DIMENSION</button>
+    <button id="dp-exit" onclick="window.location.href=window.location.origin+'/'">EXIT TO LANDING</button>
   </div>
 </div>
 
@@ -3021,6 +3029,28 @@ if (window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY) {
   }
 }
 
+function _pollTxHash(runId, attemptsLeft) {
+  if (!runId || !_sbClient || attemptsLeft <= 0) return;
+  _sbClient.from('game_runs')
+    .select('tx_hash')
+    .eq('id', runId)
+    .single()
+    .then(({ data, error }) => {
+      if (error || !data) return;
+      const h = data.tx_hash;
+      if (typeof h === 'string' && h.startsWith('0x') && h.length >= 66) {
+        _currentTxHash = h;
+        const proof = document.getElementById('dp-proof');
+        if (proof) {
+          proof.href = 'https://monadscan.com/tx/' + h;
+          proof.classList.add('visible');
+        }
+      } else {
+        setTimeout(() => _pollTxHash(runId, attemptsLeft - 1), 5000);
+      }
+    });
+}
+
 function saveRun(game) {
   if (!_sbClient || _runSaved) return;
   const _finalScore = Math.round(score);
@@ -3041,6 +3071,7 @@ function saveRun(game) {
     localStorage.setItem('qp_last_run_saved_at', String(Date.now()));
     _currentRunId = data && data[0] ? data[0].id : null;
     console.log('Run saved', _currentRunId);
+    if (_currentRunId) setTimeout(() => _pollTxHash(_currentRunId, 24), 5000);
   });
 }
 
