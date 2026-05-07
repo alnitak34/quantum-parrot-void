@@ -184,7 +184,6 @@ const Hero = () => {
                   Optional. Used on leaderboard.
                 </p>
               </div>
-              </div>
             </div>
           </motion.div>
 
