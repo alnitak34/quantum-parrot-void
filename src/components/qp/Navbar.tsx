@@ -189,16 +189,14 @@ const Navbar = () => {
         {open && (
           <div className="md:hidden absolute left-0 right-0 top-full z-50 mx-4 panel-void border border-primary/30 rounded-md bg-background/95 backdrop-blur-md shadow-2xl">
             <ul className="flex flex-col p-2">
-              {links.map((l) => (
-                <li key={l.label}>
-                  <button
-                    onClick={l.onClick}
-                    className="w-full text-left font-graffiti text-xl text-foreground/90 hover:text-primary px-4 py-4 rounded-md hover:bg-primary/10 transition-colors"
-                  >
-                    {l.label}
-                  </button>
-                </li>
-              ))}
+              <li>
+                <button
+                  onClick={sound.toggle}
+                  className="w-full text-left font-graffiti text-xl text-foreground/90 hover:text-primary px-4 py-4 rounded-md hover:bg-primary/10 transition-colors"
+                >
+                  {sound.enabled ? "SOUND ON" : "SOUND OFF"}
+                </button>
+              </li>
             </ul>
           </div>
         )}
