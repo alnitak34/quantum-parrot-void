@@ -150,6 +150,13 @@
       font-family: 'Space Mono', monospace; font-weight: 700;
       font-size: 11px; color: rgba(255,255,255,0.18); letter-spacing: 0.14em;
     }
+    #sm-exit {
+      font-family: 'Space Mono', monospace; font-size: 11px;
+      color: rgba(255,255,255,0.40); background: none; border: none;
+      cursor: pointer; padding: 8px; letter-spacing: 0.10em;
+      transition: color 0.15s;
+    }
+    #sm-exit:hover { color: rgba(255,255,255,0.70); }
     /* hover: kill animations so box-shadow is freely overrideable */
     .sm-card:hover { animation: none; transform: scale(1.035) translateY(-6px); }
     .sm-card:hover[data-mode="time"]      { box-shadow: 0 0 0 2px #4499FF, 0 0 28px rgba(68,153,255,0.80), 0 0 60px rgba(68,153,255,0.35), 0 0 90px rgba(68,153,255,0.12); }
@@ -380,6 +387,7 @@
     </div>
   </div>
   <p id="sm-hint">CLICK A DIMENSION TO ENTER THE VOID</p>
+  <button id="sm-exit" onclick="window.location.href='https://quantum-parrot-void.lovable.app'">EXIT</button>
 </div>
 
 <!-- Leaderboard panel -->
