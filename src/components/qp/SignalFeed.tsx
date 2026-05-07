@@ -230,27 +230,9 @@ const SignalFeed = () => {
           boxShadow: "0 0 40px rgba(255, 0, 150, 0.15)",
         }}
       >
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* LEFT: Tagline */}
-          <div className="lg:col-span-3 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-border/50 pb-5 lg:pb-0 lg:pr-5">
-            <div className="flex items-center gap-3">
-              <h3 className="font-graffiti text-2xl md:text-3xl text-foreground leading-tight">
-                EVERY DEATH<br />
-                BECOMES <span className="text-primary">A SIGNAL</span>
-              </h3>
-              <Skull className="h-7 w-7 text-foreground/80" />
-            </div>
-            <p className="mt-3 font-mono-x text-sm text-muted-foreground">
-              Top <span className="text-primary">signals</span> leave a trace on{" "}
-              <span className="text-secondary-glow font-bold">Monad</span>.
-            </p>
-            <p className="mt-2 font-mono-x text-xs text-muted-foreground/70 leading-snug">
-              Top runs are batched and recorded on Monad mainnet as verifiable signal roots.
-            </p>
-          </div>
-
-          {/* MIDDLE: Live feed */}
-          <div className="lg:col-span-5 lg:px-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* LEFT: Live feed */}
+          <div className="lg:pr-5 lg:border-r border-border/50">
             <div className="flex items-center gap-2 mb-3">
               <Zap className="h-4 w-4 text-primary fill-primary animate-flicker" />
               <span className="font-graffiti text-lg text-foreground tracking-wide">LIVE SIGNAL FEED</span>
@@ -298,7 +280,7 @@ const SignalFeed = () => {
           </div>
 
           {/* RIGHT: Top signals */}
-          <div className="lg:col-span-4 lg:pl-5 lg:border-l border-border/50">
+          <div className="lg:pl-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="font-graffiti text-lg text-foreground tracking-wide">TOP SIGNALS</span>
               <Crown className="h-5 w-5 text-primary fill-primary/40" />

@@ -24,14 +24,6 @@ const Index = () => {
       <About />
 
       <div className="container mx-auto px-4 py-10" id="signals">
-        <div className="text-center mb-6">
-          <h2 className="font-graffiti text-3xl md:text-4xl text-foreground tracking-wide">
-            VIEW <span className="text-primary">SIGNALS</span>
-          </h2>
-          <p className="font-mono-x text-xs text-foreground/60 tracking-wider uppercase mt-1">
-            Top runs · Live feed · Recorded on Monad
-          </p>
-        </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-6 items-start">
           <div className="w-full">
             <SignalFeed />

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gameUrlWithHandle, getPlayer, savePlayer } from "./handle";
 import LoadingOverlay from "./LoadingOverlay";
@@ -31,7 +31,7 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative overflow-hidden py-6 md:py-8">
+    <section className="relative overflow-hidden py-4 md:py-8">
       <AnimatePresence>{loading && <LoadingOverlay onDone={onLoadingDone} />}</AnimatePresence>
 
       {/* Wormhole background */}
@@ -112,14 +112,14 @@ const Hero = () => {
         />
       </div>
 
-      <div className="container relative mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-8 px-4">
+      <div className="container relative mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-4 md:gap-8 px-4">
         {/* LEFT: Text */}
-        <div className="relative z-10">
+        <div className="relative z-10 order-2 lg:order-1">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="graffiti-title text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[1.1]"
+            className="graffiti-title text-5xl sm:text-7xl md:text-8xl lg:text-9xl leading-[1.1]"
           >
             <span className="text-primary text-[0.7em] align-middle">10K</span>{" "}
             <span
@@ -140,7 +140,7 @@ const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="font-handwritten mt-6 text-2xl md:text-3xl text-foreground/90 max-w-xl"
+            className="font-handwritten mt-4 md:mt-6 text-xl sm:text-2xl md:text-3xl text-foreground/90 max-w-xl"
           >
             A chaotic <span className="text-primary font-bold">survival</span> experiment. Every death leaves a trace on Monad mainnet.
           </motion.p>
@@ -149,7 +149,7 @@ const Hero = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
-            className="mt-10 flex items-start gap-6 flex-wrap"
+            className="mt-6 md:mt-10 flex items-start gap-6 flex-wrap"
           >
             <div className="flex flex-col gap-3">
               <button
@@ -186,26 +186,12 @@ const Hero = () => {
                 </p>
               </div>
             </div>
-
-            {/* Chaos Awaits stamp */}
-            <motion.div
-              animate={{ rotate: [-8, -12, -8] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="chaos-stamp flex h-28 w-28 md:h-32 md:w-32 items-center justify-center text-center relative"
-            >
-              <span className="font-graffiti text-primary text-base md:text-lg leading-tight">
-                CHAOS
-                <br />
-                AWAITS
-              </span>
-              <X className="absolute -bottom-2 -right-2 h-5 w-5 text-primary" strokeWidth={3} />
-            </motion.div>
           </motion.div>
 
         </div>
 
         {/* RIGHT: Parrot squad */}
-        <div className="relative h-[420px] sm:h-[500px] lg:h-[600px]">
+        <div className="relative h-[260px] sm:h-[400px] lg:h-[600px] order-1 lg:order-2">
           {/* Ambient scene glow tying characters to background */}
           <div
             className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full"
@@ -236,7 +222,7 @@ const Hero = () => {
               src={wizard}
               alt="Quantum Parrot wizard"
               loading="eager"
-              className="w-[260px] sm:w-[320px] lg:w-[400px]"
+              className="w-[200px] sm:w-[300px] lg:w-[400px]"
               style={{
                 filter:
                   "drop-shadow(0 14px 26px hsl(var(--void-deep) / 0.85)) drop-shadow(0 0 30px hsl(var(--primary) / 0.55)) drop-shadow(0 0 60px hsl(var(--secondary) / 0.35))",
@@ -273,7 +259,7 @@ const Hero = () => {
               src={bat}
               alt=""
               loading="lazy"
-              className="w-[120px] sm:w-[150px] lg:w-[180px]"
+              className="w-[90px] sm:w-[140px] lg:w-[180px]"
               style={{
                 filter:
                   "drop-shadow(0 10px 18px hsl(var(--void-deep) / 0.85)) drop-shadow(0 0 22px hsl(var(--secondary) / 0.5))",
