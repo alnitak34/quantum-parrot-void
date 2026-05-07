@@ -259,7 +259,7 @@ const Hero = () => {
               src={bat}
               alt=""
               loading="lazy"
-              className="w-[120px] sm:w-[150px] lg:w-[180px]"
+              className="w-[90px] sm:w-[140px] lg:w-[180px]"
               style={{
                 filter:
                   "drop-shadow(0 10px 18px hsl(var(--void-deep) / 0.85)) drop-shadow(0 0 22px hsl(var(--secondary) / 0.5))",
