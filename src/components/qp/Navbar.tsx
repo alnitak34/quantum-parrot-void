@@ -131,19 +131,8 @@ const Navbar = () => {
     <>
       <header className="relative z-40 w-full">
         <nav className="container mx-auto flex items-center justify-between gap-4 px-4 py-5 md:py-6">
-          <a href="#" className="flex items-baseline gap-2" aria-label="10K Squad home">
-            <span
-              className="font-graffiti text-3xl md:text-4xl text-primary"
-              style={{ textShadow: "2px 2px 0 hsl(var(--void-deep))" }}
-            >
-              10K
-            </span>
-            <span
-              className="font-graffiti text-2xl md:text-3xl text-foreground"
-              style={{ textShadow: "2px 2px 0 hsl(var(--void-deep))" }}
-            >
-              SQUAD
-            </span>
+          <a href="#" className="flex items-center" aria-label="10K Squad home">
+            <img src={logo} alt="10K Squad" className="h-10 w-auto" style={{ mixBlendMode: "screen" }} />
           </a>
 
           {/* Desktop links */}
