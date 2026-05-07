@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Menu, X, Volume2, VolumeX } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -105,13 +105,11 @@ function useSound() {
 }
 
 const Navbar = () => {
-  const [open, setOpen] = useState(false);
   const [modal, setModal] = useState<ModalKind>(null);
   const sound = useSound();
 
   const handleNav = (action: () => void) => {
     sound.click();
-    setOpen(false);
     action();
   };
 
@@ -173,33 +171,17 @@ const Navbar = () => {
               <span className="hidden sm:inline">{sound.enabled ? "SOUND ON" : "SOUND OFF"}</span>
             </button>
 
-            {/* Mobile hamburger */}
+            {/* Sound toggle */}
             <button
-              className="md:hidden p-2 rounded-md border border-primary/40 text-foreground"
-              onClick={() => setOpen((v) => !v)}
-              aria-label="Toggle navigation menu"
-              aria-expanded={open}
+              onClick={sound.toggle}
+              aria-label={sound.enabled ? "Turn sound off" : "Turn sound on"}
+              className="font-graffiti text-xs md:text-sm text-foreground/80 hover:text-primary transition-colors flex items-center gap-1.5 border border-primary/40 rounded-md px-2.5 py-1.5"
             >
-              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {sound.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+              <span className="hidden sm:inline">{sound.enabled ? "SOUND ON" : "SOUND OFF"}</span>
             </button>
           </div>
         </nav>
-
-        {/* Mobile menu panel */}
-        {open && (
-          <div className="md:hidden absolute left-0 right-0 top-full z-50 mx-4 panel-void border border-primary/30 rounded-md bg-background/95 backdrop-blur-md shadow-2xl">
-            <ul className="flex flex-col p-2">
-              <li>
-                <button
-                  onClick={sound.toggle}
-                  className="w-full text-left font-graffiti text-xl text-foreground/90 hover:text-primary px-4 py-4 rounded-md hover:bg-primary/10 transition-colors"
-                >
-                  {sound.enabled ? "SOUND ON" : "SOUND OFF"}
-                </button>
-              </li>
-            </ul>
-          </div>
-        )}
       </header>
 
       {/* About modal */}

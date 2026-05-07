@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const MESSAGES = [
   ["NO PLAN.", "NO MERCY.", "JUST", "PARROTS."],
   ["EVERY RUN", "LEAVES", "A TRACE."],
-  ["SOME", "SIGNALS", "ARE", "PERMANENT."],
+  ["YOUR", "DEATH.", "YOUR", "DATA.", "FOREVER."],
 ];
 
 const StickyNote = () => {

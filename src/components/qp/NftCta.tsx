@@ -15,7 +15,7 @@ const NftCta = () => {
             JOIN THE <span className="text-primary">10K SQUAD</span>
           </h2>
           <p className="font-handwritten text-xl md:text-2xl text-foreground/85 mt-2">
-            Own one of the 10K Squad parrots and enter the quantum void.
+            3,333 unique hand-drawn NFTs on Monad. Each one is different.
           </p>
         </div>
         <div className="flex flex-col items-center md:items-end gap-3">
