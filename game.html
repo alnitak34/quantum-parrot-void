@@ -167,7 +167,7 @@
       display: none;
     }
     #sm-share-btn { right: 56px; }
-    #sm-lb-btn    { left: 12px; }
+    #sm-lb-btn    { left: 12px; pointer-events: auto; z-index: 300; cursor: pointer; }
     #sm-share-btn:hover {
       background: rgba(232,68,122,0.18); border-color: #E8447A;
       box-shadow: 0 0 12px rgba(232,68,122,0.45);
@@ -337,7 +337,7 @@
 
 <!-- Menu corner buttons (shown only when menu is open) -->
 <button id="sm-share-btn">↑ SHARE SIGNAL</button>
-<button id="sm-lb-btn">LEADERBOARD<span id="sm-lb-btn-sub">LIVE SIGNALS</span></button>
+<button id="sm-lb-btn" onclick="openLeaderboard()">LEADERBOARD<span id="sm-lb-btn-sub">LIVE SIGNALS</span></button>
 
 <!-- Start menu overlay -->
 <div id="start-menu-overlay" class="hidden">
@@ -2933,10 +2933,11 @@ function loadLeaderboard() {
     });
 }
 function openLeaderboard() {
+  console.log('Leaderboard clicked');
   document.getElementById('lb-panel').classList.add('open');
+  console.log('Leaderboard modal opened');
   loadLeaderboard();
 }
-document.getElementById('sm-lb-btn').addEventListener('click', openLeaderboard);
 document.getElementById('lb-panel').addEventListener('click', e => {
   if (e.target === document.getElementById('lb-panel')) document.getElementById('lb-panel').classList.remove('open');
 });
