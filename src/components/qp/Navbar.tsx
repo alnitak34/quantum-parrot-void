@@ -170,7 +170,7 @@ const Navbar = () => {
               {sound.enabled ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
               <span className="hidden sm:inline">{sound.enabled ? "SOUND ON" : "SOUND OFF"}</span>
             </button>
-
+          </div>
         </nav>
       </header>
 
