@@ -69,16 +69,19 @@
     .sm-card:hover[data-mode="time"]      { box-shadow: 0 0 0 2.5px #4499FF, 0 0 32px rgba(68,153,255,0.65); }
     .sm-card:hover[data-mode="dark"]      { box-shadow: 0 0 0 2.5px #E8447A, 0 0 32px rgba(232,68,122,0.65); }
     .sm-card:hover[data-mode="spaghetti"] { box-shadow: 0 0 0 2.5px #FF5500, 0 0 32px rgba(255,85,0,0.65); }
-    .sm-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .sm-card img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; display: block; z-index: 0;
+    }
     .sm-card-overlay {
-      position: absolute; inset: 0;
+      position: absolute; inset: 0; z-index: 1;
       background: linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.78) 100%);
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
       padding: 10px 8px; gap: 4px;
     }
     .sm-card-name {
       font-family: 'Bangers', cursive; font-size: clamp(13px, 3vw, 22px);
-      letter-spacing: 0.06em; text-align: center; line-height: 1.1;
+      letter-spacing: 0.06em; text-align: center; line-height: 1.1; position: relative; z-index: 2;
     }
     .sm-card[data-mode="time"]      .sm-card-name { color: #4499FF; text-shadow: 0 0 10px rgba(68,153,255,0.7); }
     .sm-card[data-mode="dark"]      .sm-card-name { color: #E8447A; text-shadow: 0 0 10px rgba(232,68,122,0.7); }
@@ -181,27 +184,27 @@
 <!-- Start menu overlay -->
 <div id="start-menu-overlay" class="hidden">
   <div id="sm-hero">
-    <img id="sm-hero-img" src="assets/hero-parrot.jpg.jpg" alt="" />
+    <img id="sm-hero-img" src="assets/hero-parrot.jpg" alt="" />
     <h1 id="sm-title">10K QUANTUM PARROTS</h1>
     <p id="sm-subtitle">SELECT YOUR DIMENSION</p>
   </div>
   <div id="sm-cards">
     <div class="sm-card" data-mode="time">
-      <img src="assets/time-dilation.jpg.jpg" alt="Time Dilation" />
+      <img src="assets/time-dilation.jpg" alt="Time Dilation" />
       <div class="sm-card-overlay">
         <span class="sm-card-name">TIME DILATION</span>
         <span class="sm-card-line">dodge melting clocks</span>
       </div>
     </div>
     <div class="sm-card" data-mode="dark">
-      <img src="assets/dark-matter.jpg.jpg" alt="Dark Matter" />
+      <img src="assets/dark-matter.jpg" alt="Dark Matter" />
       <div class="sm-card-overlay">
         <span class="sm-card-name">DARK MATTER</span>
         <span class="sm-card-line">survive the singularity</span>
       </div>
     </div>
     <div class="sm-card" data-mode="spaghetti">
-      <img src="assets/spaghettification.jpg.jpg" alt="Spaghettification" />
+      <img src="assets/spaghettification.jpg" alt="Spaghettification" />
       <div class="sm-card-overlay">
         <span class="sm-card-name">SPAGHETTIFICATION</span>
         <span class="sm-card-line">resist the black hole</span>
