@@ -18,6 +18,7 @@ const Hero = () => {
   }, []);
 
   const handleEnter = () => {
+    startVoidAudio();
     setLoading(true);
   };
 
