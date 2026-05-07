@@ -34,25 +34,6 @@ const Navbar = () => {
   const [modal, setModal] = useState<ModalKind>(null);
   const sound = useSound();
 
-  const handleNav = (action: () => void) => {
-    sound.click();
-    action();
-  };
-
-  const links: { label: string; onClick: () => void }[] = [
-    {
-      label: "PLAY",
-      onClick: () => handleNav(() => window.open(gameUrlWithHandle(), "_blank", "noopener,noreferrer")),
-    },
-    {
-      label: "SIGNALS",
-      onClick: () => handleNav(() => {
-        const el = document.getElementById("leaderboard");
-        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-      }),
-    },
-  ];
-
   return (
     <>
       <header className="relative z-40 w-full">
@@ -60,20 +41,6 @@ const Navbar = () => {
           <a href="#" className="flex items-center" aria-label="10K Squad home">
             <img src={logo} alt="10K Squad" className="h-10 w-auto" style={{ mixBlendMode: "screen" }} />
           </a>
-
-          {/* Desktop links */}
-          <ul className="hidden md:flex items-center gap-8 lg:gap-12">
-            {links.map((l) => (
-              <li key={l.label}>
-                <button
-                  onClick={l.onClick}
-                  className="font-graffiti text-lg lg:text-xl text-foreground/90 hover:text-primary transition-colors"
-                >
-                  {l.label}
-                </button>
-              </li>
-            ))}
-          </ul>
 
           <div className="flex items-center gap-2">
             {/* Sound toggle */}
