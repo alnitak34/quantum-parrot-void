@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { gameUrlWithHandle, getPlayer, savePlayer } from "./handle";
+import { startVoidAudio } from "./voidAudio";
 import LoadingOverlay from "./LoadingOverlay";
 import wizard from "@/assets/parrot-10k-squad.png";
 import bat from "@/assets/parrot-bat.png";
