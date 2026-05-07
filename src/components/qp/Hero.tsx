@@ -112,9 +112,9 @@ const Hero = () => {
         />
       </div>
 
-      <div className="container relative mx-auto grid grid-cols-1 lg:grid-cols-2 items-center gap-4 md:gap-8 px-4">
+      <div className="container relative mx-auto grid grid-cols-[1fr_100px] sm:grid-cols-[1fr_160px] lg:grid-cols-2 items-center gap-2 sm:gap-4 md:gap-8 px-4">
         {/* LEFT: Text */}
-        <div className="relative z-10 order-2 lg:order-1">
+        <div className="relative z-10">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -182,7 +182,7 @@ const Hero = () => {
                   Optional. Used on leaderboard.
                 </p>
                 <p className="font-mono-x text-[11px] text-foreground/60 tracking-wide mt-2">
-                  Built by <a href="https://x.com/Alnitak34" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@Alnitak34</a> · 10k Squad #765 holder since testnet
+                  Built by <a href="https://x.com/Alnitak34" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@Alnitak34</a> · 10k Squad OG holder since testnet
                 </p>
               </div>
             </div>
@@ -191,10 +191,10 @@ const Hero = () => {
         </div>
 
         {/* RIGHT: Parrot squad */}
-        <div className="relative h-[260px] sm:h-[400px] lg:h-[600px] order-1 lg:order-2">
+        <div className="relative h-[140px] sm:h-[220px] lg:h-[600px]">
           {/* Ambient scene glow tying characters to background */}
           <div
-            className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[180px] w-[180px] sm:h-[300px] sm:w-[300px] lg:h-[520px] lg:w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full"
             aria-hidden="true"
             style={{
               background:
@@ -222,7 +222,7 @@ const Hero = () => {
               src={wizard}
               alt="Quantum Parrot wizard"
               loading="eager"
-              className="w-[200px] sm:w-[300px] lg:w-[400px]"
+              className="w-[80px] sm:w-[160px] lg:w-[400px]"
               style={{
                 filter:
                   "drop-shadow(0 14px 26px hsl(var(--void-deep) / 0.85)) drop-shadow(0 0 30px hsl(var(--primary) / 0.55)) drop-shadow(0 0 60px hsl(var(--secondary) / 0.35))",
@@ -241,7 +241,7 @@ const Hero = () => {
 
           {/* Bat parrot - right bottom */}
           <motion.div
-            className="absolute right-2 bottom-4 z-10"
+            className="absolute right-2 bottom-4 z-10 hidden sm:block"
             animate={{ y: [0, -12, 0], rotate: [-2, 2, -2] }}
             transition={{ duration: 5, repeat: Infinity, delay: 1.5 }}
           >
