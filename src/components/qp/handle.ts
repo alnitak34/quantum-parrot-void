@@ -1,7 +1,7 @@
 // Shared helpers for the player name used to deep-link into the real game.
 export const PLAYER_KEY = "qp_player_name";
 export const HANDLE_KEY = "qp_x_handle"; // legacy
-export const GAME_BASE_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
+export const GAME_BASE_URL = "https://quantumparrots.xyz/game.html";
 
 export function normalizePlayer(raw: string | null | undefined): string {
   if (!raw) return "";

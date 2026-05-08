@@ -12,7 +12,7 @@ import {
 
 import { gameUrlWithHandle } from "./handle";
 
-const GAME_URL = "https://alnitak34.github.io/quantum-parrot-void/game.html";
+const GAME_URL = "https://quantumparrots.xyz/game.html";
 const OPENSEA_URL = "https://opensea.io/collection/the-10k-squad-350905768";
 
 type ModalKind = null | "about" | "leaderboard";
