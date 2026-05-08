@@ -2973,7 +2973,8 @@ document.getElementById('lb-panel').addEventListener('click', e => {
 function showDeathPanel() {
   if (_dpShown) return;
   _dpShown = true;
-  const saved = localStorage.getItem('qp_player_name');
+  const urlPlayer = new URLSearchParams(window.location.search).get('player');
+  const saved = urlPlayer ? decodeURIComponent(urlPlayer) : localStorage.getItem('qp_player_name');
   if (saved) document.getElementById('dp-input').value = saved;
   const dieColor = MODE === 'spaghetti' ? '#ff4400' : MODE === 'time' ? '#4499FF' : '#E8447A';
   document.getElementById('dp-reenter').style.background = dieColor;
