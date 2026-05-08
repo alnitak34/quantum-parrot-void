@@ -48,7 +48,6 @@ const {
 
 // ── Supabase (service role — server-side only) ────────────────────────────────
 
-console.log('URL length:', process.env.SUPABASE_URL?.length, 'First char code:', process.env.SUPABASE_URL?.charCodeAt(0));
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   realtime: { transport: WebSocket },
 });
