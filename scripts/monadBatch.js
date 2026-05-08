@@ -47,6 +47,7 @@ const {
 
 // ── Supabase (service role — server-side only) ────────────────────────────────
 
+console.log('SUPABASE_URL starts with:', process.env.SUPABASE_URL?.substring(0, 20));
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 // ── Contract ABI (minimal) ────────────────────────────────────────────────────
