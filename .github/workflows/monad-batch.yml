@@ -1,0 +1,29 @@
+name: Monad Batch
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  batch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run monadBatch
+        run: node scripts/monadBatch.js
+        env:
+          SUPABASE_URL:               ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY:  ${{ secrets.SUPABASE_ANON_KEY }}
+          MONAD_RPC_URL:              ${{ secrets.RPC_URL }}
+          MONAD_PRIVATE_KEY:          ${{ secrets.PRIVATE_KEY }}
+          TITAN_EVENT_LOGGER_ADDRESS: ${{ secrets.CONTRACT_ADDRESS }}
