@@ -19,6 +19,7 @@
 import 'dotenv/config';
 import { ethers }       from 'ethers';
 import { createClient } from '@supabase/supabase-js';
+import WebSocket        from 'ws';
 import { buildLeaf, buildMerkleRoot } from './merkle.js';
 
 const DRY_RUN = process.env.DRY_RUN_UPDATE === 'true';
@@ -48,7 +49,9 @@ const {
 // ── Supabase (service role — server-side only) ────────────────────────────────
 
 console.log('URL length:', process.env.SUPABASE_URL?.length, 'First char code:', process.env.SUPABASE_URL?.charCodeAt(0));
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  realtime: { transport: WebSocket },
+});
 
 // ── Contract ABI (minimal) ────────────────────────────────────────────────────
 
