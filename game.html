@@ -564,7 +564,7 @@ let state='menu', score=0, best=0, lastTs=null, spawnT=0, targetedT=0;
 const player = { x:0, y:0, w:PW, h:PH };
 let obstacles = [];
 function tier()          { return Math.floor(score/10); }
-function fallingSpeed()  { return 165+tier()*65+(score%10)*4; }
+function fallingSpeed()  { const base=165+tier()*65+(score%10)*4; return canvas.width<768 ? base*0.6 : base; }
 function spawnInterval() { return Math.max(0.30,1.52-tier()*0.16); }
 
 /* ─── Dark Matter state ─────────────────────── */
