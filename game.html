@@ -560,11 +560,11 @@ function _resolvePlayer() {
 }
 
 /* ─── Game state ───────────────────────────── */
-let state='menu', score=0, best=0, lastTs=null, spawnT=0, targetedT=0;
+let state='menu', score=0, best=0, lastTs=null, spawnT=0, targetedT=0, graceTimer=0;
 const player = { x:0, y:0, w:PW, h:PH };
 let obstacles = [];
 function tier()          { return Math.floor(score/10); }
-function fallingSpeed()  { const base=165+tier()*65+(score%10)*4; return canvas.width<768 ? base*0.6 : base; }
+function fallingSpeed()  { const base=165+tier()*65+(score%10)*4; return canvas.width<768 ? base*0.5 : base; }
 function spawnInterval() { return Math.max(0.30,1.52-tier()*0.16); }
 
 /* ─── Dark Matter state ─────────────────────── */
@@ -688,7 +688,7 @@ function startMode(mode) {
     startSpagTone();
   } else {
     player.y=canvas.height-PH-FLOOR_PAD; obstacles=[];
-    spawnT=0; targetedT=0;
+    spawnT=0; targetedT=0; graceTimer=canvas.width<768 ? 3 : 0;
     timeScale=1.0; timeScaleTimer=0; timeScaleInterval=3+Math.random()*2;
     screenFlash=0; timeSlowFlash=0; timeTransitionLabel=''; timeTransitionAlpha=0; timeShake=0;
     shieldPickup=null; shieldActive=false; shieldTimer=0;
@@ -1841,7 +1841,7 @@ function update(dt) {
   if (MODE==='spaghetti') { updateSpaghetti(dt); return; }
 
   /* ── Time mode ── */
-  spawnT+=dt; targetedT+=dt;
+  spawnT+=dt; targetedT+=dt; if (graceTimer>0) graceTimer=Math.max(0,graceTimer-dt);
   timeScaleTimer+=dt;
   if (timeScaleTimer>=timeScaleInterval) {
     timeScaleTimer=0; timeScaleInterval=3+Math.random()*2;
@@ -1891,7 +1891,7 @@ function update(dt) {
       timePosTracker.timer+=dt;
       if (timePosTracker.timer>=2.5) {
         timePosTracker.timer=0; timePosTracker.x=player.x; timePosTracker.y=player.y;
-        spawnObstacle(true); spawnObstacle(true);
+        if (graceTimer<=0) { spawnObstacle(true); spawnObstacle(true); }
       }
     } else {
       timePosTracker.timer=Math.max(0,timePosTracker.timer-dt*2);
@@ -1912,10 +1912,10 @@ function update(dt) {
   }
   if (shieldActive) { shieldTimer-=dt; if (shieldTimer<=0) { shieldActive=false; shieldTimer=0; } }
   if (spawnT>=spawnInterval()/timeScale) {
-    spawnT=0; spawnObstacle(false);
-    if (score>15&&Math.random()<0.40) spawnObstacle(false);
+    spawnT=0;
+    if (graceTimer<=0) { spawnObstacle(false); if (score>15&&Math.random()<0.40) spawnObstacle(false); }
   }
-  if (targetedT>=1.8) { targetedT=0; spawnObstacle(true); }
+  if (targetedT>=1.8) { targetedT=0; if (graceTimer<=0) spawnObstacle(true); }
   for (const ob of obstacles) {
     ob.trail.unshift({x:ob.x,y:ob.y}); if (ob.trail.length>TRAIL_LEN) ob.trail.pop();
     ob.accelTimer-=dt;
