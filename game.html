@@ -2918,6 +2918,10 @@ document.getElementById('sm-share-btn').addEventListener('click', () => {
   window.open('https://x.com/intent/tweet?text=' + t, '_blank');
 });
 
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // Leaderboard
 function loadLeaderboard() {
   const body = document.getElementById('lb-body');
@@ -2942,18 +2946,19 @@ function loadLeaderboard() {
       const GAME_LABEL = { time_dilation: 'TIME', dark_matter: 'DARK', spaghettification: 'SPAG' };
       const RANK_CLASS = ['gold', 'silver', 'bronze'];
       body.innerHTML = data.map((r, i) => {
-        const name  = (r.x_handle || 'anon').replace(/^@/, '');
-        const label = GAME_LABEL[r.game] || r.game;
+        const name  = esc((r.x_handle || 'anon').replace(/^@/, ''));
+        const label = GAME_LABEL[r.game] || esc(r.game);
         const rank  = RANK_CLASS[i] || '';
+        const score = Number(r.score) || 0;
         const h = r.tx_hash;
-        const proof = (typeof h === 'string' && h.startsWith('0x') && h.length >= 66)
-          ? `<a class="lb-proof-link" href="https://monadscan.com/tx/${h}" target="_blank" rel="noopener">RECORDED</a>`
+        const proof = (typeof h === 'string' && h.startsWith('0x') && /^0x[0-9a-fA-F]{64}$/.test(h))
+          ? `<a class="lb-proof-link" href="https://monadscan.com/tx/${esc(h)}" target="_blank" rel="noopener">RECORDED</a>`
           : '<span class="lb-pending">PENDING</span>';
         return `<div class="lb-row">
           <span class="lb-rank ${rank}">${String(i + 1).padStart(2, '0')}</span>
           <span class="lb-name">@${name}</span>
           <span class="lb-game">${label}</span>
-          <span class="lb-score">${r.score}</span>
+          <span class="lb-score">${score}</span>
           <span class="lb-proof-col">${proof}</span>
         </div>`;
       }).join('');
