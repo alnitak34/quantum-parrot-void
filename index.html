@@ -17,11 +17,59 @@
   <meta name="twitter:title" content="10K Quantum Parrots" />
   <meta name="twitter:description" content="Enter the void. Survive quantum dimensions. Leave an on-chain signal on Monad." />
   <meta name="twitter:image" content="https://quantumparrots.xyz/assets/og-quantum-parrots.jpg" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #050008;
+      color: #fff;
+      font-family: 'Space Mono', monospace, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      gap: 20px;
+      text-align: center;
+      padding: 24px;
+    }
+    h1 {
+      font-size: clamp(28px, 6vw, 56px);
+      letter-spacing: 0.08em;
+      color: #fff;
+    }
+    p {
+      font-size: clamp(13px, 2vw, 16px);
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.06em;
+      line-height: 1.6;
+    }
+    a.cta {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 16px 40px;
+      font-size: clamp(16px, 2.5vw, 22px);
+      letter-spacing: 0.14em;
+      color: #000;
+      background: #E8447A;
+      border: 3px solid #000;
+      box-shadow: 5px 5px 0 #000;
+      text-decoration: none;
+      transition: transform 0.14s, box-shadow 0.14s;
+    }
+    a.cta:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 7px 7px 0 #000;
+    }
+    a.cta:active {
+      transform: translate(2px, 2px);
+      box-shadow: 3px 3px 0 #000;
+    }
+  </style>
 </head>
-<body style="background:#050008;color:#fff;font-family:monospace;display:flex;align-items:center;justify-content:center;height:100vh;">
-  <a href="/game.html" style="color:#E8447A;font-size:24px;text-decoration:none;">ENTER THE VOID</a>
-  <script>
-    setTimeout(() => { window.location.href = "/game.html"; }, 500);
-  </script>
+<body>
+  <h1>10K QUANTUM PARROTS</h1>
+  <p>Survive the void. Leave an on-chain signal on Monad.</p>
+  <a class="cta" href="/game.html">ENTER THE VOID</a>
 </body>
 </html>
