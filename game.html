@@ -1,3 +1,4 @@
+<!-- FORCE-DEPLOY-20260516 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1965,7 +1966,7 @@ function drawMenuScreen(W, H, now) {
 /* ─── Draw ─────────────────────────────────── */
 function draw() {
   const W=canvas.width, H=canvas.height, now=Date.now()*0.001;
-  if (state==='menu') { drawMenuScreen(W,H,now); return; }
+  if (state==='menu') { return; }
 
   /* background */
   const dl=MODE==='dark'?getDespair():0;
