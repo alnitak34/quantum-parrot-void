@@ -554,12 +554,19 @@ let shieldSpawnTimer=0, shieldSpawnInterval=12+Math.random()*6, shieldBreakFlash
 let _currentRunId  = null;
 let _dpShown       = false;
 let _currentTxHash = null;
-const _urlPlayer   = new URLSearchParams(location.search).get('player') || null;
-function _resolvePlayer() {
-  if (_urlPlayer) return _urlPlayer;
-  return localStorage.getItem('qp_player_name') || null;
+const _urlPlayer = new URLSearchParams(location.search).get('player') || null;
+function _normalizeHandle(raw) {
+  if (!raw) return null;
+  let h = String(raw).trim().toLowerCase();
+  h = h.replace(/[^a-z0-9_]/g, '');
+  if (!h) return null;
+  return '@' + h;
 }
 
+function _resolvePlayer() {
+  const raw = _urlPlayer || localStorage.getItem('qp_player_name');
+  return _normalizeHandle(raw);
+}
 /* ─── Game state ───────────────────────────── */
 let state='menu', score=0, best=0, lastTs=null, spawnT=0, targetedT=0, graceTimer=0;
 const player = { x:0, y:0, w:PW, h:PH };
