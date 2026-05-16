@@ -388,7 +388,7 @@
     </div>
   </div>
   <p id="sm-hint">CLICK A DIMENSION TO ENTER THE VOID</p>
-  <button id="sm-exit" onclick="window.location.href='https://quantumparrots.xyz'">EXIT</button>
+  <button id="sm-exit" onclick="window.location.href='https://quantum-parrot-void.lovable.app'">EXIT</button>
 </div>
 
 <!-- Leaderboard panel -->
@@ -424,7 +424,7 @@
     <div class="dp-divider"></div>
     <button id="dp-reenter" onclick="reset()">RE-ENTER THE VOID</button>
     <button id="dp-changedim" onclick="goMenu()">CHANGE DIMENSION</button>
-    <button id="dp-exit" onclick="window.location.href='https://quantumparrots.xyz'">EXIT TO LANDING</button>
+    <button id="dp-exit" onclick="window.location.href='https://quantum-parrot-void.lovable.app'">EXIT TO LANDING</button>
   </div>
 </div>
 
@@ -1967,7 +1967,6 @@ function drawMenuScreen(W, H, now) {
 function draw() {
   const W=canvas.width, H=canvas.height, now=Date.now()*0.001;
   if (state==='menu') { return; }
-
   /* background */
   const dl=MODE==='dark'?getDespair():0;
   if (MODE==='dark') {
