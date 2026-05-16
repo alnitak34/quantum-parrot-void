@@ -2990,7 +2990,7 @@ function showDeathPanel() {
   const sig = Math.floor(score * 10);
   document.getElementById('dp-score').textContent = 'signal ' + sig + ' · ' + modeName;
   const gameUrl = window.location.href.split('?')[0];
-  const shareText = 'I survived ' + sig + ' signal in ' + modeName + '.\nRecorded in the Quantum Void.\n' + gameUrl;
+  const shareText = 'I survived ' + sig + ' signal in ' + modeName + ' on @monad mainnet. My death is recorded on-chain forever. Play: quantumparrots.xyz @the10kSquad';
   document.getElementById('dp-share').onclick = function () {
     window.open('https://x.com/intent/tweet?text=' + encodeURIComponent(shareText), '_blank');
   };
