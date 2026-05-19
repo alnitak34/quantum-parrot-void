@@ -53,6 +53,7 @@
       background: linear-gradient(180deg, rgba(2,0,8,0.72) 0%, rgba(2,0,8,0.55) 100%);
       opacity: 0; transition: opacity 0.45s ease;
     }
+    .hidden { display: none !important; }
     #start-menu-overlay.hidden { display: none; opacity: 0; }
     #start-menu-overlay.visible { opacity: 1; }
     #sm-hero {
@@ -91,10 +92,71 @@
       font-size: clamp(9px, 1.4vw, 11px); letter-spacing: 0.20em;
       color: rgba(255,255,255,0.22); text-align: center;
     }
-    #sm-signal-id span {
+    #sm-signal-id #sm-player-name {
       color: #E8447A; text-shadow: 0 0 8px rgba(232,68,122,0.6);
       letter-spacing: 0.04em;
     }
+/* Welcome handle input modes */
+    #sm-name-input-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; margin-top: 8px;
+    }
+    #sm-name-input {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff;
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(11px, 1.4vw, 13px);
+      letter-spacing: 0.08em;
+      padding: 8px 12px;
+      text-align: center;
+      width: min(260px, 80vw);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #sm-name-input:focus {
+      border-color: #E8447A;
+    }
+    #sm-name-save {
+      background: transparent;
+      border: 1.5px solid #E8447A;
+      color: #E8447A;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: clamp(10px, 1.3vw, 12px);
+      letter-spacing: 0.12em;
+      padding: 7px 18px;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+    }
+    #sm-name-save:hover {
+      background: #E8447A;
+      color: #000;
+    }
+    #sm-name-anon {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(9px, 1.1vw, 10px);
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.1em;
+      margin-top: 2px;
+    }
+    #sm-name-edit {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.4);
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      padding: 2px 8px;
+      margin-left: 6px;
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    #sm-name-edit:hover {
+      color: #fff;
+      border-color: #fff;
+    }
+
     #sm-cards {
       display: flex; gap: clamp(8px, 2vw, 18px); align-items: stretch; flex-wrap: nowrap;
     }
@@ -309,7 +371,7 @@
     }
     #dp-save:hover { background: rgba(255,255,255,0.20); }
     #dp-confirm { font-size: 10px; color: rgba(255,255,255,0.42); min-height: 14px; }
-    #dp-helper { font-size: 10px; color: rgba(255,255,255,0.22); }
+    #dp-playing-as { font-size: 10px; color: rgba(255,255,255,0.22); }
     .dp-divider { height: 1px; background: rgba(255,255,255,0.10); margin: 4px 0; }
     #dp-share {
       font-family: 'Space Mono', monospace; font-weight: 700; font-size: 11px;
@@ -362,7 +424,14 @@
     <img id="sm-hero-img" src="assets/hero-parrot.jpg" alt="" />
     <h1 id="sm-title">10K QUANTUM PARROTS</h1>
     <p id="sm-subtitle">CHOOSE YOUR DIMENSION</p>
-    <p id="sm-signal-id">SIGNAL ID &bull; <span id="sm-player-name">anonymous_parrot</span></p>
+    <p id="sm-signal-id">
+      <span id="sm-name-display" class="hidden">SIGNAL ID &bull; <span id="sm-player-name">anonymous_parrot</span> <button id="sm-name-edit" type="button">edit</button></span>
+      <span id="sm-name-input-wrap">
+        <input id="sm-name-input" type="text" placeholder="@your_x_handle" maxlength="20" autocomplete="off" />
+        <button id="sm-name-save" type="button">SAVE NAME</button>
+        <span id="sm-name-anon">or play anonymous</span>
+      </span>
+    </p>
   </div>
   <div id="sm-cards">
     <div class="sm-card" data-mode="time">
@@ -414,10 +483,7 @@
 <div id="death-panel">
   <div id="death-panel-inner">
     <div id="dp-score"></div>
-    <input id="dp-input" type="text" maxlength="30" placeholder="@yourname" autocomplete="off" spellcheck="false" />
-    <button id="dp-save" onclick="savePlayerName()">SAVE NAME</button>
-    <div id="dp-confirm"></div>
-    <div id="dp-helper">Appears on leaderboard.</div>
+    <div id="dp-playing-as"></div>
     <div class="dp-divider"></div>
     <button id="dp-share">SHARE THIS RUN ON X</button>
     <a id="dp-proof" target="_blank" rel="noopener noreferrer">VIEW ON MONADSCAN</a>
@@ -567,6 +633,52 @@ function _resolvePlayer() {
   const raw = _urlPlayer || localStorage.getItem('qp_player_name');
   return _normalizeHandle(raw);
 }
+/* ─── Welcome handle UI ─────────────────────── */
+let _welcomeUIInitialized = false;
+function _initWelcomeUI() {
+  if (_welcomeUIInitialized) return;
+  _welcomeUIInitialized = true;
+  const display    = document.getElementById('sm-name-display');
+  const inputWrap  = document.getElementById('sm-name-input-wrap');
+  const input      = document.getElementById('sm-name-input');
+  const saveBtn    = document.getElementById('sm-name-save');
+  const editBtn    = document.getElementById('sm-name-edit');
+  const nameSpan   = document.getElementById('sm-player-name');
+  if (!display || !inputWrap || !input || !saveBtn || !editBtn || !nameSpan) return;
+  saveBtn.addEventListener('click', () => {
+    const normalized = _normalizeHandle(input.value);
+    if (!normalized) { input.focus(); return; }
+    localStorage.setItem('qp_player_name', normalized);
+    _renderWelcomeUI();
+  });
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); saveBtn.click(); }
+  });
+  editBtn.addEventListener('click', () => {
+    localStorage.removeItem('qp_player_name');
+    input.value = '';
+    _renderWelcomeUI();
+    input.focus();
+  });
+  _renderWelcomeUI();
+}
+function _renderWelcomeUI() {
+  const display   = document.getElementById('sm-name-display');
+  const inputWrap = document.getElementById('sm-name-input-wrap');
+  const nameSpan  = document.getElementById('sm-player-name');
+  if (!display || !inputWrap || !nameSpan) return;
+  const current = _resolvePlayer();
+  if (current) {
+    nameSpan.textContent = current;
+    display.classList.remove('hidden');
+    inputWrap.classList.add('hidden');
+  } else {
+    nameSpan.textContent = 'anonymous_parrot';
+    display.classList.add('hidden');
+    inputWrap.classList.remove('hidden');
+  }
+}
+
 /* ─── Game state ───────────────────────────── */
 let state='menu', score=0, best=0, lastTs=null, spawnT=0, targetedT=0, graceTimer=0;
 const player = { x:0, y:0, w:PW, h:PH };
@@ -2872,8 +2984,7 @@ const _MODE_LOAD_CFG = {
 };
 
 function showMenuOverlay() {
-  const name = localStorage.getItem('qp_player_name') || '';
-  document.getElementById('sm-player-name').textContent = name.trim() || 'anonymous_parrot';
+ _initWelcomeUI();
   const ov = document.getElementById('start-menu-overlay');
   ov.classList.remove('hidden');
   requestAnimationFrame(() => requestAnimationFrame(() => ov.classList.add('visible')));
@@ -2985,12 +3096,9 @@ document.getElementById('lb-panel').addEventListener('click', e => {
 function showDeathPanel() {
   if (_dpShown) return;
   _dpShown = true;
-  const urlPlayer = new URLSearchParams(window.location.search).get('player');
-  const saved = urlPlayer ? decodeURIComponent(urlPlayer) : localStorage.getItem('qp_player_name');
-  if (saved) {
-    document.getElementById('dp-input').value = saved;
-    if (urlPlayer) savePlayerName();
-  }
+  const _currentHandle = _resolvePlayer();
+  const _playingAsEl = document.getElementById('dp-playing-as');
+  if (_playingAsEl) _playingAsEl.textContent = _currentHandle ? 'playing as ' + _currentHandle : 'playing anonymously';
   const dieColor = MODE === 'spaghetti' ? '#ff4400' : MODE === 'time' ? '#4499FF' : '#E8447A';
   document.getElementById('dp-reenter').style.background = dieColor;
   const modeName = MODE === 'dark' ? 'Dark Matter' : MODE === 'spaghetti' ? 'Spaghettification' : 'Time Dilation';
@@ -3014,7 +3122,6 @@ function showDeathPanel() {
 }
 function hideDeathPanel() {
   document.getElementById('death-panel').classList.remove('open');
-  document.getElementById('dp-confirm').textContent = '';
 }
 function savePlayerName() {
   let name = document.getElementById('dp-input').value.trim();
