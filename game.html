@@ -822,6 +822,7 @@ function goMenu() {
   stopAllContinuousSounds();
   state='menu'; MODE=null; score=0; lastTs=null; btn=null; btn2=null;
   hideDeathPanel(); _dpShown=false; _currentRunId=null;
+  if (canvas && ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   showMenuOverlay();
 }
 function reset() { startMode(MODE); }
